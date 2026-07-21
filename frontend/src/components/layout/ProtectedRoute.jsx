@@ -1,5 +1,3 @@
-const ProtectedRoute = () => {
-  return <div>ProtectedRoute</div>;
-};
+import ProtectedRoute from '../../routes/ProtectedRoute';
 
 export default ProtectedRoute;

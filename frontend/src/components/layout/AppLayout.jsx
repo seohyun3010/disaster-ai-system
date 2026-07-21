@@ -1,5 +1,3 @@
-const AppLayout = () => {
-  return <div>AppLayout</div>;
-};
+import MainLayout from '../../layouts/MainLayout';
 
-export default AppLayout;
+export default MainLayout;
