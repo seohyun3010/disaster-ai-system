@@ -1,1 +1,5 @@
-/* Shared CSS variable definitions. */
+:root {
+  --color-text: #1f2937;
+  --color-background: #ffffff;
+  --color-border: #e5e7eb;
+}

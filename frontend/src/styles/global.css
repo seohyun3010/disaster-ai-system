@@ -1,1 +1,14 @@
-/* Global style definitions. */
+@import 'tailwindcss';
+@import './variables.css';
+@import './layout.css';
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  color: var(--color-text);
+  background: var(--color-background);
+}
