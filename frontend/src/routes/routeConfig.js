@@ -2,6 +2,7 @@ export const ROUTES = {
   LOGIN: '/login',
   DASHBOARD: '/dashboard',
   CASES: '/cases',
+  APPROVAL_HISTORY: '/approval-history',
   CASE_DETAIL: '/cases/:caseId',
   AI_RESULT: '/cases/:caseId/ai-result',
   AI_ANALYSIS: '/cases/:caseId/analysis',

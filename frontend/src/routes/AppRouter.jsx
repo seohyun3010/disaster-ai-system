@@ -3,6 +3,7 @@ import MainLayout from '../layouts/MainLayout';
 import LoginPage from '../pages/LoginPage';
 import DashboardPage from '../pages/DashboardPage';
 import CaseListPage from '../pages/CaseListPage';
+import ApprovalHistoryPage from '../pages/ApprovalHistoryPage';
 import CaseDetailPage from '../pages/CaseDetailPage';
 import AiResultPage from '../pages/AiResultPage';
 import AiAnalysisPage from '../pages/AiAnalysisPage';
@@ -31,6 +32,7 @@ const AppRouter = () => {
             />
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
             <Route path={ROUTES.CASES} element={<CaseListPage />} />
+            <Route path={ROUTES.APPROVAL_HISTORY} element={<ApprovalHistoryPage />} />
             <Route path={ROUTES.CASE_DETAIL} element={<CaseDetailPage />} />
             <Route path={ROUTES.AI_RESULT} element={<AiResultPage />} />
             <Route path={ROUTES.AI_ANALYSIS} element={<AiAnalysisPage />} />
