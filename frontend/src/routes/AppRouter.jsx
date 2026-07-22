@@ -5,6 +5,12 @@ import DashboardPage from '../pages/DashboardPage';
 import CaseListPage from '../pages/CaseListPage';
 import CaseDetailPage from '../pages/CaseDetailPage';
 import AiResultPage from '../pages/AiResultPage';
+import AiAnalysisPage from '../pages/AiAnalysisPage';
+import AiReviewPage from '../pages/AiReviewPage';
+import SeverityPage from '../pages/SeverityPage';
+import SupportPage from '../pages/SupportPage';
+import FinalApprovalPage from '../pages/FinalApprovalPage';
+import ReportsPage from '../pages/ReportsPage';
 import StatisticsPage from '../pages/StatisticsPage';
 import DisasterMapPage from '../pages/DisasterMapPage';
 import ReportDetailPage from '../pages/ReportDetailPage';
@@ -27,6 +33,12 @@ const AppRouter = () => {
             <Route path={ROUTES.CASES} element={<CaseListPage />} />
             <Route path={ROUTES.CASE_DETAIL} element={<CaseDetailPage />} />
             <Route path={ROUTES.AI_RESULT} element={<AiResultPage />} />
+            <Route path={ROUTES.AI_ANALYSIS} element={<AiAnalysisPage />} />
+            <Route path={ROUTES.AI_REVIEW} element={<AiReviewPage />} />
+            <Route path={ROUTES.SEVERITY} element={<SeverityPage />} />
+            <Route path={ROUTES.SUPPORT} element={<SupportPage />} />
+            <Route path={ROUTES.FINAL_APPROVAL} element={<FinalApprovalPage />} />
+            <Route path={ROUTES.CASE_REPORTS} element={<ReportsPage />} />
             <Route path={ROUTES.STATISTICS} element={<StatisticsPage />} />
             <Route path={ROUTES.MAP} element={<DisasterMapPage />} />
             <Route path={ROUTES.REPORT_DETAIL} element={<ReportDetailPage />} />
