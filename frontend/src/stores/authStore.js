@@ -1,19 +1,40 @@
 import { create } from 'zustand';
 
-const ACCESS_TOKEN_KEY = 'accessToken';
+export const AUTH_STORAGE_KEYS = {
+  accessToken: 'disasterRecovery.accessToken',
+  user: 'disasterRecovery.user',
+};
 
-const getStoredAccessToken = () => localStorage.getItem(ACCESS_TOKEN_KEY);
+const storage = typeof window === 'undefined' ? null : window.localStorage;
+
+const getStoredAccessToken = () => storage?.getItem(AUTH_STORAGE_KEYS.accessToken) || null;
+const getStoredUser = () => {
+  try {
+    return JSON.parse(storage?.getItem(AUTH_STORAGE_KEYS.user) || 'null');
+  } catch {
+    return null;
+  }
+};
+
+const initialToken = getStoredAccessToken();
 
 export const useAuthStore = create((set) => ({
-  user: null,
-  accessToken: getStoredAccessToken(),
-  isAuthenticated: Boolean(getStoredAccessToken()),
+  user: getStoredUser(),
+  accessToken: initialToken,
+  isAuthenticated: Boolean(initialToken),
   setAuth: ({ user, accessToken }) => {
-    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    set({ user, accessToken, isAuthenticated: true });
+    if (!accessToken) throw new Error('Access Token이 없어 인증 상태를 저장할 수 없습니다.');
+    storage?.setItem(AUTH_STORAGE_KEYS.accessToken, accessToken);
+    storage?.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(user || null));
+    set({ user: user || null, accessToken, isAuthenticated: true });
+  },
+  setUser: (user) => {
+    storage?.setItem(AUTH_STORAGE_KEYS.user, JSON.stringify(user || null));
+    set({ user: user || null });
   },
   clearAuth: () => {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    storage?.removeItem(AUTH_STORAGE_KEYS.accessToken);
+    storage?.removeItem(AUTH_STORAGE_KEYS.user);
     set({ user: null, accessToken: null, isAuthenticated: false });
   },
 }));
