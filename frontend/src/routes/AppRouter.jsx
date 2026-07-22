@@ -9,7 +9,6 @@ import StatisticsPage from '../pages/StatisticsPage';
 import DisasterMapPage from '../pages/DisasterMapPage';
 import ReportDetailPage from '../pages/ReportDetailPage';
 import NotFoundPage from '../pages/NotFoundPage';
-import ProtectedRoute from './ProtectedRoute';
 import { ROUTES } from './routeConfig';
 
 const AppRouter = () => {
@@ -17,8 +16,7 @@ const AppRouter = () => {
     <BrowserRouter>
       <Routes>
         <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-        <Route element={<ProtectedRoute />}>
-          <Route element={<MainLayout />}>
+        <Route element={<MainLayout />}>
             <Route
               index
               element={<Navigate to={ROUTES.DASHBOARD} replace />}
@@ -31,7 +29,6 @@ const AppRouter = () => {
             <Route path={ROUTES.MAP} element={<DisasterMapPage />} />
             <Route path={ROUTES.REPORT_DETAIL} element={<ReportDetailPage />} />
             <Route path="*" element={<NotFoundPage />} />
-          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

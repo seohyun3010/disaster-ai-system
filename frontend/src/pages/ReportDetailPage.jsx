@@ -1,5 +1,4 @@
-const ReportDetailPage = () => {
-  return <h1>보고서 상세</h1>;
-};
-
+import { Card, PageHead } from '../components/common/Workflow';
+const sections=['피해 신고 기본정보','AI 피해판독 결과','피해등급 및 판단 근거','담당자 최종 판단 및 검토 의견','피해 심각도 및 긴급도 산정 결과','예상 지원금 산정 내역','중복 검증 결과','적용된 법정 기준','처리 및 변경 이력'];
+const ReportDetailPage=()=> <><PageHead stage={4} title="심사 보고서" description="AI 분석 결과, 담당자 판단, 산정 근거와 처리 이력을 보고서 형태로 확인합니다."/><div className="report-grid"><Card title="심사 보고서 미리보기" sub="감사 대응을 위한 판정 근거와 변경 이력 포함"><article className="paper"><h3>사유재산 피해 신고 심사 보고서</h3><p>NDMS-2026-0716-0048 · 충북 청주시 흥덕구 · 주택 침수</p>{sections.map((x,i)=><div key={x}><b>{i+1}. {x}</b><small>관련 근거, 확인 결과, 담당자 의견 요약</small></div>)}</article></Card><div><Card title="보고서 기능" sub="생성, 출력, 저장 전 검토"><div className="report-actions"><span>심사 보고서 생성<b>보고서 초안 생성 완료</b></span><span>출력 또는 저장<b>PDF 저장 가능</b></span><span>감사 대응 근거<b>판정 근거 및 이력 포함</b></span><div><button>보고서 생성</button><button>출력 / 저장</button></div></div></Card><Card title="처리 및 변경 이력" sub="감사 추적을 위한 단계별 기록" className="history">{[['09:42','피해신고 접수'],['10:18','AI 피해판독 완료'],['10:34','담당자 검토 의견 입력'],['11:05','지원금 산정 및 중복 검증'],['11:18','보고서 초안 생성']].map((x,i)=><p key={x[0]} className={i===4?'pending':''}><i/>{x[0]}<b>{x[1]}</b></p>)}</Card></div></div></>;
 export default ReportDetailPage;
