@@ -1,5 +1,12 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import { createInitialWorkflow } from '../mocks/workflow';
+
+const formatApprovedAt = () => {
+  const date = new Date();
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
 
 const updateCaseWorkflow = (state, caseId, changes) => ({
   workflows: {
@@ -11,16 +18,19 @@ const updateCaseWorkflow = (state, caseId, changes) => ({
   },
 });
 
-export const useWorkflowStore = create((set) => ({
-  workflows: {},
-  saveSeverity: (caseId, scores, reason) => set((state) =>
-    updateCaseWorkflow(state, caseId, { severityScores: scores, severityReason: reason })),
-  saveSupport: (caseId, amount, reason) => set((state) =>
-    updateCaseWorkflow(state, caseId, { supportAmount: amount, supportReason: reason })),
-  submitApproval: (caseId, approval) => set((state) =>
-    updateCaseWorkflow(state, caseId, {
-      approvalStatus: approval.status,
-      approvalReason: approval.reason,
-      approvalAmount: approval.amount,
-    })),
-}));
+export const useWorkflowStore = create(
+  persist(
+    (set) => ({
+      workflows: {},
+      saveSeverity: (caseId, scores, reason) => set((state) => updateCaseWorkflow(state, caseId, { severityScores: scores, severityReason: reason })),
+      saveSupport: (caseId, amount, reason) => set((state) => updateCaseWorkflow(state, caseId, { supportAmount: amount, supportReason: reason })),
+      submitApproval: (caseId, approval) => set((state) => updateCaseWorkflow(state, caseId, {
+        approvalStatus: approval.status,
+        approvalReason: approval.reason,
+        approvalAmount: approval.amount,
+        approvedAt: formatApprovedAt(),
+      })),
+    }),
+    { name: 'disaster-recovery.workflows', storage: createJSONStorage(() => localStorage) },
+  ),
+);
