@@ -69,6 +69,7 @@ DATABASE_URL=postgresql+psycopg://사용자명:비밀번호@호스트:5432/DB이
 
 models/ 에 모델을 작성한 뒤 아래 명령어로 실제 DB에 반영합니다.
 
+```bash
 # 변경사항 감지해서 마이그레이션 파일 생성
 alembic revision --autogenerate -m "메시지"
 
@@ -77,6 +78,7 @@ alembic upgrade head
 
 # 현재 적용된 버전 확인
 alembic current
+```
 
 ## 7. 자주 겪는 오류
 
