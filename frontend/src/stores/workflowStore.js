@@ -23,14 +23,23 @@ export const useWorkflowStore = create(
   persist(
     (set) => ({
       workflows: {},
+      deletedApprovalHistoryIds: [],
       saveSeverity: (caseId, scores, reason) => set((state) => updateCaseWorkflow(state, caseId, { severityScores: scores, severityReason: reason })),
       saveSupport: (caseId, amount, reason) => set((state) => updateCaseWorkflow(state, caseId, { supportAmount: amount, supportReason: reason })),
-      submitApproval: (caseId, approval) => set((state) => updateCaseWorkflow(state, caseId, {
-        approvalStatus: approval.status,
-        approvalReason: approval.reason,
-        approvalAmount: approval.amount,
-        approvedAt: formatApprovedAt(),
-        approvedBy: { ...getCurrentUser() },
+      submitApproval: (caseId, approval) => set((state) => ({
+        ...updateCaseWorkflow(state, caseId, {
+          approvalStatus: approval.status,
+          approvalReason: approval.reason,
+          approvalAmount: approval.amount,
+          approvedAt: formatApprovedAt(),
+          approvedBy: { ...getCurrentUser() },
+        }),
+        deletedApprovalHistoryIds: state.deletedApprovalHistoryIds.filter((id) => id !== caseId),
+      })),
+      deleteApprovalHistory: (caseId) => set((state) => ({
+        deletedApprovalHistoryIds: state.deletedApprovalHistoryIds.includes(caseId)
+          ? state.deletedApprovalHistoryIds
+          : [...state.deletedApprovalHistoryIds, caseId],
       })),
     }),
     { name: 'disaster-recovery.workflows', storage: createJSONStorage(() => localStorage) },

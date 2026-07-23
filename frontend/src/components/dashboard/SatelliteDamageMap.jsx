@@ -45,4 +45,3 @@ const SatelliteDamageMap = ({ cases }) => {
 };
 
 export default SatelliteDamageMap;
-
