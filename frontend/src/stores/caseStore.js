@@ -25,7 +25,7 @@ export const useCaseStore = create(
   persist(
     (set) => ({
       cases: CASES.map(normalizeCase),
-      addCase: ({ reporter, type, facility, location, description = '', photos = [] }) => {
+      addCase: ({ reporter, type, facility, location, description = '', photos = [], source = 'manual', externalReport = null }) => {
         const createdAt = new Date();
         let createdCase;
         set((state) => {
@@ -42,6 +42,8 @@ export const useCaseStore = create(
             damage: '확인 전',
             description: description || '공무원이 직접 등록한 재해 신고입니다.',
             photos,
+            source,
+            externalReport,
           };
           return { cases: [createdCase, ...state.cases] };
         });

@@ -10,6 +10,15 @@ const formatReviewedAt = () => {
   return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
 
+const restorePersistedAnalyses = (analyses = {}) => Object.fromEntries(
+  Object.entries(analyses).map(([caseId, analysis]) => [
+    caseId,
+    analysis.status === 'failed' && analysis.jobId
+      ? { ...analysis, status: 'queued', error: null, stage: 'Restoring mock analysis job' }
+      : analysis,
+  ]),
+);
+
 export const useAnalysisStore = create(
   persist(
     (set, get) => ({
@@ -39,6 +48,14 @@ export const useAnalysisStore = create(
       },
       submitReview: (caseId, review) => set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], reviewStatus: review.status, reviewReason: review.reason || '', reviewedGrade: review.grade || null, reviewedBy: { ...getCurrentUser() }, reviewedAt: formatReviewedAt() } } })),
     }),
-    { name: 'disaster-recovery.analyses', storage: createJSONStorage(() => localStorage) },
+    {
+      name: 'disaster-recovery.analyses',
+      storage: createJSONStorage(() => localStorage),
+      merge: (persisted, current) => ({
+        ...current,
+        ...persisted,
+        analyses: restorePersistedAnalyses(persisted?.analyses),
+      }),
+    },
   ),
 );

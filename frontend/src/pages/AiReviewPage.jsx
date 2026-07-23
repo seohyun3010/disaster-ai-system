@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AnalysisDecisionPanel from '../components/analysis/AnalysisDecisionPanel';
 import AnalysisResultCard from '../components/analysis/AnalysisResultCard';
@@ -14,6 +15,11 @@ const AiReviewPage = () => {
   const item = useCaseStore((state) => state.cases.find((entry) => entry.id === caseId));
   const analysis = useAnalysisStore((state) => state.analyses[caseId]);
   const submitReview = useAnalysisStore((state) => state.submitReview);
+  const refreshAnalysis = useAnalysisStore((state) => state.refreshAnalysis);
+
+  useEffect(() => {
+    if (analysis?.status === 'queued' || analysis?.status === 'processing') refreshAnalysis(caseId);
+  }, [analysis?.status, caseId, refreshAnalysis]);
 
   if (!item) return <div className="case-page"><section className="case-card missing-case"><h1>신고 정보를 찾을 수 없습니다</h1><button type="button" className="secondary-action" onClick={() => navigate('/cases')}>신고 목록으로</button></section></div>;
 
