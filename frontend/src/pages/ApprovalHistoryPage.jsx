@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatOfficerAffiliation, formatOfficerName, getCurrentUser } from '../mocks/currentUser';
+import { MOCK_APPROVAL_HISTORY } from '../mocks/history';
 import { DEFAULT_WORKFLOW } from '../mocks/workflow';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
@@ -13,10 +14,14 @@ const ApprovalHistoryPage = () => {
   const workflows = useWorkflowStore((state) => state.workflows);
   const [filter, setFilter] = useState('전체');
   const caseById = useMemo(() => Object.fromEntries(cases.map((item) => [item.id, item])), [cases]);
-  const allLogs = useMemo(() => Object.entries(workflows)
+  const allLogs = useMemo(() => {
+    const savedLogs = Object.entries(workflows)
     .filter(([, workflow]) => workflow.approvalStatus && workflow.approvalStatus !== DEFAULT_WORKFLOW.approvalStatus)
-    .map(([caseId, workflow]) => ({ caseId, case: caseById[caseId], status: workflow.approvalStatus, amount: workflow.approvalAmount, reason: workflow.approvalReason || '최종 처리 사유 없음', processedAt: workflow.approvedAt, officer: workflow.approvedBy }))
-    .sort((left, right) => (right.processedAt || '').localeCompare(left.processedAt || '')), [caseById, workflows]);
+    .map(([caseId, workflow]) => ({ caseId, case: caseById[caseId], status: workflow.approvalStatus, amount: workflow.approvalAmount, reason: workflow.approvalReason || '최종 처리 사유 없음', processedAt: workflow.approvedAt, officer: workflow.approvedBy }));
+    const savedIds = new Set(savedLogs.map((log) => log.caseId));
+    const mockLogs = MOCK_APPROVAL_HISTORY.filter((log) => !savedIds.has(log.caseId)).map((log) => ({ ...log, case: caseById[log.caseId] }));
+    return [...savedLogs, ...mockLogs].sort((left, right) => (right.processedAt || '').localeCompare(left.processedAt || ''));
+  }, [caseById, workflows]);
   const logs = allLogs.filter((log) => filter === '전체' || log.status === filter);
   const countByStatus = (status) => allLogs.filter((log) => log.status === status).length;
 
