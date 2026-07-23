@@ -2,6 +2,7 @@ export const ROUTES = {
   LOGIN: '/login',
   DASHBOARD: '/dashboard',
   CASES: '/cases',
+  SAFETY24_INTEGRATION: '/safety24-integration',
   APPROVAL_HISTORY: '/approval-history',
   REVIEW_HISTORY: '/review-history',
   CASE_DETAIL: '/cases/:caseId',
