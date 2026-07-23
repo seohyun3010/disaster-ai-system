@@ -16,6 +16,23 @@ export const MOCK_ANALYSIS_RESULT = {
 
 const jobs = new Map();
 
+// The analysis store is persisted in localStorage, while this mock module is
+// recreated whenever the browser reloads. Restore an existing mock job so its
+// completed result remains available to the review screen after a refresh.
+const getOrRestoreJob = (jobId) => {
+  const existing = jobs.get(jobId);
+  if (existing) return existing;
+
+  const restored = {
+    caseId: null,
+    jobId,
+    requestedAt: 'Restored mock analysis job',
+    requestedAtMs: Date.now() - 3000,
+  };
+  jobs.set(jobId, restored);
+  return restored;
+};
+
 const formatDateTime = (date) => new Intl.DateTimeFormat('ko-KR', {
   dateStyle: 'medium',
   timeStyle: 'medium',
@@ -34,7 +51,7 @@ export const createMockAnalysisJob = (caseId) => {
 };
 
 export const readMockAnalysisStatus = (jobId) => {
-  const job = jobs.get(jobId);
+  const job = getOrRestoreJob(jobId);
   if (!job) throw new Error('분석 작업을 찾을 수 없습니다.');
 
   const elapsed = Date.now() - job.requestedAtMs;
@@ -44,7 +61,7 @@ export const readMockAnalysisStatus = (jobId) => {
 };
 
 export const readMockAnalysisResult = (jobId) => {
-  const job = jobs.get(jobId);
+  const job = getOrRestoreJob(jobId);
   if (!job) throw new Error('분석 작업을 찾을 수 없습니다.');
   if (readMockAnalysisStatus(jobId).status !== 'completed') {
     throw new Error('분석이 아직 완료되지 않았습니다.');

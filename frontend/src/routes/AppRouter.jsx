@@ -3,6 +3,7 @@ import MainLayout from '../layouts/MainLayout';
 import LoginPage from '../pages/LoginPage';
 import DashboardPage from '../pages/DashboardPage';
 import CaseListPage from '../pages/CaseListPage';
+import Safety24IntegrationPage from '../pages/Safety24IntegrationPage';
 import ApprovalHistoryPage from '../pages/ApprovalHistoryPage';
 import ReviewHistoryPage from '../pages/ReviewHistoryPage';
 import CaseDetailPage from '../pages/CaseDetailPage';
@@ -33,6 +34,7 @@ const AppRouter = () => {
             />
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
             <Route path={ROUTES.CASES} element={<CaseListPage />} />
+            <Route path={ROUTES.SAFETY24_INTEGRATION} element={<Safety24IntegrationPage />} />
             <Route path={ROUTES.APPROVAL_HISTORY} element={<ApprovalHistoryPage />} />
             <Route path={ROUTES.REVIEW_HISTORY} element={<ReviewHistoryPage />} />
             <Route path={ROUTES.CASE_DETAIL} element={<CaseDetailPage />} />
