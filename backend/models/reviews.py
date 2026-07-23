@@ -1,9 +1,16 @@
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.database import Base
+
+if TYPE_CHECKING:
+    from models.case import Case
+    from models.user import User
 
 
 class Review(Base):
@@ -37,3 +44,6 @@ class Review(Base):
         DateTime,
         nullable=True,
     )
+
+    case: Mapped[Case] = relationship(back_populates="reviews")
+    reviewer: Mapped[User] = relationship(back_populates="reviews")

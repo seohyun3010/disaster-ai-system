@@ -1,9 +1,16 @@
+from __future__ import annotations
+
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, Boolean, DateTime, Float, ForeignKey, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.database import Base
+
+if TYPE_CHECKING:
+    from models.case import Case
+    from models.case_image import CaseImage
 
 
 class AIResult(Base):
@@ -49,3 +56,6 @@ class AIResult(Base):
         DateTime,
         nullable=True,
     )
+
+    case: Mapped[Case] = relationship(back_populates="ai_results")
+    image: Mapped[CaseImage] = relationship(back_populates="ai_results")
