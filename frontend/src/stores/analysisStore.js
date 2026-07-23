@@ -23,6 +23,7 @@ export const useAnalysisStore = create(
   persist(
     (set, get) => ({
       analyses: {},
+      deletedReviewHistoryIds: [],
       getAnalysis: (caseId) => get().analyses[caseId] || initialAnalysis,
       requestAnalysis: async (caseId) => {
         const current = get().analyses[caseId];
@@ -46,7 +47,15 @@ export const useAnalysisStore = create(
           set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], status: 'failed', error: error.message || '분석 상태를 확인하지 못했습니다.' } } }));
         }
       },
-      submitReview: (caseId, review) => set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], reviewStatus: review.status, reviewReason: review.reason || '', reviewedGrade: review.grade || null, reviewedBy: { ...getCurrentUser() }, reviewedAt: formatReviewedAt() } } })),
+      submitReview: (caseId, review) => set((state) => ({
+        analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], reviewStatus: review.status, reviewReason: review.reason || '', reviewedGrade: review.grade || null, reviewedBy: { ...getCurrentUser() }, reviewedAt: formatReviewedAt() } },
+        deletedReviewHistoryIds: state.deletedReviewHistoryIds.filter((id) => id !== caseId),
+      })),
+      deleteReviewHistory: (caseId) => set((state) => ({
+        deletedReviewHistoryIds: state.deletedReviewHistoryIds.includes(caseId)
+          ? state.deletedReviewHistoryIds
+          : [...state.deletedReviewHistoryIds, caseId],
+      })),
     }),
     {
       name: 'disaster-recovery.analyses',
