@@ -27,19 +27,19 @@ export const calculateExpectedSupport = () =>
   Math.round(SUPPORT_STANDARD.unitPrice * SUPPORT_STANDARD.damageRatio);
 
 export const REPORT_VERSIONS = [
-  { id: 'RPT-002', version: 'v1.1', createdAt: '2026.07.22 15:40', creator: '담당 공무원', status: '최종' },
-  { id: 'RPT-001', version: 'v1.0', createdAt: '2026.07.22 14:20', creator: 'AI 업무지원', status: '초안' },
+  { id: 'RPT-002', version: 'v1.1', createdAt: '2026.07.22 15:40', creator: formatOfficerFull(getCurrentUser()), status: '최종' },
+  { id: 'RPT-001', version: 'v1.0', createdAt: '2026.07.22 14:20', creator: formatOfficerFull(getCurrentUser()), status: '초안' },
 ];
 
 export const PROCESS_HISTORY = [
   ['2026.07.16 09:42', '신고 접수', '국민안전24 신고가 접수되었습니다.'],
   ['2026.07.16 10:05', 'AI 분석 요청', '피해 이미지 분석 작업을 요청했습니다.'],
   ['2026.07.16 10:08', 'AI 분석 완료', '피해등급 반파, 신뢰도 91.4%로 분석했습니다.'],
-  ['2026.07.16 11:15', '피해등급 승인', 'AI 추천 피해등급을 검토 승인했습니다.'],
-  ['2026.07.16 13:30', '긴급도 검토', '복구 긴급도 1순위로 검토했습니다.'],
-  ['2026.07.16 14:10', '지원금 산정', '예상 지원금을 산정했습니다.'],
-  ['2026.07.22 14:00', '최종 승인', '복구 지원 최종 승인이 완료되었습니다.'],
-  ['2026.07.22 15:40', '보고서 생성', '최종 보고서 v1.1을 생성했습니다.'],
+  ['2026.07.16 11:15', '피해등급 승인', `AI 추천 피해등급을 ${formatOfficerFull(getCurrentUser())}이 검토 승인했습니다.`],
+  ['2026.07.16 13:30', '긴급도 검토', `${formatOfficerFull(getCurrentUser())}이 복구 긴급도 1순위로 검토했습니다.`],
+  ['2026.07.16 14:10', '지원금 산정', `${formatOfficerFull(getCurrentUser())}이 예상 지원금을 산정했습니다.`],
+  ['2026.07.22 14:00', '최종 승인', `${formatOfficerFull(getCurrentUser())}이 복구 지원을 최종 승인했습니다.`],
+  ['2026.07.22 15:40', '보고서 생성', `${formatOfficerFull(getCurrentUser())}이 최종 보고서 v1.1을 생성했습니다.`],
 ];
 
 export const downloadMockReport = (report, caseId) => {
@@ -76,3 +76,4 @@ export const createInitialWorkflow = () => {
 };
 
 export const DEFAULT_WORKFLOW = createInitialWorkflow();
+import { formatOfficerFull, getCurrentUser } from './currentUser';

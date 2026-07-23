@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { createInitialWorkflow } from '../mocks/workflow';
+import { getCurrentUser } from '../mocks/currentUser';
 
 const formatApprovedAt = () => {
   const date = new Date();
@@ -29,6 +30,7 @@ export const useWorkflowStore = create(
         approvalReason: approval.reason,
         approvalAmount: approval.amount,
         approvedAt: formatApprovedAt(),
+        approvedBy: { ...getCurrentUser() },
       })),
     }),
     { name: 'disaster-recovery.workflows', storage: createJSONStorage(() => localStorage) },
