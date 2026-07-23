@@ -1,31 +1,20 @@
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useCaseStore } from '../stores/caseStore';
-import CaseProgressStepper from '../components/case/CaseProgressStepper';
+import { Card, PageHead } from '../components/common/Workflow';
 
-const CaseDetailPage = () => {
-  const { caseId } = useParams();
-  const navigate = useNavigate();
-  const cases = useCaseStore((state) => state.cases);
-  const item = cases.find((entry) => entry.id === caseId) || cases[0];
-  const photos = item?.photos || (item?.photoUrl ? [{ name: item.photoName || '현장 사진', url: item.photoUrl }] : []);
-  const [selectedPhoto, setSelectedPhoto] = useState(0);
-  const activePhoto = photos[selectedPhoto] || photos[0];
-
-  if (!item) return <p className="empty-case">신고 정보를 찾을 수 없습니다.</p>;
-
-  return <div className="case-page">
-    <header className="case-page-head detail-head"><div><p>신고 관리 / 신고 목록 / {item.id}</p><h1>재해 신고 상세</h1><span>원본 신고 정보와 피해 위치를 확인한 뒤 AI 분석을 요청합니다.</span></div><div className="detail-status"><span className={`status-badge ${item.status.replaceAll(' ', '-')}`}>{item.status}</span><span className={`urgency-badge ${item.urgency}`}>{item.urgency}</span></div></header>
-    <CaseProgressStepper />
-    <section className="case-detail-grid">
-      <article className="case-card"><div className="section-heading"><div><h2>신고 기본 정보</h2><p>신고 접수 시스템에서 수신한 원본 정보입니다.</p></div></div><dl className="case-detail-list"><div><dt>사건번호</dt><dd>{item.id}</dd></div><div><dt>신고 일시</dt><dd>{item.reportedAt}</dd></div><div><dt>신고자</dt><dd>{item.reporter}</dd></div><div><dt>재난 유형</dt><dd>{item.type}</dd></div><div><dt>시설 유형</dt><dd>{item.facility}</dd></div><div><dt>피해 등급</dt><dd>{item.damage}</dd></div><div className="full"><dt>피해 위치</dt><dd>{item.location}</dd></div></dl><div className="report-description"><h3>신고 내용</h3><p>{item.description || '등록된 신고 내용이 없습니다.'}</p></div></article>
-      <article className="case-card"><div className="section-heading"><div><h2>피해 위치</h2><p>{item.location}</p></div><span className="location-pin">위치 확인</span></div><div className="location-map"><div className="map-road road-one" /><div className="map-road road-two" /><div className="map-block block-one" /><div className="map-block block-two" /><i>●</i><b>신고 위치</b><small>지도 API 연동 영역</small></div></article>
-    </section>
-    <section className="case-detail-grid">
-      <article className="case-card"><div className="section-heading"><div><h2>원본 피해 사진</h2><p>{photos.length ? `첨부 사진 ${photos.length}장` : '첨부된 사진이 없습니다.'}</p></div>{photos.length > 0 && <span className="photo-count">{selectedPhoto + 1} / {photos.length}</span>}</div>{activePhoto ? <div className="uploaded-photo"><img src={activePhoto.url} alt={`${item.id} ${activePhoto.name}`} /><span>{activePhoto.name}</span></div> : <div className="damage-image"><div className="damage-sky" /><div className="damage-house"><i /><i /><i /></div><div className="damage-water" /><span>첨부 사진 없음</span></div>}{photos.length > 0 && <div className="photo-thumbs">{photos.map((photo, index) => <button type="button" className={index === selectedPhoto ? 'selected' : ''} onClick={() => setSelectedPhoto(index)} key={`${photo.name}-${index}`}>사진 {index + 1}</button>)}</div>}</article>
-      <article className="case-card ai-request-card"><div><p className="request-kicker">AI DAMAGE ANALYSIS</p><h2>AI 피해 분석 요청</h2><p>첨부 사진과 신고 내용을 AI 서버로 전송해 피해 영역, 등급, 중복 가능성을 분석합니다.</p><ul><li>사진 기반 피해 객체·영역 탐지</li><li>피해 등급 및 신뢰도 산출</li><li>유사 신고 중복 여부 확인</li></ul></div><button type="button" className="primary-action" onClick={() => navigate(`/cases/${item.id}/analysis`)}>AI 분석 요청</button><small>요청 후 분석 진행 상태는 AI 분석 화면에서 확인합니다.</small></article>
-    </section>
-  </div>;
-};
-
+const CaseDetailPage = () => <>
+  <PageHead stage={1} title="AI 피해조사 검토" description="신고 내역과 AI 분석 결과를 비교하여 담당자가 최종 검토합니다." badge="분석 완료" />
+  <div className="alert-strip"><b>AI 검토 결과</b><strong>피해등급 불일치 · AI 신뢰도 68% · 피해면적 차이 12% · 추가 확인 권장</strong><span>현장 확인 권고</span></div>
+  <div className="two-col">
+    <Card title="피해 신고 내역" sub="신고자가 제출한 원본 신고 정보">
+      <div className="info-grid"><span>신고번호<b>NDMS-0716-0048</b></span><span>신고자<b>김민수</b></span><span>시설유형<b>주택 / 반지하</b></span><span>신고일시<b>2026.07.16 09:42</b></span><span>위치<b>충북 청주시 흥덕구</b></span></div>
+      <div className="damage-photo"><div className="building"><i/><i/><i/><i/></div><div className="water" /></div>
+      <div className="description"><h3>신고 내용</h3><p>신고 피해등급 <b className="danger">전파</b></p><p>피해 설명 <b>주택 내부 침수 및 외부 담장 일부 파손</b></p></div>
+    </Card>
+    <Card title="AI 분석 결과" sub="YOLOv11-Seg, ConvNeXt V2, LLaVA 분석 결과">
+      <div className="ai-summary"><div className="ai-image">normal 0.92</div><dl><dt>YOLO 결과</dt><dd>건물 객체 정상 검출</dd><dt>AI 신뢰도</dt><dd>92%</dd><dt>피해면적</dt><dd>명확한 피해 영역 없음</dd></dl></div>
+      <div className="analysis-box"><h3>LLaVA 분석 근거</h3><ol><li>건물 외벽에서 균열과 붕괴 흔적이 확인되지 않습니다.</li><li>창문 및 외벽 마감재의 변형이 관찰되지 않습니다.</li><li>침수, 화재, 붕괴 등 명확한 피해 특징이 확인되지 않습니다.</li><li>현장 확인 후 최종 판단을 권장합니다.</li></ol></div>
+      <div className="verdict"><div><b>신고내역 vs AI 비교</b><p>피해등급 <em>검토 필요</em></p><p>피해위치 <em>일치</em></p></div><div><b>종합 판단</b><p>최종 판정 <strong>정상 (Level 0)</strong></p><p>신뢰도 <strong>92%</strong></p></div></div>
+    </Card>
+  </div>
+  <Card title="담당자 최종 판단" sub="AI 권고를 참고해 담당자가 최종 판단과 사유를 기록합니다." className="decision"><div><button>승인</button><button>보완 요청</button><button>현장 방문 요청</button></div><textarea placeholder="예: AI와 신고등급이 불일치하여 현장 확인 후 최종 판단 예정" /></Card>
+</>;
 export default CaseDetailPage;
