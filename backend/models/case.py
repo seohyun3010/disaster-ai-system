@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     BigInteger,
@@ -10,11 +11,22 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
-    func,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.database import Base
+
+if TYPE_CHECKING:
+    from models.ai_job import AIJob
+    from models.ai_results import AIResult
+    from models.benefit_checks import BenefitCheck
+    from models.case_image import CaseImage
+    from models.duplicate_result import DuplicateResult
+    from models.reports import Report
+    from models.reviews import Review
+    from models.severities import Severity
+    from models.subsidy import Subsidy
+    from models.user import User
 
 
 class Case(Base):
@@ -23,12 +35,12 @@ class Case(Base):
     case_id: Mapped[int] = mapped_column(
         BigInteger,
         primary_key=True,
-        autoincrement=True,
     )
 
     case_number: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
+        unique=True,
     )
 
     user_id: Mapped[int] = mapped_column(
@@ -67,15 +79,37 @@ class Case(Base):
         nullable=True,
     )
 
-    created_at: Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime | None] = mapped_column(
         DateTime,
-        nullable=False,
-        server_default=func.now(),
+        nullable=True,
     )
 
-    updated_at: Mapped[datetime] = mapped_column(
+    updated_at: Mapped[datetime | None] = mapped_column(
         DateTime,
-        nullable=False,
-        server_default=func.now(),
-        onupdate=func.now(),
+        nullable=True,
     )
+
+    user: Mapped[User] = relationship(back_populates="cases")
+    case_images: Mapped[list[CaseImage]] = relationship(back_populates="case")
+    ai_jobs: Mapped[list[AIJob]] = relationship(back_populates="case")
+    ai_results: Mapped[list[AIResult]] = relationship(back_populates="case")
+    duplicate_results: Mapped[list[DuplicateResult]] = relationship(
+        back_populates="case",
+        foreign_keys="DuplicateResult.case_id",
+    )
+    duplicate_target_results: Mapped[list[DuplicateResult]] = relationship(
+        back_populates="target_case",
+        foreign_keys="DuplicateResult.target_case_id",
+    )
+    benefit_checks: Mapped[list[BenefitCheck]] = relationship(
+        back_populates="case",
+        foreign_keys="BenefitCheck.case_id",
+    )
+    previous_benefit_checks: Mapped[list[BenefitCheck]] = relationship(
+        back_populates="previous_case",
+        foreign_keys="BenefitCheck.previous_case_id",
+    )
+    severities: Mapped[list[Severity]] = relationship(back_populates="case")
+    subsidies: Mapped[list[Subsidy]] = relationship(back_populates="case")
+    reports: Mapped[list[Report]] = relationship(back_populates="case")
+    reviews: Mapped[list[Review]] = relationship(back_populates="case")

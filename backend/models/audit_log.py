@@ -1,17 +1,20 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     BigInteger,
     DateTime,
     ForeignKey,
     String,
-    func,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.database import Base
+
+if TYPE_CHECKING:
+    from models.user import User
 
 
 class AuditLog(Base):
@@ -20,7 +23,6 @@ class AuditLog(Base):
     log_id: Mapped[int] = mapped_column(
         BigInteger,
         primary_key=True,
-        autoincrement=True,
     )
 
     user_id: Mapped[int] = mapped_column(
@@ -44,8 +46,9 @@ class AuditLog(Base):
         nullable=True,
     )
 
-    created_at: Mapped[datetime] = mapped_column(
+    created_at: Mapped[datetime | None] = mapped_column(
         DateTime,
-        nullable=False,
-        server_default=func.now(),
+        nullable=True,
     )
+
+    user: Mapped[User] = relationship(back_populates="audit_logs")
