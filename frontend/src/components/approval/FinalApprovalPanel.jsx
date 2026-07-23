@@ -4,7 +4,7 @@ import './officer.css';
 
 const ACTIONS = {
   approve: { label: '최종 승인', status: '최종 승인' },
-  modify: { label: '금액 수정 후 승인', status: '금액 수정 승인' },
+  modify: { label: '금액 수정 후 승인', status: '금액 수정 후 승인' },
   hold: { label: '보류', status: '보류' },
   reject: { label: '반려', status: '반려' },
 };

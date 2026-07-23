@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatOfficerAffiliation, formatOfficerName, getCurrentUser } from '../mocks/currentUser';
+import { MOCK_REVIEW_HISTORY } from '../mocks/history';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 
@@ -13,10 +14,14 @@ const ReviewHistoryPage = () => {
   const analyses = useAnalysisStore((state) => state.analyses);
   const [filter, setFilter] = useState('전체');
   const caseById = useMemo(() => Object.fromEntries(cases.map((item) => [item.id, item])), [cases]);
-  const allLogs = useMemo(() => Object.entries(analyses)
+  const allLogs = useMemo(() => {
+    const savedLogs = Object.entries(analyses)
     .filter(([, analysis]) => analysis.reviewStatus && analysis.reviewStatus !== '검토 전')
-    .map(([caseId, analysis]) => ({ caseId, case: caseById[caseId], status: analysis.reviewStatus, grade: analysis.reviewedGrade || analysis.result?.recommendedGrade || '-', reason: analysis.reviewReason || 'AI 추천 피해등급을 검토했습니다.', processedAt: analysis.reviewedAt || analysis.completedAt || analysis.requestedAt, officer: analysis.reviewedBy }))
-    .sort((left, right) => (right.processedAt || '').localeCompare(left.processedAt || '')), [analyses, caseById]);
+    .map(([caseId, analysis]) => ({ caseId, case: caseById[caseId], status: analysis.reviewStatus, grade: analysis.reviewedGrade || analysis.result?.recommendedGrade || '-', reason: analysis.reviewReason || 'AI 추천 피해등급을 검토했습니다.', processedAt: analysis.reviewedAt || analysis.completedAt || analysis.requestedAt, officer: analysis.reviewedBy }));
+    const savedIds = new Set(savedLogs.map((log) => log.caseId));
+    const mockLogs = MOCK_REVIEW_HISTORY.filter((log) => !savedIds.has(log.caseId)).map((log) => ({ ...log, case: caseById[log.caseId] }));
+    return [...savedLogs, ...mockLogs].sort((left, right) => (right.processedAt || '').localeCompare(left.processedAt || ''));
+  }, [analyses, caseById]);
   const logs = allLogs.filter((log) => filter === '전체' || log.status === filter);
   const countByStatus = (status) => allLogs.filter((log) => log.status === status).length;
 
