@@ -14,7 +14,7 @@ const CaseDetailPage = () => {
 
   if (!item) return <p className="empty-case">신고 정보를 찾을 수 없습니다.</p>;
 
-  return <div className="case-page">
+  return <div className="case-page case-detail-page">
     <header className="case-page-head detail-head"><div><p>신고 관리 / 신고 목록 / {item.id}</p><h1>재해 신고 상세</h1><span>원본 신고 정보와 피해 위치를 확인한 뒤 AI 분석을 요청합니다.</span></div><div className="detail-status"><span className={`status-badge ${item.status.replaceAll(' ', '-')}`}>{item.status}</span><span className={`urgency-badge ${item.urgency}`}>{item.urgency}</span></div></header>
     <CaseProgressStepper />
     <section className="case-detail-grid">
