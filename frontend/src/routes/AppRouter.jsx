@@ -4,6 +4,7 @@ import LoginPage from '../pages/LoginPage';
 import DashboardPage from '../pages/DashboardPage';
 import CaseListPage from '../pages/CaseListPage';
 import ApprovalHistoryPage from '../pages/ApprovalHistoryPage';
+import ReviewHistoryPage from '../pages/ReviewHistoryPage';
 import CaseDetailPage from '../pages/CaseDetailPage';
 import AiResultPage from '../pages/AiResultPage';
 import AiAnalysisPage from '../pages/AiAnalysisPage';
@@ -33,6 +34,7 @@ const AppRouter = () => {
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
             <Route path={ROUTES.CASES} element={<CaseListPage />} />
             <Route path={ROUTES.APPROVAL_HISTORY} element={<ApprovalHistoryPage />} />
+            <Route path={ROUTES.REVIEW_HISTORY} element={<ReviewHistoryPage />} />
             <Route path={ROUTES.CASE_DETAIL} element={<CaseDetailPage />} />
             <Route path={ROUTES.AI_RESULT} element={<AiResultPage />} />
             <Route path={ROUTES.AI_ANALYSIS} element={<AiAnalysisPage />} />
