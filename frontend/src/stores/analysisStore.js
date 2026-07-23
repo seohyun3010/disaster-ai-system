@@ -4,6 +4,7 @@ import {
   getAnalysisStatus,
   requestAnalysis,
 } from '../api/analysisApi';
+import { getCurrentUser } from '../mocks/currentUser';
 
 const initialAnalysis = {
   status: 'idle',
@@ -99,6 +100,7 @@ export const useAnalysisStore = create((set, get) => ({
         reviewStatus: review.status,
         reviewReason: review.reason || '',
         reviewedGrade: review.grade || null,
+        reviewedBy: { ...getCurrentUser() },
       },
     },
   })),

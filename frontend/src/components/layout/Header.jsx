@@ -2,13 +2,12 @@ import { useNavigate } from 'react-router-dom';
 import { logout } from '../../api/authApi';
 import { useAuthStore } from '../../stores/authStore';
 import { ROUTES } from '../../routes/routeConfig';
-
-const roleLabel = { ADMIN: '관리자', OFFICER: '담당 공무원', REVIEWER: '검토 담당자' };
+import { formatOfficerAffiliation, formatOfficerName, getCurrentUser } from '../../mocks/currentUser';
 
 const Header = () => {
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
   const clearAuth = useAuthStore((state) => state.clearAuth);
+  const user = getCurrentUser();
 
   const handleLogout = async () => {
     try {
@@ -24,8 +23,8 @@ const Header = () => {
   return <header className="app-header">
     <div className="header-title"><strong>재해복구업무관리시스템</strong><span>공무원 업무 포털</span></div>
     <div className="user-menu">
-      <div className="user-avatar" aria-hidden="true">{(user?.name || user?.id || '사').slice(0, 1)}</div>
-      <div><strong>{user?.name || user?.id || '사용자'}</strong><small>{roleLabel[user?.role] || user?.role || '담당 공무원'}</small></div>
+      <div className="user-avatar" aria-hidden="true">{user.name.slice(0, 1)}</div>
+      <div><strong>{formatOfficerName(user)}</strong><small>{formatOfficerAffiliation(user)}</small></div>
       <button type="button" onClick={handleLogout}>로그아웃</button>
     </div>
   </header>;
