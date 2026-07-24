@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import case_router, health
+from routers import external_report
 
 load_dotenv()
 
@@ -20,6 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(external_report.router)
 
 @app.get("/")
 def root():

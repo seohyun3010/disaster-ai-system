@@ -43,6 +43,12 @@ class Case(Base):
         unique=True,
     )
 
+    external_report_id: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+        unique=True,
+    )
+
     user_id: Mapped[int] = mapped_column(
         BigInteger,
         ForeignKey("users.user_id"),

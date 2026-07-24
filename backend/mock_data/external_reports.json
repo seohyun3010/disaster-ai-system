@@ -1,0 +1,26 @@
+[
+  {
+    "external_report_id": "MOCK-20260724-001",
+    "title": "집중호우로 인한 단독주택 침수 신고",
+    "description": "집중호우로 주택 1층 내부에 물이 유입되어 가재도구가 침수되었습니다.",
+    "latitude": 37.5665,
+    "longitude": 126.978,
+    "address": "서울특별시 중구 세종대로 110"
+  },
+  {
+    "external_report_id": "MOCK-20260724-002",
+    "title": "태풍으로 인한 주택 지붕 파손 신고",
+    "description": "강풍으로 주택 지붕 일부가 파손되고 빗물이 내부로 유입되었습니다.",
+    "latitude": 35.1796,
+    "longitude": 129.0756,
+    "address": "부산광역시 연제구 중앙대로 1001"
+  },
+  {
+    "external_report_id": "MOCK-20260724-003",
+    "title": "산사태로 인한 주택 외벽 파손 신고",
+    "description": "집중호우 이후 토사가 주택 외벽을 덮쳐 벽체 일부가 파손되었습니다.",
+    "latitude": 35.8714,
+    "longitude": 128.6014,
+    "address": "대구광역시 중구 공평로 88"
+  }
+]
