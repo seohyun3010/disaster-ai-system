@@ -19,6 +19,7 @@ import DisasterMapPage from '../pages/DisasterMapPage';
 import ReportDetailPage from '../pages/ReportDetailPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import ProtectedRoute from './ProtectedRoute';
+import ReviewCompletionGuard from '../components/case/ReviewCompletionGuard';
 import { ROUTES } from './routeConfig';
 
 const AppRouter = () => {
@@ -41,7 +42,7 @@ const AppRouter = () => {
             <Route path={ROUTES.AI_RESULT} element={<AiResultPage />} />
             <Route path={ROUTES.AI_ANALYSIS} element={<AiAnalysisPage />} />
             <Route path={ROUTES.AI_REVIEW} element={<AiReviewPage />} />
-            <Route path={ROUTES.SEVERITY} element={<SeverityPage />} />
+            <Route path={ROUTES.SEVERITY} element={<ReviewCompletionGuard><SeverityPage /></ReviewCompletionGuard>} />
             <Route path={ROUTES.SUPPORT} element={<SupportPage />} />
             <Route path={ROUTES.FINAL_APPROVAL} element={<FinalApprovalPage />} />
             <Route path={ROUTES.CASE_REPORTS} element={<ReportsPage />} />
