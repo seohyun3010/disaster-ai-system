@@ -4,7 +4,6 @@ import AnalysisDecisionPanel from '../components/analysis/AnalysisDecisionPanel'
 import AnalysisResultCard from '../components/analysis/AnalysisResultCard';
 import ImageComparisonViewer from '../components/analysis/ImageComparisonViewer';
 import CaseProgressStepper from '../components/case/CaseProgressStepper';
-import StageNavigation from '../components/case/StageNavigation';
 import { ReviewGuidance } from '../components/persona/ReviewGuidance';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
@@ -31,8 +30,7 @@ const AiReviewPage = () => {
     <ReviewGuidance current="AI 추천 피해등급과 판정 근거 검토" next="피해등급 처리 후 심각도·복구 긴급도 평가" caution="신뢰도만으로 승인하지 말고 원본 이미지, 오버레이, 현장 조사 결과를 함께 확인해 주세요." />
     <section className="case-card analysis-case-summary"><div><span>사건번호</span><strong>{item.id}</strong></div><div><span>jobId</span><strong>{analysis.jobId}</strong></div><div><span>검토 상태</span><strong><i className={`review-status-badge ${analysis.reviewStatus.replaceAll(' ', '-')}`}>{analysis.reviewStatus}</i></strong></div></section>
     <section className="analysis-review-grid"><ImageComparisonViewer item={item} result={analysis.result} /><AnalysisResultCard analysis={analysis} /></section>
-    <AnalysisDecisionPanel recommendedGrade={analysis.result.recommendedGrade} reviewStatus={analysis.reviewStatus} onSubmit={(review) => submitReview(caseId, review)} />
-    <StageNavigation previousPath={`/cases/${caseId}/analysis`} previousLabel="분석 상태" nextPath={`/cases/${caseId}/severity`} nextLabel="심각도·복구 긴급도" />
+    <AnalysisDecisionPanel recommendedGrade={analysis.result.recommendedGrade} reviewStatus={analysis.reviewStatus} onSubmit={(review) => submitReview(caseId, review)} onReviewApproved={() => navigate(`/cases/${caseId}/severity`)} />
   </div>;
 };
 

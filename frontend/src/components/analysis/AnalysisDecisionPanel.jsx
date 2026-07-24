@@ -1,11 +1,13 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { formatOfficerAffiliation, formatOfficerName, getCurrentUser } from '../../mocks/currentUser';
 import '../approval/officer.css';
 
 const DAMAGE_GRADES = ['전파', '반파', '부분 파손', '침수', '경미'];
 const MODE_LABELS = { approve: '승인', modify: '수정 후 승인', hold: '보류', reject: '반려' };
 
-const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit }) => {
+const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit, onReviewApproved }) => {
+  const navigate = useNavigate();
   const officer = getCurrentUser();
   const [mode, setMode] = useState(null);
   const [grade, setGrade] = useState(recommendedGrade);
@@ -34,6 +36,8 @@ const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit }) => 
     setIsSubmitting(false);
     setMode(null);
     setReason('');
+    if (mode === 'hold' || mode === 'reject') navigate('/review-history');
+    if (mode === 'approve' || mode === 'modify') onReviewApproved?.();
   };
 
   return <section className="case-card decision-panel">
