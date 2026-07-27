@@ -8,14 +8,18 @@ from routers import (
     ai_job_router,
     ai_result_router,
     auth_router,
+    benefit_checks_router,
     external_report,
-    subsidy_router, 
     report_router,
-    severity
-)
-
-
-load_dotenv() # 환경변수 불러오기 -> .env 파일 읽기 (DB 연결 정보 / 프론트엔드 주소 등)
+    review_router,
+    severity,
+    subsidy_router,
+) 
+# 환경변수 불러오기 -> .env 파일 읽기 (DB 연결 정보 / 프론트엔드 주소 등)
+# from routers import scase_router, health, subsidy_router, report_router
+# from routers import subsidy_router, report_router
+# from backend.routers import benefit_checks_router
+load_dotenv()
 
 app = FastAPI(title="재난 피해조사·지급심사 검증 플랫폼 API")
 
@@ -33,12 +37,12 @@ app.add_middleware(
 app.include_router(auth_router.router)
 app.include_router(ai_job_router.router)
 app.include_router(ai_result_router.router)
+app.include_router(review_router.router)
 app.include_router(external_report.router)
-# 라우터 등록 — ERD 확정되고 팀원별 기능 나오면 여기 계속 추가
 app.include_router(subsidy_router.router)
 app.include_router(report_router.router)
 app.include_router(severity.router)
-## Fast API가 해당 API 주소 인식
+app.include_router(benefit_checks_router.router)
 
 @app.get("/")
 def root():
