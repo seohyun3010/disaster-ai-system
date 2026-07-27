@@ -3,6 +3,12 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict
 
 
+class SubsidyUpsertRequest(BaseModel):
+    estimated_amount: Decimal | None = None
+    confirmed_amount: Decimal | None = None
+    status: str = "PENDING"
+
+
 class SubsidyResponse(BaseModel):
     subsidy_id: int
     case_id: int

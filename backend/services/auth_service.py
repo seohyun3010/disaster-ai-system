@@ -24,11 +24,17 @@ def hash_password(plain_password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    try:
+        return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    except (TypeError, ValueError):
+        # A legacy/plain-text or otherwise malformed value must fail authentication
+        # instead of turning a login attempt into a 500 response.
+        return False
 
 
 def authenticate_user(db: Session, email: str, password: str) -> User | None:
-    user = db.query(User).filter(User.email == email).first()
+    normalized_email = email.strip().lower()
+    user = db.query(User).filter(User.email == normalized_email).first()
     if user is None or not user.password:
         return None
     if not verify_password(password, user.password):
