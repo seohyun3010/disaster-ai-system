@@ -1,0 +1,115 @@
+.sidebar nav {
+  gap: 5px;
+}
+
+.sidebar-nav-group {
+  display: grid;
+}
+
+.sidebar-group-trigger {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  padding: 12px 14px;
+  color: #ccd7ee;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-group-trigger:hover,
+.sidebar-nav-group:focus-within > .sidebar-group-trigger {
+  background: rgba(61, 99, 181, .25);
+  color: #fff;
+}
+
+.sidebar-group-trigger:focus {
+  outline: none;
+}
+
+.sidebar-group-trigger:focus-visible {
+  outline: 2px solid #7aa7ff;
+  outline-offset: -2px;
+}
+
+.sidebar-chevron {
+  color: #8ea6d4;
+  font-size: 12px;
+  transition: transform .2s ease;
+}
+
+.sidebar-submenu {
+  display: grid;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height .25s ease, opacity .18s ease;
+}
+
+.sidebar-nav-group:hover .sidebar-submenu,
+.sidebar-nav-group:focus-within .sidebar-submenu,
+.sidebar-nav-group.active-group .sidebar-submenu,
+.sidebar-nav-group.manual-open .sidebar-submenu {
+  max-height: 180px;
+  opacity: 1;
+}
+
+.sidebar-nav-group:hover .sidebar-chevron,
+.sidebar-nav-group:focus-within .sidebar-chevron,
+.sidebar-nav-group.active-group .sidebar-chevron,
+.sidebar-nav-group.manual-open .sidebar-chevron {
+  transform: rotate(180deg);
+}
+
+.sidebar nav .sidebar-submenu a {
+  min-height: 37px;
+  margin-left: 12px;
+  padding: 9px 13px;
+  color: #aebfe0;
+  font-size: 12px;
+}
+
+.sidebar nav .sidebar-submenu a:hover {
+  background: rgba(61, 99, 181, .2);
+  color: #fff;
+}
+
+.sidebar nav .sidebar-submenu a.active {
+  background: linear-gradient(90deg, rgba(36, 77, 165, .92), rgba(31, 95, 211, .92));
+  color: #fff;
+}
+
+.submenu-dot {
+  width: 10px;
+  color: #6684bd;
+  text-align: center;
+}
+
+.sidebar-submenu a.active .submenu-dot {
+  color: #a9c8ff;
+}
+
+.sidebar-report-link {
+  margin-top: 5px;
+}
+
+@media (max-width: 1000px) {
+  .sidebar-group-trigger {
+    display: flex;
+    justify-content: center;
+    padding: 13px 6px;
+    font-size: 0;
+  }
+
+  .sidebar-chevron,
+  .sidebar-submenu {
+    display: none;
+  }
+}

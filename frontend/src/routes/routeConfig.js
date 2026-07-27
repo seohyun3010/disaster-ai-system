@@ -5,6 +5,7 @@ export const ROUTES = {
   SAFETY24_INTEGRATION: '/safety24-integration',
   APPROVAL_HISTORY: '/approval-history',
   REVIEW_HISTORY: '/review-history',
+  REPORT_MANAGEMENT: '/report-management',
   CASE_DETAIL: '/cases/:caseId',
   AI_RESULT: '/cases/:caseId/ai-result',
   AI_ANALYSIS: '/cases/:caseId/analysis',
