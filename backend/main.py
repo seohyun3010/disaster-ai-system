@@ -8,14 +8,18 @@ from routers import (
     ai_job_router,
     ai_result_router,
     auth_router,
+    benefit_checks_router,
     external_report,
     report_router,
     review_router,
     severity,
     subsidy_router,
-)
-
-load_dotenv()  # 환경변수 불러오기 -> .env 파일 읽기 (DB 연결 정보 / 프론트엔드 주소 등)
+) 
+# 환경변수 불러오기 -> .env 파일 읽기 (DB 연결 정보 / 프론트엔드 주소 등)
+# from routers import scase_router, health, subsidy_router, report_router
+# from routers import subsidy_router, report_router
+# from backend.routers import benefit_checks_router
+load_dotenv()
 
 app = FastAPI(title="재난 피해조사·지급심사 검증 플랫폼 API")
 
@@ -38,7 +42,7 @@ app.include_router(external_report.router)
 app.include_router(subsidy_router.router)
 app.include_router(report_router.router)
 app.include_router(severity.router)
-
+app.include_router(benefit_checks_router.router)
 
 @app.get("/")
 def root():
