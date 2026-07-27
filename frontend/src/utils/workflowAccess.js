@@ -14,15 +14,13 @@ const makeAccess = (allowed, reason, fallbackPath, fallbackLabel) => ({
 
 export const getWorkflowStageAccess = ({ caseId, stage, item, analysis, workflow }) => {
   const basePath = `/cases/${caseId}`;
-  const analysisPath = `${basePath}/analysis`;
-  const reviewPath = `${basePath}/review`;
   const severityPath = `${basePath}/severity`;
   const supportPath = `${basePath}/support`;
   const finalApprovalPath = `${basePath}/final-approval`;
   const hasCompletedAnalysis = analysis?.status === 'completed' && Boolean(analysis?.result);
   const hasApprovedReview = REVIEW_COMPLETED_STATUSES.includes(analysis?.reviewStatus);
-  const hasConfirmedSeverity = Boolean(workflow?.severityConfirmedAt);
-  const hasConfirmedSupport = Boolean(workflow?.supportConfirmedAt);
+  const hasConfirmedSeverity = Boolean(workflow?.severityConfirmed || workflow?.severityConfirmedAt);
+  const hasConfirmedSupport = Boolean(workflow?.supportConfirmed || workflow?.supportConfirmedAt);
   const hasFinalApproval = FINAL_APPROVED_STATUSES.includes(workflow?.approvalStatus);
 
   if (!item) return makeAccess(false, '신고 정보를 찾을 수 없습니다.', '/cases', '신고 목록으로');
@@ -40,7 +38,7 @@ export const getWorkflowStageAccess = ({ caseId, stage, item, analysis, workflow
     return makeAccess(
       hasCompletedAnalysis,
       'AI 분석이 완료된 뒤 피해등급을 검토할 수 있습니다.',
-      analysisPath,
+      basePath,
       'AI 분석으로',
     );
   }
@@ -49,7 +47,7 @@ export const getWorkflowStageAccess = ({ caseId, stage, item, analysis, workflow
     return makeAccess(
       hasApprovedReview,
       'AI 피해등급 검토에서 승인 또는 수정 후 승인을 먼저 완료해야 합니다.',
-      reviewPath,
+      basePath,
       '피해등급 검토로',
     );
   }

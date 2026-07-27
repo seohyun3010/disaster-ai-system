@@ -24,8 +24,13 @@ export const useWorkflowStore = create(
     (set) => ({
       workflows: {},
       deletedApprovalHistoryIds: [],
-      saveSeverity: (caseId, scores, reason) => set((state) => updateCaseWorkflow(state, caseId, { severityScores: scores, severityReason: reason })),
-      saveSupport: (caseId, amount, reason) => set((state) => updateCaseWorkflow(state, caseId, { supportAmount: amount, supportReason: reason })),
+      saveSeverity: (caseId, scores, reason) => set((state) => updateCaseWorkflow(state, caseId, {
+        severityScores: scores,
+        severityReason: reason,
+        severityConfirmed: true,
+        supportConfirmed: false,
+      })),
+      saveSupport: (caseId, amount, reason) => set((state) => updateCaseWorkflow(state, caseId, { supportAmount: amount, supportReason: reason, supportConfirmed: true })),
       submitApproval: (caseId, approval) => set((state) => ({
         ...updateCaseWorkflow(state, caseId, {
           approvalStatus: approval.status,

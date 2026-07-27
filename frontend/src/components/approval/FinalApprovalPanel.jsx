@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { formatOfficerAffiliation, formatOfficerName, getCurrentUser } from '../../mocks/currentUser';
 import './officer.css';
 
@@ -34,13 +35,13 @@ const FinalApprovalPanel = ({ amount, status, onSubmit }) => {
     <div className="officer-context"><span>현재 승인자</span><strong>{formatOfficerName(officer)}</strong><small>{formatOfficerAffiliation(officer)}</small></div>
     {message && <p className="decision-success" role="status">{message}</p>}
     <div className="approval-actions"><button type="button" className="primary-action" onClick={() => setMode('approve')}>최종 승인</button><button type="button" className="secondary-action" onClick={() => setMode('modify')}>금액 수정 후 승인</button><button type="button" className="hold-action" onClick={() => setMode('hold')}>보류</button><button type="button" className="reject-action" onClick={() => setMode('reject')}>반려</button></div>
-    {mode && <div className="case-modal-backdrop" role="presentation"><section className="case-modal decision-modal" role="dialog" aria-modal="true" aria-labelledby="approval-modal-title">
+    {mode && createPortal(<div className="case-modal-backdrop" role="presentation"><section className="case-modal decision-modal" role="dialog" aria-modal="true" aria-labelledby="approval-modal-title">
       <header><div><p>{formatOfficerAffiliation(officer)}</p><h2 id="approval-modal-title">{ACTIONS[mode].label}</h2></div><button type="button" className="modal-close" onClick={close} aria-label="닫기">×</button></header>
       <div className="modal-approver"><span>처리 담당자</span><strong>{formatOfficerName(officer)}</strong></div>
       <div className="decision-form">{mode === 'approve' ? <p className="decision-guide"><strong>{formatOfficerName(officer)}</strong> 명의로 최종 지원금 {Number(amount).toLocaleString('ko-KR')}원을 승인하시겠습니까?</p> : <>{mode === 'modify' && <label>수정 금액<input type="number" min="0" step="10000" value={editedAmount} onChange={(event) => setEditedAmount(event.target.value)} /></label>}<label>{ACTIONS[mode].label} 사유 <span className="required-mark">필수</span><textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="처리 사유를 입력해 주세요." /></label></>}</div>
       {error && <p className="form-error" role="alert">{error}</p>}
       <footer><button type="button" className="secondary-action" onClick={close} disabled={isSubmitting}>취소</button><button type="button" className="primary-action" onClick={submit} disabled={isSubmitting}>{isSubmitting ? '처리 중...' : `${formatOfficerName(officer)} 명의로 확인`}</button></footer>
-    </section></div>}
+    </section></div>, document.body)}
   </article>;
 };
 

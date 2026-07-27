@@ -9,10 +9,8 @@ const AnalysisResultCard = ({ analysis }) => {
     <p className="confidence-guide">신뢰도는 참고 지표입니다. 원본 사진, 오버레이, 현장 조사 내용과 판정 근거를 함께 확인한 뒤 최종 판단해 주세요.</p>
     <dl className="analysis-result-list">
       <div><dt>AI 판정 근거</dt><dd>{result.rationale}</dd></div>
-      <div><dt>모델 버전</dt><dd>{result.modelVersion}</dd></div>
       <div><dt>중복 검사 결과</dt><dd>{result.duplicateResult}</dd></div>
       <div><dt>분석 완료 시각</dt><dd>{analysis.completedAt}</dd></div>
-      <div><dt>jobId</dt><dd>{analysis.jobId}</dd></div>
     </dl>
   </article>;
 };

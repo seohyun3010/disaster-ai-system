@@ -67,8 +67,10 @@ export const createInitialWorkflow = () => {
   return {
     severityScores,
     severityReason: '',
+    severityConfirmed: false,
     supportAmount: calculateExpectedSupport(),
     supportReason: '',
+    supportConfirmed: false,
     approvalStatus: '승인 대기',
     approvalReason: '',
     approvalAmount: calculateExpectedSupport(),
