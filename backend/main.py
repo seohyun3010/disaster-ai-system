@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import ai_job_router, ai_result_router, auth_router, health
+from routers import ai_job_router, ai_result_router, auth_router, health, review_router
 
 load_dotenv()
 
@@ -25,7 +25,7 @@ app.include_router(health.router)
 app.include_router(auth_router.router)
 app.include_router(ai_job_router.router)
 app.include_router(ai_result_router.router)
-
+app.include_router(review_router.router)
 
 @app.get("/")
 def root():
