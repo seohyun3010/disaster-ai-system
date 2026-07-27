@@ -3,36 +3,32 @@ export const API_PATHS = {
     LOGIN: '/api/auth/login',
     LOGOUT: '/api/auth/logout',
     ME: '/api/auth/me',
+    PERMISSIONS: '/api/auth/permissions',
   },
   CASES: {
     LIST: '/api/cases',
     DETAIL: (caseId) => `/api/cases/${caseId}`,
     DUPLICATE: (caseId) => `/api/cases/${caseId}/duplicate`,
   },
-  AI: {
-    JOBS: '/api/ai/jobs',
-    RESULT: (caseId) => `/api/ai/result/${caseId}`,
+  ANALYSIS: {
+    JOBS: '/api/analysis/jobs',
+    STATUS: (jobId) => `/api/analysis/jobs/${jobId}/status`,
+    RESULT: (jobId) => `/api/analysis/jobs/${jobId}/result`,
+    CASE_RESULT: (caseId) => `/api/analysis/cases/${caseId}/result`,
+    REVIEW: (jobId) => `/api/analysis/jobs/${jobId}/review`,
   },
-  REVIEW: {
-    APPROVE: '/api/review/approve',
-    REJECT: '/api/review/reject',
-  },
-  SEVERITY: {
+  RAG: {
+    DOCUMENTS: '/api/rag/documents/search',
     CALCULATE: '/api/severity/calculate',
-    DETAIL: (caseId) => `/api/severity/${caseId}`,
+    SEVERITY: (caseId) => `/api/severity/${caseId}`,
+    POLICY_VERSIONS: '/api/rag/policies/versions',
   },
   SUBSIDY: {
     CALCULATE: '/api/subsidy/calculate',
     DUPLICATE: (caseId) => `/api/subsidy/duplicate/${caseId}`,
     CONFIRM: '/api/subsidy/confirm',
+    HISTORY: (caseId) => `/api/subsidy/${caseId}/history`,
   },
-  STATISTICS: {
-    DAMAGE: '/api/statistics/damage',
-  },
-  MAP: {
-    DISASTER: '/api/map/disaster',
-  },
-  DASHBOARD: '/api/dashboard',
   REPORT: {
     GENERATE: '/api/report/generate',
     DETAIL: (reportId) => `/api/report/${reportId}`,

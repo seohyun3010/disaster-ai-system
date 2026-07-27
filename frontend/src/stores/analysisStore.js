@@ -14,7 +14,7 @@ const restorePersistedAnalyses = (analyses = {}) => Object.fromEntries(
   Object.entries(analyses).map(([caseId, analysis]) => [
     caseId,
     analysis.status === 'failed' && analysis.jobId
-      ? { ...analysis, status: 'queued', error: null, stage: 'Restoring mock analysis job' }
+      ? { ...analysis, status: 'queued', error: null, stage: '분석 상태 다시 확인 중' }
       : analysis,
   ]),
 );

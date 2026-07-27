@@ -44,6 +44,12 @@ class User(Base):
         String(255),
         nullable=True,
     )
+    # 로그아웃 시 무효화하려면 "지금 유효한 refresh token이 뭔지"를 서버가 기억해야 함.
+    # refresh 요청이 오면 여기 저장된 값과 비교하고, 로그아웃하면 이 값을 NULL로 지움.
+    refresh_token: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
     created_at: Mapped[datetime | None] = mapped_column(
         DateTime,
         nullable=True,

@@ -10,13 +10,6 @@ export const QUERY_KEYS = {
   ai: {
     result: (caseId) => ['ai', 'result', caseId],
   },
-  statistics: {
-    damage: (params) => ['statistics', 'damage', params],
-  },
-  map: {
-    disaster: (params) => ['map', 'disaster', params],
-  },
-  dashboard: (params) => ['dashboard', params],
   report: {
     detail: (reportId) => ['report', reportId],
   },
