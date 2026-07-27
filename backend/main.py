@@ -4,11 +4,10 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-<<<<<<< HEAD
+
 from routers import external_report
-=======
 from routers import auth_router, health
->>>>>>> origin/develop
+from routers import ai_job_router, ai_result_router, auth_router, health
 
 load_dotenv()
 
@@ -24,14 +23,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-<<<<<<< HEAD
+
 app.include_router(external_report.router)
-=======
-# 라우터 등록 — ERD 확정되고 팀원별 기능 나오면 여기 계속 추가
+# 라우터 등록 - ERD 확정되고 팀원별 기능 나오면 여기 계속 추가
 app.include_router(health.router)
 app.include_router(auth_router.router)
-
->>>>>>> origin/develop
+app.include_router(ai_job_router.router)
+app.include_router(ai_result_router.router)
+app.include_router(external_report.router)
 
 @app.get("/")
 def root():
