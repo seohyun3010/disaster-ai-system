@@ -49,6 +49,11 @@ export const useAnalysisStore = create(
       submitReview: (caseId, review) => set((state) => ({
         analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], reviewStatus: review.status, reviewReason: review.reason || '', reviewedGrade: review.grade || null, reviewedBy: { ...getCurrentUser() }, reviewedAt: formatReviewedAt() } },
       })),
+      deleteAnalysis: (caseId) => set((state) => {
+        const analyses = { ...state.analyses };
+        delete analyses[caseId];
+        return { analyses };
+      }),
     }),
     {
       name: 'disaster-recovery.analyses',

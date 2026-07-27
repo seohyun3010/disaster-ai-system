@@ -1,12 +1,14 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useWorkflowStageAccess } from '../../hooks/useWorkflowStageAccess';
 
 const StageAccessGuard = ({ stage, children }) => {
   const { caseId } = useParams();
+  const { search } = useLocation();
   const navigate = useNavigate();
   const access = useWorkflowStageAccess(caseId, stage);
+  const historyReport = stage === 'reports' && new URLSearchParams(search).get('view') === 'history';
 
-  if (access.allowed) return children;
+  if (access.allowed || historyReport) return children;
 
   return <div className="case-page">
     <section className="case-card workflow-locked-card" role="alert">

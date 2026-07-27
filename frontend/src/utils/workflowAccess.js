@@ -1,5 +1,5 @@
 const REVIEW_COMPLETED_STATUSES = ['승인', '수정 승인'];
-const FINAL_APPROVED_STATUSES = ['최종 승인', '금액 수정 후 승인'];
+const FINAL_PROCESSED_STATUSES = ['최종 승인', '금액 수정 후 승인', '보류', '반려'];
 
 const hasBasicReport = (item) => Boolean(
   item?.reporter && item?.type && item?.facility && item?.location,
@@ -21,7 +21,7 @@ export const getWorkflowStageAccess = ({ caseId, stage, item, analysis, workflow
   const hasApprovedReview = REVIEW_COMPLETED_STATUSES.includes(analysis?.reviewStatus);
   const hasConfirmedSeverity = Boolean(workflow?.severityConfirmed || workflow?.severityConfirmedAt);
   const hasConfirmedSupport = Boolean(workflow?.supportConfirmed || workflow?.supportConfirmedAt);
-  const hasFinalApproval = FINAL_APPROVED_STATUSES.includes(workflow?.approvalStatus);
+  const hasFinalApproval = FINAL_PROCESSED_STATUSES.includes(workflow?.approvalStatus);
 
   if (!item) return makeAccess(false, '신고 정보를 찾을 수 없습니다.', '/cases', '신고 목록으로');
 
@@ -73,7 +73,7 @@ export const getWorkflowStageAccess = ({ caseId, stage, item, analysis, workflow
   if (stage === 'reports') {
     return makeAccess(
       hasFinalApproval,
-      '최종 승인 또는 금액 수정 후 승인 처리된 사건만 보고서를 조회할 수 있습니다.',
+      '최종 승인 처리를 완료한 사건만 보고서를 조회할 수 있습니다.',
       finalApprovalPath,
       '최종 승인으로',
     );
