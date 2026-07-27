@@ -48,7 +48,7 @@ const AppRouter = () => {
             <Route path={ROUTES.SEVERITY} element={<ReviewCompletionGuard><SeverityPage /></ReviewCompletionGuard>} />
             <Route path={ROUTES.SUPPORT} element={<StageAccessGuard stage="support"><SupportPage /></StageAccessGuard>} />
             <Route path={ROUTES.FINAL_APPROVAL} element={<SupportCompletionGuard><FinalApprovalPage /></SupportCompletionGuard>} />
-            <Route path={ROUTES.CASE_REPORTS} element={<ReportsPage />} />
+            <Route path={ROUTES.CASE_REPORTS} element={<StageAccessGuard stage="reports"><ReportsPage /></StageAccessGuard>} />
             <Route path={ROUTES.STATISTICS} element={<StatisticsPage />} />
             <Route path={ROUTES.MAP} element={<DisasterMapPage />} />
             <Route path={ROUTES.REPORT_DETAIL} element={<ReportDetailPage />} />

@@ -41,11 +41,14 @@ export const useWorkflowStore = create(
         }),
         deletedApprovalHistoryIds: state.deletedApprovalHistoryIds.filter((id) => id !== caseId),
       })),
-      deleteApprovalHistory: (caseId) => set((state) => ({
-        deletedApprovalHistoryIds: state.deletedApprovalHistoryIds.includes(caseId)
-          ? state.deletedApprovalHistoryIds
-          : [...state.deletedApprovalHistoryIds, caseId],
-      })),
+      deleteWorkflow: (caseId) => set((state) => {
+        const workflows = { ...state.workflows };
+        delete workflows[caseId];
+        return {
+          workflows,
+          deletedApprovalHistoryIds: state.deletedApprovalHistoryIds.filter((id) => id !== caseId),
+        };
+      }),
     }),
     { name: 'disaster-recovery.workflows', storage: createJSONStorage(() => localStorage) },
   ),

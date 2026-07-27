@@ -16,7 +16,7 @@ const getActiveStep = (pathname) => {
   return 0;
 };
 
-const CaseProgressStepper = ({ readOnly = false }) => {
+const CaseProgressStepper = ({ historyView = false }) => {
   const { pathname } = useLocation();
   const { caseId } = useParams();
   const navigate = useNavigate();
@@ -27,8 +27,10 @@ const CaseProgressStepper = ({ readOnly = false }) => {
     <ol>
       {STEPS.map((step, index) => {
         const state = index < activeStep ? 'completed' : index === activeStep ? 'active' : 'pending';
+        const historyDisabled = activeStep === 3 ? index !== 4 : true;
+        const target = step.segment ? `/cases/${caseId}/${step.segment}` : `/cases/${caseId}`;
         return <li key={step.label} className={state} aria-current={state === 'active' ? 'step' : undefined}>
-          <button type="button" disabled={readOnly || state === 'pending'} onClick={() => navigate(step.segment ? `/cases/${caseId}/${step.segment}` : `/cases/${caseId}`)}>
+          <button type="button" disabled={historyView ? historyDisabled : state === 'pending'} onClick={() => navigate(`${target}${historyView ? '?view=history' : ''}`)}>
             <span className="case-progress-marker" aria-hidden="true">{state === 'completed' ? '✓' : index + 1}</span>
             <span className="case-progress-label">{step.label}</span>
           </button>

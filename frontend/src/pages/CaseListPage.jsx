@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
+import { useWorkflowStore } from '../stores/workflowStore';
 
 const PAGE_SIZE = 5;
 const DISASTER_TYPES = ['집중호우', '산사태', '지진', '태풍', '낙뢰', '가뭄', '기타'];
@@ -20,6 +22,8 @@ const CaseListPage = () => {
   const addCase = useCaseStore((state) => state.addCase);
   const updateCase = useCaseStore((state) => state.updateCase);
   const deleteCase = useCaseStore((state) => state.deleteCase);
+  const deleteAnalysis = useAnalysisStore((state) => state.deleteAnalysis);
+  const deleteWorkflow = useWorkflowStore((state) => state.deleteWorkflow);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('전체');
   const [type, setType] = useState('전체');
@@ -50,7 +54,15 @@ const CaseListPage = () => {
     const payload = { reporter: form.reporter.trim(), type: form.type, facility: form.facility, location: form.location.trim(), description: form.description.trim(), photos: form.photos };
     if (isEditing) { updateCase(form.id, payload); closeForm(); } else { const created = addCase(payload); closeForm(); navigate(`/cases/${created.id}`); }
   };
-  const removeCase = (event, item) => { event.stopPropagation(); if (window.confirm(`${item.id} 신고를 삭제할까요?`)) { deleteCase(item.id); setPage(1); } };
+  const removeCase = (event, item) => {
+    event.stopPropagation();
+    if (window.confirm(`${item.id} 신고와 연결된 검토·승인 이력을 모두 삭제할까요?`)) {
+      deleteAnalysis(item.id);
+      deleteWorkflow(item.id);
+      deleteCase(item.id);
+      setPage(1);
+    }
+  };
 
   return <div className="case-page">
     <header className="case-page-head"><div><p>신고 관리 / 신고 목록</p><h1>재해 신고 목록</h1><span>접수된 재해 신고를 검색하고 처리 상태별로 관리합니다.</span></div><div className="case-page-head-actions"><button type="button" className="primary-action" onClick={openAdd}>+ 신고 추가</button></div></header>
