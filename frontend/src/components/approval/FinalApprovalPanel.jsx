@@ -31,7 +31,7 @@ const FinalApprovalPanel = ({ amount, status, onSubmit }) => {
   };
 
   return <article className="case-card final-approval-panel">
-    <div className="section-heading"><div><h2>최종 승인 처리</h2><p>전체 검토 결과를 확인한 뒤 최종 처리합니다.</p></div><span className={`approval-status-badge ${status.replaceAll(' ', '-')}`}>{status}</span></div>
+    <div className="section-heading"><div><h2>최종 승인 처리</h2></div><span className={`approval-status-badge ${status.replaceAll(' ', '-')}`}>{status}</span></div>
     <div className="officer-context"><span>현재 승인자</span><strong>{formatOfficerName(officer)}</strong><small>{formatOfficerAffiliation(officer)}</small></div>
     {message && <p className="decision-success" role="status">{message}</p>}
     <div className="approval-actions"><button type="button" className="primary-action" onClick={() => setMode('approve')}>최종 승인</button><button type="button" className="secondary-action" onClick={() => setMode('modify')}>금액 수정 후 승인</button><button type="button" className="hold-action" onClick={() => setMode('hold')}>보류</button><button type="button" className="reject-action" onClick={() => setMode('reject')}>반려</button></div>

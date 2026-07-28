@@ -53,7 +53,6 @@ const SatelliteDamageMap = ({ cases }) => {
     <div className="dashboard-card-title map-card-title">
       <div>
         <h2>신고 지역 현황</h2>
-        <p>최근 7일 · 17개 광역자치단체 기준</p>
       </div>
     </div>
 

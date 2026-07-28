@@ -31,17 +31,15 @@ const DashboardPage = () => {
     weekAgo.setDate(weekAgo.getDate() - 7);
 
     return [
-      { label: '전체 건수', value: cases.length, note: '누적 신고 기준', tone: 'default' },
+      { label: '전체 건수', value: cases.length, tone: 'default' },
       {
         label: '최근 1주일 신고건수',
         value: reportedDates.filter((date) => date >= weekAgo && date <= latestReportedAt).length,
-        note: '최근 7일 신고 기준',
         tone: 'info',
       },
       {
         label: '처리완료 건수',
         value: cases.filter((item) => ['AI 분석 완료', '처리 완료', '최종 승인'].includes(item.status)).length,
-        note: '처리 완료 상태 기준',
         tone: 'success',
       },
     ];
@@ -69,7 +67,6 @@ const DashboardPage = () => {
       <div>
         <p>업무 현황 / 신고 대시보드</p>
         <h1>신고 대시보드</h1>
-        <span>처리 상태와 우선 확인이 필요한 재해 신고를 한눈에 확인합니다.</span>
       </div>
       <button className="primary-action" onClick={() => navigate(ROUTES.CASES)}>신고 목록 보기</button>
     </header>
@@ -78,7 +75,6 @@ const DashboardPage = () => {
       {metrics.map((item) => <article key={item.label} className={`case-metric ${item.tone}`}>
         <span>{item.label}</span>
         <strong>{item.value}<small>건</small></strong>
-        <p>{item.note}</p>
       </article>)}
     </section>
 
