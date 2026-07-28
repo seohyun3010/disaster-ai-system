@@ -28,7 +28,6 @@ export const calculateExpectedSupport = () =>
 
 export const REPORT_VERSIONS = [
   { id: 'RPT-002', version: 'v1.1', createdAt: '2026.07.22 15:40', creator: formatOfficerFull(getCurrentUser()), status: '최종' },
-  { id: 'RPT-001', version: 'v1.0', createdAt: '2026.07.22 14:20', creator: formatOfficerFull(getCurrentUser()), status: '초안' },
 ];
 
 export const PROCESS_HISTORY = [
@@ -39,25 +38,34 @@ export const PROCESS_HISTORY = [
   ['2026.07.16 13:30', '긴급도 검토', `${formatOfficerFull(getCurrentUser())}이 복구 긴급도 1순위로 검토했습니다.`],
   ['2026.07.16 14:10', '지원금 산정', `${formatOfficerFull(getCurrentUser())}이 예상 지원금을 산정했습니다.`],
   ['2026.07.22 14:00', '최종 승인', `${formatOfficerFull(getCurrentUser())}이 복구 지원을 최종 승인했습니다.`],
-  ['2026.07.22 15:40', '보고서 생성', `${formatOfficerFull(getCurrentUser())}이 최종 보고서 v1.1을 생성했습니다.`],
+  ['2026.07.22 15:40', '보고서 생성', `${formatOfficerFull(getCurrentUser())}이 최종 보고서를 생성했습니다.`],
 ];
 
-export const downloadMockReport = (report, caseId) => {
+export const downloadMockReport = (report, caseId, details = {}) => {
   const content = [
     '재해복구 업무 처리 보고서',
     `사건번호: ${caseId}`,
-    `보고서 버전: ${report.version}`,
+    `보고서 상태: ${report.status}`,
+    report.status !== '최종' && report.version && `보고서 버전: ${report.version}`,
     `생성일시: ${report.createdAt}`,
     `생성자: ${report.creator}`,
-    `상태: ${report.status}`,
+    details.reporter && `신고자: ${details.reporter}`,
+    details.disasterType && `재난 유형: ${details.disasterType}`,
+    details.facility && `시설 유형: ${details.facility}`,
+    details.location && `피해 위치: ${details.location}`,
+    details.damageGrade && `최종 피해등급: ${details.damageGrade}`,
+    details.urgencyScore !== undefined && `긴급도 점수: ${details.urgencyScore}점`,
+    details.supportAmount !== undefined && `최종 지원금: ${Number(details.supportAmount).toLocaleString('ko-KR')}원`,
+    details.approvalStatus && `최종 처리 결과: ${details.approvalStatus}`,
+    details.description && `피해 내용: ${details.description}`,
     '',
-    '이 파일은 프론트엔드 화면 확인을 위한 Mock 보고서입니다.',
-  ].join('\n');
+    '본 보고서는 최종 승인된 사건 처리 내용을 기준으로 생성되었습니다.',
+  ].filter(Boolean).join('\n');
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = `${caseId}_${report.version}_report.txt`;
+  anchor.download = report.status === '최종' ? `${caseId}_final_report.txt` : `${caseId}_${report.version}_report.txt`;
   anchor.click();
   URL.revokeObjectURL(url);
 };

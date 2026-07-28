@@ -3,7 +3,7 @@ const formatCurrency = (value) => `${Number(value).toLocaleString('ko-KR')}원`;
 import { EvidencePanel, TermHelp } from '../persona/ReviewGuidance';
 
 const SupportCalculationCard = ({ item, standard, amount, reason, onAmountChange, onReasonChange, onSave, error, message }) => <article className="case-card stage-card">
-  <div className="section-heading"><div><h2>예상 지원금 산정</h2><p>피해등급과 시설 유형에 따른 Mock 계산 결과입니다.</p></div></div>
+  <div className="section-heading"><div><h2>예상 지원금 산정</h2></div></div>
   <div className="support-amount"><span>예상 지원금</span><strong>{formatCurrency(standard.unitPrice * standard.damageRatio)}</strong></div>
   <div className="calculation-flow" aria-label="지원금 계산 과정"><div><span>기준 단가</span><strong>{formatCurrency(standard.unitPrice)}</strong></div><i>×</i><div><span><TermHelp label="피해 비율">AI 분석 및 현장 조사 결과를 바탕으로 검토하는 적용 비율입니다.</TermHelp></span><strong>{standard.damageRatio * 100}%</strong></div><i>=</i><div><span>예상 지원금</span><strong>{formatCurrency(standard.unitPrice * standard.damageRatio)}</strong></div></div>
   <dl className="stage-summary-list support-details"><div><dt>피해등급</dt><dd>{item.damage}</dd></div><div><dt>시설 유형</dt><dd>{item.facility}</dd></div><div><dt>산정 기준</dt><dd>{standard.standard}</dd></div><div><dt>단가</dt><dd>{formatCurrency(standard.unitPrice)}</dd></div><div><dt>계산 과정</dt><dd>{formatCurrency(standard.unitPrice)} × 피해 비율 {standard.damageRatio * 100}%</dd></div></dl>

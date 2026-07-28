@@ -42,7 +42,7 @@ const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit, onRev
   };
 
   return <section className="case-card decision-panel">
-    <div className="section-heading"><div><h2>피해등급 검토</h2><p>AI 추천 결과를 승인하거나 수정·반려할 수 있습니다.</p></div><span className={`review-status-badge ${reviewStatus.replaceAll(' ', '-')}`}>{reviewStatus}</span></div>
+    <div className="section-heading"><div><h2>피해등급 검토</h2></div><span className={`review-status-badge ${reviewStatus.replaceAll(' ', '-')}`}>{reviewStatus}</span></div>
     {message && <p className="decision-success" role="status">{message}</p>}
     <div className="officer-context"><span>현재 검토자</span><strong>{formatOfficerName(officer)}</strong><small>{formatOfficerAffiliation(officer)}</small></div>
     <div className="decision-actions"><button type="button" className="primary-action" onClick={() => setMode('approve')}>추천 등급 승인</button><button type="button" className="secondary-action" onClick={() => setMode('modify')}>등급 수정 후 승인</button><button type="button" className="hold-action" onClick={() => setMode('hold')}>추가 확인 보류</button><button type="button" className="reject-action" onClick={() => setMode('reject')}>분석 결과 반려</button></div>

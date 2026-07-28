@@ -23,7 +23,6 @@ const DisasterTypeStatus = ({ cases }) => {
     <div className="dashboard-card-title">
       <div>
         <h2>재난 유형별 현황</h2>
-        <p>접수된 신고 데이터를 유형별로 집계합니다.</p>
       </div>
     </div>
 

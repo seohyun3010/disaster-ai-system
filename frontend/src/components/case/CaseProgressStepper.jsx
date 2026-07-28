@@ -28,9 +28,10 @@ const CaseProgressStepper = ({ historyView = false }) => {
       {STEPS.map((step, index) => {
         const state = index < activeStep ? 'completed' : index === activeStep ? 'active' : 'pending';
         const historyDisabled = activeStep === 3 ? index !== 4 : true;
+        const reportLocked = activeStep === 4;
         const target = step.segment ? `/cases/${caseId}/${step.segment}` : `/cases/${caseId}`;
         return <li key={step.label} className={state} aria-current={state === 'active' ? 'step' : undefined}>
-          <button type="button" disabled={historyView ? historyDisabled : state === 'pending'} onClick={() => navigate(`${target}${historyView ? '?view=history' : ''}`)}>
+          <button type="button" disabled={reportLocked || (historyView ? historyDisabled : state === 'pending')} onClick={() => navigate(`${target}${historyView ? '?view=history' : ''}`)}>
             <span className="case-progress-marker" aria-hidden="true">{state === 'completed' ? '✓' : index + 1}</span>
             <span className="case-progress-label">{step.label}</span>
           </button>

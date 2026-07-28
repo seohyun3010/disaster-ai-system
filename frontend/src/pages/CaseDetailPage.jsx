@@ -58,7 +58,6 @@ const CaseDetailPage = () => {
       <div>
         <p>신고 관리 / 신고 목록 / {item.id}</p>
         <h1>재해 신고 상세</h1>
-        <span>원본 피해 사진과 신고 정보를 확인한 뒤 AI 피해 분석을 진행합니다.</span>
       </div>
       <div className="detail-head-actions">
         <div className="detail-status">
@@ -77,7 +76,6 @@ const CaseDetailPage = () => {
           <div className="section-heading">
             <div>
               <h2>원본 피해 사진</h2>
-              <p>{photos.length ? `첨부 사진 ${photos.length}장` : '첨부된 사진이 없습니다.'}</p>
             </div>
             {photos.length > 0 && <span className="photo-count">{selectedPhoto + 1} / {photos.length}</span>}
           </div>
@@ -100,7 +98,7 @@ const CaseDetailPage = () => {
 
         <article className="case-card detail-info-card">
           <div className="section-heading">
-            <div><h2>신고 기본 정보</h2><p>신고 접수 시스템에서 수신한 원본 정보입니다.</p></div>
+            <div><h2>신고 기본 정보</h2></div>
           </div>
           <dl className="detail-info-tiles">
             <div><dt>사건번호</dt><dd>{item.id}</dd></div>
@@ -131,7 +129,6 @@ const CaseDetailPage = () => {
             <div>
               <p className="request-kicker">AI DAMAGE ANALYSIS</p>
               <h2>AI 피해 분석</h2>
-              <p>원본 사진과 신고 내용을 분석해 피해 영역과 예상 등급을 산출합니다.</p>
             </div>
             <span className={`analysis-state-badge ${analysis.status}`}>
               {analysis.status === 'completed' ? '분석 완료' : analysis.status === 'processing' ? '분석 중' : analysis.status === 'queued' ? '분석 대기' : '분석 전'}

@@ -1,7 +1,7 @@
 import CaseProgressStepper from './CaseProgressStepper';
 
 const CaseStageHeader = ({ item, breadcrumb, title, description, action, progressHistoryView = false }) => <>
-  <header className="case-page-head"><div><p>{breadcrumb}</p><h1>{title}</h1><span>{description}</span></div>{action}</header>
+  <header className="case-page-head"><div><p>{breadcrumb}</p><h1>{title}</h1>{description && <span>{description}</span>}</div>{action}</header>
   <CaseProgressStepper historyView={progressHistoryView} />
   <section className="case-card analysis-case-summary">
     <div><span>사건번호</span><strong>{item.id}</strong></div>
