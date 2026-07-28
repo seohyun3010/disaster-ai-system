@@ -4,8 +4,16 @@ from pydantic import BaseModel, ConfigDict
 
 
 class LoginRequest(BaseModel):
-    email: str
+    username: str
     password: str
+
+
+class UserOut(BaseModel):
+    id: int
+    name: str | None = None
+    role: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class LoginResponse(BaseModel):
@@ -14,9 +22,7 @@ class LoginResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
-    user_id: int
-    name: str | None = None
-    role: str | None = None
+    user: UserOut
 
     model_config = ConfigDict(from_attributes=True)
 

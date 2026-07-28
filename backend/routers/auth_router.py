@@ -4,15 +4,18 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from database.database import get_db
+from models.user import User
 from schemas.auth import (
     LoginRequest,
     LoginResponse,
     LogoutRequest,
     RefreshRequest,
     RefreshResponse,
+    UserOut,
 )
 from services.auth_service import (
     authenticate_user,
+    get_current_user,
     issue_tokens,
     refresh_access_token,
     revoke_refresh_token,
@@ -23,7 +26,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/login", response_model=LoginResponse, summary="로그인 (Access+Refresh Token 발급)")
 def login(payload: LoginRequest, db: Session = Depends(get_db)) -> LoginResponse:
-    user = authenticate_user(db, payload.email, payload.password)
+    user = authenticate_user(db, payload.username, payload.password)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -33,9 +36,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> LoginResponse
     return LoginResponse(
         access_token=access_token,
         refresh_token=refresh_token,
-        user_id=user.user_id,
-        name=user.name,
-        role=user.role,
+        user=UserOut(id=user.user_id, name=user.name, role=user.role),
     )
 
 
@@ -59,3 +60,12 @@ def logout(payload: LogoutRequest, db: Session = Depends(get_db)) -> dict:
             detail="유효하지 않은 요청입니다.",
         )
     return {"message": "로그아웃 되었습니다."}
+
+
+@router.get("/me", summary="현재 로그인한 사용자 정보 조회")
+def get_me(current_user: User = Depends(get_current_user)) -> dict:
+    return {
+        "id": current_user.user_id,
+        "name": current_user.name,
+        "role": current_user.role,
+    }

@@ -8,10 +8,15 @@ import os
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
+from database.database import get_db
 from models.user import User
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-secret-change-me")
 JWT_ALGORITHM = "HS256"
@@ -96,3 +101,19 @@ def revoke_refresh_token(db: Session, refresh_token: str) -> bool:
     user.refresh_token = None
     db.commit()
     return True
+
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
+    """Authorization 헤더의 Access Token으로 현재 로그인한 사용자를 알아냄."""
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="유효하지 않은 토큰입니다.")
+
+    if payload.get("type") != "access":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="유효하지 않은 토큰입니다.")
+
+    user = db.query(User).filter(User.user_id == int(payload.get("sub"))).first()
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="사용자를 찾을 수 없습니다.")
+    return user

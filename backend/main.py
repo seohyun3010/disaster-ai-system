@@ -34,7 +34,7 @@ app.add_middleware(
 )
 
 # 라우터 등록 - ERD 확정되고 팀원별 기능 나오면 여기 계속 추가
-app.include_router(auth_router.router)
+app.include_router(auth_router.router, prefix="/api")
 app.include_router(ai_job_router.router)
 app.include_router(ai_result_router.router)
 app.include_router(review_router.router)
