@@ -6,6 +6,7 @@ export const ROUTES = {
   APPROVAL_HISTORY: '/approval-history',
   REVIEW_HISTORY: '/review-history',
   REPORT_MANAGEMENT: '/report-management',
+  NOTIFICATIONS: '/notifications',
   CASE_DETAIL: '/cases/:caseId',
   AI_RESULT: '/cases/:caseId/ai-result',
   AI_ANALYSIS: '/cases/:caseId/analysis',

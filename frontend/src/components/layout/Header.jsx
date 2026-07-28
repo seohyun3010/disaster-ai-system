@@ -3,6 +3,7 @@ import { logout } from '../../api/authApi';
 import { useAuthStore } from '../../stores/authStore';
 import { ROUTES } from '../../routes/routeConfig';
 import { formatOfficerAffiliation, formatOfficerName, getCurrentUser } from '../../mocks/currentUser';
+import NotificationMenu from './NotificationMenu';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const Header = () => {
     <div className="user-menu">
       <div className="user-avatar" aria-hidden="true">{user.name.slice(0, 1)}</div>
       <div><strong>{formatOfficerName(user)}</strong><small>{formatOfficerAffiliation(user)}</small></div>
+      <NotificationMenu />
       <button type="button" onClick={handleLogout}>로그아웃</button>
     </div>
   </header>;
