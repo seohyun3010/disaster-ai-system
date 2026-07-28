@@ -7,7 +7,7 @@ import { API_PATHS } from '../constants/apiPaths';
  * true  : Mock 데이터 사용
  * false : 실제 백엔드 API 연결
  */
-const USE_AUTH_MOCK = true;
+const USE_AUTH_MOCK = false;
 
 /**
  * Mock 계정 및 응답 데이터

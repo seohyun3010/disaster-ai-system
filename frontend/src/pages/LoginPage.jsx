@@ -2,13 +2,7 @@ import { useState } from 'react';
 import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { ROUTES } from '../routes/routeConfig';
-
-/*
-TODO(BE): 로그인 API 연동 시 아래 import를 활성화합니다.
 import { getLoginPayload, login } from '../api/authApi';
-*/
-
-const DEMO_ACCOUNT = { username: 'wosks12', password: 'wosks12' };
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -21,13 +15,9 @@ const LoginPage = () => {
 
   if (isAuthenticated) return <Navigate to={ROUTES.DASHBOARD} replace />;
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
-
-    /*
-    TODO(BE): 백엔드 로그인 API가 준비되면 아래 코드로 Mock 검증 부분을 교체합니다.
-    handleSubmit 함수에 async를 추가해야 합니다.
 
     try {
       const response = await login(form);
@@ -42,21 +32,6 @@ const LoginPage = () => {
     } catch (loginError) {
       setError(loginError.message || '로그인에 실패했습니다.');
     }
-    */
-
-    // Mock 로그인: 백엔드 연동 시 이 검증부터 아래 navigate까지 제거합니다.
-    if (form.username !== DEMO_ACCOUNT.username || form.password !== DEMO_ACCOUNT.password) {
-      setError('아이디 또는 비밀번호가 올바르지 않습니다.');
-      return;
-    }
-
-    setAuth({
-      accessToken: 'demo-wosks12-access-token',
-      user: { id: 'wosks12', name: '공무원', role: 'OFFICER' },
-    });
-    const nextPath = searchParams.get('next');
-    const destination = location.state?.from?.pathname || (nextPath?.startsWith('/') ? nextPath : ROUTES.DASHBOARD);
-    navigate(destination, { replace: true });
   };
 
   return <main className="login-page">
