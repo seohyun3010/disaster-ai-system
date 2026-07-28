@@ -7,6 +7,8 @@ import PriorityReportTable from '../components/dashboard/PriorityReportTable';
 import SatelliteDamageMap from '../components/dashboard/SatelliteDamageMap';
 import '../components/dashboard/dashboard.css';
 
+const URGENCY_FALLBACK_SCORES = { 긴급: 85, 높음: 70, 보통: 50, 낮음: 30 };
+
 const DashboardPage = () => {
   const navigate = useNavigate();
   const cases = useCaseStore((state) => state.cases);
@@ -49,15 +51,10 @@ const DashboardPage = () => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return [...cases]
-      .sort((a, b) => {
-        const score = (item) => (
-          (item.urgency === '긴급' ? 4 : 0)
-          + (item.duplicate ? 3 : 0)
-          + (item.status === '검토 필요' ? 2 : 0)
-          + (item.status === 'AI 분석 완료' ? 1 : 0)
-        );
-        return score(b) - score(a);
-      })
+      .sort((a, b) => (
+        (b.urgencyScore ?? URGENCY_FALLBACK_SCORES[b.urgency] ?? 0)
+        - (a.urgencyScore ?? URGENCY_FALLBACK_SCORES[a.urgency] ?? 0)
+      ))
       .filter((item) => {
         if (statusFilter !== '전체' && item.status !== statusFilter) return false;
         if (!normalizedSearch) return true;

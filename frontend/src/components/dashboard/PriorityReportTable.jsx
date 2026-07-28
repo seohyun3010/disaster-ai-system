@@ -11,7 +11,6 @@ const PriorityReportTable = ({
   <div className="priority-report-heading">
     <div>
       <h2>우선 처리 신고</h2>
-      <p>긴급도, 중복 여부와 진행 상태를 기준으로 우선순위를 정렬합니다.</p>
     </div>
   </div>
 
@@ -42,6 +41,7 @@ const PriorityReportTable = ({
           <th>우선순위</th>
           <th>재난 유형</th>
           <th>위치</th>
+          <th>긴급도 점수</th>
           <th>우선 사유</th>
           <th>진행 상태</th>
           <th>액션</th>
@@ -54,11 +54,15 @@ const PriorityReportTable = ({
           <td><strong className="disaster-type-name">{item.type}</strong></td>
           <td>{item.location}</td>
           <td>
+            <span className={`priority-urgency urgency-${item.urgency}`}>
+              {item.urgencyScore ?? ({ 긴급: 85, 높음: 70, 보통: 50, 낮음: 30 }[item.urgency] || 0)}점
+            </span>
+          </td>
+          <td>
             <div className="priority-reasons">
-              {item.urgency === '긴급' && <span className="reason-urgent">긴급</span>}
               {item.duplicate && <span className="reason-duplicate">중복 의심</span>}
               {item.status === 'AI 분석 완료' && <span className="reason-ai">AI 분석 완료</span>}
-              {item.urgency !== '긴급' && !item.duplicate && item.status !== 'AI 분석 완료' && <span className="reason-empty">-</span>}
+              {!item.duplicate && item.status !== 'AI 분석 완료' && <span className="reason-empty">-</span>}
             </div>
           </td>
           <td><span className={`progress-badge status-${item.status.replaceAll(' ', '-')}`}>{item.status}</span></td>
