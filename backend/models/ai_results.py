@@ -59,3 +59,8 @@ class AIResult(Base):
 
     case: Mapped[Case] = relationship(back_populates="ai_results")
     image: Mapped[CaseImage] = relationship(back_populates="ai_results")
+
+    @property
+    def case_number(self) -> str | None:
+        """cases.case_number를 그대로 노출 (DB 컬럼 아님, join된 case에서 파생)."""
+        return self.case.case_number if self.case else None
