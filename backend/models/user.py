@@ -59,6 +59,8 @@ class User(Base):
         nullable=True,
     )
 
-    cases: Mapped[list[Case]] = relationship(back_populates="user")
+    cases: Mapped[list[Case]] = relationship(
+        back_populates="user", foreign_keys="Case.user_id"
+    )
     audit_logs: Mapped[list[AuditLog]] = relationship(back_populates="user")
     reviews: Mapped[list[Review]] = relationship(back_populates="reviewer")

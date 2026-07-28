@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     DateTime,
     ForeignKey,
     Numeric,
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from models.benefit_checks import BenefitCheck
     from models.case_image import CaseImage
     from models.duplicate_result import DuplicateResult
+    from models.external_report import ExternalReport
     from models.reports import Report
     from models.reviews import Review
     from models.severities import Severity
@@ -45,6 +47,7 @@ class Case(Base):
 
     external_report_id: Mapped[str | None] = mapped_column(
         String(255),
+        ForeignKey("external_reports.external_report_id"),
         nullable=True,
         unique=True,
     )
@@ -85,6 +88,13 @@ class Case(Base):
         nullable=True,
     )
 
+    duplicate_suspected: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+    priority: Mapped[str] = mapped_column(
+        String(50), nullable=False, default="NORMAL"
+    )
+
     created_at: Mapped[datetime | None] = mapped_column(
         DateTime,
         nullable=True,
@@ -95,7 +105,20 @@ class Case(Base):
         nullable=True,
     )
 
-    user: Mapped[User] = relationship(back_populates="cases")
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    assigned_user_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("users.user_id"), nullable=True
+    )
+
+    user: Mapped[User] = relationship(
+        back_populates="cases", foreign_keys=[user_id]
+    )
+    assigned_user: Mapped[User | None] = relationship(
+        foreign_keys=[assigned_user_id]
+    )
+    external_report: Mapped[ExternalReport | None] = relationship(
+        back_populates="case"
+    )
     case_images: Mapped[list[CaseImage]] = relationship(back_populates="case")
     ai_jobs: Mapped[list[AIJob]] = relationship(back_populates="case")
     ai_results: Mapped[list[AIResult]] = relationship(back_populates="case")
