@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict
 class AIResultResponse(BaseModel):
     result_id: int
     case_id: int
+    case_number: str | None = None
     image_id: int
     damage_grade: str | None = None
     confidence: float | None = None
