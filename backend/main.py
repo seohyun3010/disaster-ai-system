@@ -9,12 +9,13 @@ from routers import (
     ai_result_router,
     auth_router,
     benefit_checks_router,
+    case_router,
     external_report,
     report_router,
     review_router,
     severity,
     subsidy_router,
-) 
+)
 # 환경변수 불러오기 -> .env 파일 읽기 (DB 연결 정보 / 프론트엔드 주소 등)
 # from routers import scase_router, health, subsidy_router, report_router
 # from routers import subsidy_router, report_router
@@ -39,6 +40,7 @@ app.include_router(ai_job_router.router)
 app.include_router(ai_result_router.router)
 app.include_router(review_router.router)
 app.include_router(external_report.router)
+app.include_router(case_router.router)
 app.include_router(subsidy_router.router)
 app.include_router(report_router.router)
 app.include_router(severity.router)
