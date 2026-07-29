@@ -1,3 +1,7 @@
+/*
+ * Mock 데이터 비활성화(2026-07-29)
+ * cases API가 신고 원문을 제공하므로 원본을 삭제하지 않고 주석 처리합니다.
+ *
 import damagePhoto from '../assets/hero.png';
 
 const createPhotos = (prefix, count) => Array.from({ length: count }, (_, index) => ({
@@ -58,3 +62,7 @@ export const makeCaseFromSafety24Report = (report) => ({
     accountHolder: report.payoutAccount.accountHolder,
   },
 });
+*/
+
+export const SAFETY24_REPORTS = [];
+export const makeCaseFromSafety24Report = () => null;

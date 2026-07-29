@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from models.case import Case
 from models.user import User
@@ -75,6 +75,15 @@ def create_case(db: Session, data: CaseCreate) -> Case:
             disaster_type=data.disaster_type,
             facility_type=data.facility_type,
             address=data.address,
+            reporter_name=data.reporter_name,
+            resident_registration_number=data.resident_registration_number,
+            contact_number=data.contact_number,
+            household_members=data.household_members,
+            bank_name=data.bank_name,
+            account_number=data.account_number,
+            account_holder=data.account_holder,
+            damage_occurred_at=data.damage_occurred_at,
+            damage_details=data.damage_details,
             sido=data.sido,
             sigungu=data.sigungu,
             latitude=data.latitude,
@@ -113,6 +122,7 @@ def list_cases(
     items = list(
         db.scalars(
             select(Case)
+            .options(selectinload(Case.case_images))
             .where(*filters)
             .order_by(Case.created_at.desc(), Case.case_id.desc())
             .limit(limit)
@@ -123,4 +133,8 @@ def list_cases(
 
 
 def get_case(db: Session, case_id: int) -> Case | None:
-    return db.get(Case, case_id)
+    return db.scalar(
+        select(Case)
+        .options(selectinload(Case.case_images))
+        .where(Case.case_id == case_id)
+    )

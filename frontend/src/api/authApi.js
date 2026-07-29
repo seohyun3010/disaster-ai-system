@@ -1,33 +1,25 @@
 import axiosInstance from './axiosInstance';
 import { API_PATHS } from '../constants/apiPaths';
- 
-/**
- * 인증 API Mock 사용 여부
- *
- * true  : Mock 데이터 사용
- * false : 실제 백엔드 API 연결
- */
-const USE_AUTH_MOCK = false;
- 
-/**
- * Mock 계정 및 응답 데이터
- */
-const MOCK_USER = {
-  id: 'wosks12',
-  name: '공무원',
-  role: 'OFFICER',
-};
- 
-const MOCK_LOGIN_RESPONSE = {
-  access_token: 'mock-access-token',
-  refresh_token: 'mock-refresh-token',
-  token_type: 'bearer',
-  user_id: MOCK_USER.id,
-  name: MOCK_USER.name,
-  role: MOCK_USER.role,
-  mock: true,
-};
- 
+
+// 인증 Mock 비활성화(2026-07-29)
+// 실제 로그인 API만 사용하며 원본 Mock 설정은 삭제하지 않고 주석 처리합니다.
+//
+// const USE_AUTH_MOCK = false;
+// const MOCK_USER = {
+//   id: 'wosks12',
+//   name: '공무원',
+//   role: 'OFFICER',
+// };
+// const MOCK_LOGIN_RESPONSE = {
+//   access_token: 'mock-access-token',
+//   refresh_token: 'mock-refresh-token',
+//   token_type: 'bearer',
+//   user_id: MOCK_USER.id,
+//   name: MOCK_USER.name,
+//   role: MOCK_USER.role,
+//   mock: true,
+// };
+
 /**
  * 로그인
  *
@@ -38,13 +30,15 @@ const MOCK_LOGIN_RESPONSE = {
  * POST /api/auth/login을 호출합니다.
  */
 export const login = async (credentials) => {
+  /*
   if (USE_AUTH_MOCK) {
     return {
       ...MOCK_LOGIN_RESPONSE,
       credentials,
     };
   }
- 
+  */
+
   const response = await axiosInstance.post(
     API_PATHS.AUTH.LOGIN,
     {
@@ -66,13 +60,15 @@ export const login = async (credentials) => {
  * 실제 백엔드는 body에 refresh_token을 전달합니다.
  */
 export const logout = async (refreshToken) => {
+  /*
   if (USE_AUTH_MOCK) {
     return {
       success: true,
       mock: true,
     };
   }
- 
+  */
+
   if (!refreshToken) {
     return {
       success: true,
@@ -101,23 +97,27 @@ export const logout = async (refreshToken) => {
  * 실제 연동 모드에서도 Mock 사용자 정보를 반환합니다.
  */
 export const getMe = async () => {
+  /*
   if (USE_AUTH_MOCK) {
     return {
       ...MOCK_USER,
       mock: true,
     };
   }
- 
+  */
+
   /*
    * TODO(BE):
    * /api/auth/me 구현 완료 후 아래 Mock return을 삭제하고
    * API 호출 코드를 활성화합니다.
    */
+  /*
   return {
     ...MOCK_USER,
     mock: true,
   };
- 
+  */
+
   /*
   const response = await axiosInstance.get(API_PATHS.AUTH.ME);
  
@@ -143,6 +143,7 @@ export const getMe = async () => {
       'OFFICER',
   };
   */
+  throw new Error('Current-user API is not connected yet.');
 };
  
 /**
@@ -152,6 +153,7 @@ export const getMe = async () => {
  * 백엔드 API도 구현되지 않아 Mock을 유지합니다.
  */
 export const getMyPermissions = async () => {
+  /*
   if (USE_AUTH_MOCK) {
     return {
       role: MOCK_USER.role,
@@ -159,17 +161,20 @@ export const getMyPermissions = async () => {
       mock: true,
     };
   }
- 
+  */
+
   /*
    * TODO(BE):
    * /api/auth/permissions 구현 및 사용 시 활성화합니다.
    */
+  /*
   return {
     role: MOCK_USER.role,
     permissions: ['*'],
     mock: true,
   };
- 
+  */
+
   /*
   const response = await axiosInstance.get(
     API_PATHS.AUTH.PERMISSIONS,
@@ -177,6 +182,7 @@ export const getMyPermissions = async () => {
  
   return response.data;
   */
+  throw new Error('Permissions API is not connected yet.');
 };
  
 /**

@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from database.database import get_db
-from schemas.case import CaseCreate, CaseListResponse, CaseResponse
+from schemas.case import (
+    CaseCreate,
+    CaseDetailResponse,
+    CaseListResponse,
+    CaseResponse,
+)
 from services.case_service import (
     DuplicateCaseReportError,
     create_case,
@@ -42,7 +47,7 @@ def read_cases(
     return {"items": items, "total": total, "limit": limit, "offset": offset}
 
 
-@router.get("/{case_id}", response_model=CaseResponse)
+@router.get("/{case_id}", response_model=CaseDetailResponse)
 def read_case(case_id: int, db: Session = Depends(get_db)):
     case = get_case(db, case_id)
     if case is None:

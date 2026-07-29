@@ -1,8 +1,10 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from routers import (
     ai_job_router,
@@ -31,6 +33,14 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+uploads_directory = Path(__file__).resolve().parent / "uploads"
+uploads_directory.mkdir(parents=True, exist_ok=True)
+app.mount(
+    "/uploads",
+    StaticFiles(directory=uploads_directory),
+    name="uploads",
 )
 
 # 라우터 등록 - ERD 확정되고 팀원별 기능 나오면 여기 계속 추가
