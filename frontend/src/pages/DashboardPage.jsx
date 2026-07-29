@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DISASTER_EVENTS, isCaseInDisasterEvent } from '../mocks/disasterEvents';
 import { ROUTES } from '../routes/routeConfig';
@@ -156,21 +156,79 @@ const buildRegionCounts = (eventCases, priorities, totalCount) => {
   return counts;
 };
 
+const buildApiDisasterEvents = (cases) => {
+  const groups = new Map();
+
+  cases.forEach((item) => {
+    const reportedAt = new Date(item.reported_at || item.received_at);
+    const year = Number.isNaN(reportedAt.getTime()) ? '미상' : reportedAt.getFullYear();
+    const disasterType = item.disaster_type || item.type || 'OTHER';
+    const key = `${year}-${disasterType}`;
+    const current = groups.get(key) || {
+      id: key,
+      year,
+      name: `${year}년 ${item.type || disasterType}`,
+      period: '-',
+      filingDeadline: '-',
+      status: '진행중',
+      reportCount: 0,
+      disasterTypes: [item.type || disasterType],
+      caseIds: [],
+      dates: [],
+    };
+
+    current.caseIds.push(item.case_id);
+    current.reportCount += 1;
+    if (!Number.isNaN(reportedAt.getTime())) current.dates.push(reportedAt);
+    groups.set(key, current);
+  });
+
+  return [...groups.values()].map((event) => {
+    const dates = event.dates.sort((a, b) => a - b);
+    const format = (date) => new Intl.DateTimeFormat('ko-KR').format(date);
+    return {
+      ...event,
+      period: dates.length ? `${format(dates[0])} ~ ${format(dates.at(-1))}` : '-',
+    };
+  });
+};
+
 const DashboardPage = () => {
   const navigate = useNavigate();
   const cases = useCaseStore((state) => state.cases);
+  const fetchCases = useCaseStore((state) => state.fetchCases);
   const analyses = useAnalysisStore((state) => state.analyses);
   const workflows = useWorkflowStore((state) => state.workflows);
-  const [selectedEventId, setSelectedEventId] = useState(DISASTER_EVENTS[0].id);
+  const disasterEvents = useMemo(
+    () => DISASTER_EVENTS.length > 0 ? DISASTER_EVENTS : buildApiDisasterEvents(cases),
+    [cases],
+  );
+  const [selectedEventId, setSelectedEventId] = useState(null);
   const [regionView, setRegionView] = useState('map');
 
+  useEffect(() => {
+    fetchCases({ limit: 100, offset: 0 }).catch(() => {});
+  }, [fetchCases]);
+
   const selectedEvent = useMemo(
-    () => DISASTER_EVENTS.find((event) => event.id === selectedEventId) || DISASTER_EVENTS[0],
-    [selectedEventId],
+    () => disasterEvents.find((event) => event.id === selectedEventId) || disasterEvents[0] || {
+      id: 'empty',
+      year: '-',
+      name: '등록된 재난 없음',
+      status: '대기',
+      filingDeadline: '-',
+      reportCount: 0,
+      caseIds: [],
+      disasterTypes: [],
+    },
+    [disasterEvents, selectedEventId],
   );
 
   const eventCases = useMemo(
-    () => cases.filter((item) => isCaseInDisasterEvent(item, selectedEvent)),
+    () => cases.filter((item) => (
+      selectedEvent.caseIds?.includes(item.case_id)
+      || isCaseInDisasterEvent(item, selectedEvent)
+    )),
     [cases, selectedEvent],
   );
 
@@ -218,7 +276,7 @@ const DashboardPage = () => {
     };
   }, [eventCases, finalReports, selectedEvent]);
 
-  const ongoingEvent = DISASTER_EVENTS.find((event) => event.status === '진행중') || DISASTER_EVENTS[0];
+  const ongoingEvent = disasterEvents.find((event) => event.status === '진행중') || selectedEvent;
   const maxRegionCount = Math.max(...Object.values(dashboardData.regionCounts), 1);
 
   return (
@@ -245,7 +303,7 @@ const DashboardPage = () => {
             value={selectedEvent.id}
             onChange={(event) => setSelectedEventId(event.target.value)}
           >
-            {DISASTER_EVENTS.map((event) => (
+            {disasterEvents.map((event) => (
               <option key={event.id} value={event.id}>
                 {event.year} · {event.name}
               </option>

@@ -9,6 +9,7 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
+    Integer,
     JSON,
     Numeric,
     String,
@@ -84,6 +85,21 @@ class Case(Base):
         String(255),
         nullable=True,
     )
+    reporter_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    resident_registration_number: Mapped[str | None] = mapped_column(
+        String(20), nullable=True
+    )
+    contact_number: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    household_members: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    bank_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    account_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    account_holder: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    damage_occurred_at: Mapped[datetime | None] = mapped_column(
+        DateTime, nullable=True
+    )
+    damage_details: Mapped[list[dict[str, Any]] | None] = mapped_column(
+        JSON, nullable=True
+    )
 
     sido: Mapped[str | None] = mapped_column(String(100), nullable=True)
     sigungu: Mapped[str | None] = mapped_column(String(100), nullable=True)
@@ -147,3 +163,10 @@ class Case(Base):
     subsidies: Mapped[list[Subsidy]] = relationship(back_populates="case")
     reports: Mapped[list[Report]] = relationship(back_populates="case")
     reviews: Mapped[list[Review]] = relationship(back_populates="case")
+
+    @property
+    def representative_image_url(self) -> str | None:
+        if not self.case_images:
+            return None
+        first_image = self.case_images[0]
+        return first_image.thumbnail_url or first_image.image_url

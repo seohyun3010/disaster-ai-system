@@ -3,40 +3,76 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ANALYSIS_POLLING_INTERVAL } from '../api/analysisApi';
 import AnalysisDecisionPanel from '../components/analysis/AnalysisDecisionPanel';
 import AnalysisResultCard from '../components/analysis/AnalysisResultCard';
-import { DISASTER_EVENTS, isCaseInDisasterEvent } from '../mocks/disasterEvents';
-import { SAFETY24_REPORTS } from '../mocks/safety24Reports';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import './case-workspace.css';
 
 const EMPTY_ANALYSIS = { status: 'idle', jobId: null, result: null, reviewStatus: '검토 전' };
 
-const createReportView = (item) => {
-  const linked = SAFETY24_REPORTS.find((report) =>
-    report.applicant.name === item.reporter || report.damagePlace === item.location);
-  if (linked) return linked;
+const maskResidentNumber = (value) =>
+  value?.replace(/^(\d{6})-\d{7}$/, '$1-*******') || '******-*******';
 
-  const external = item.externalReport || {};
+const maskPhoneNumber = (value) =>
+  value?.replace(/^(\d{3})-\d{3,4}-(\d{4})$/, '$1-****-$2') || '-';
+
+const maskAccountNumber = (value) => {
+  if (!value) return '***-**-******';
+  let remainingDigits = value.replace(/\D/g, '').length - 4;
+  return [...value].map((character) => {
+    if (!/\d/.test(character) || remainingDigits <= 0) return character;
+    remainingDigits -= 1;
+    return '*';
+  }).join('');
+};
+
+const createReportView = (item) => {
+  const external = item.raw_payload || {};
   return {
-    reportId: external.reportId || item.id,
-    receivedAt: external.receivedAt || item.reportedAt,
+    reportId: item.external_report_id || item.case_number,
+    receivedAt: item.reportedAt,
     disasterType: item.type,
     facilityType: item.facility,
     applicant: {
-      name: item.reporter,
-      residentNumber: external.residentNumber || '******-*******',
-      address: external.address || item.location,
-      phone: external.phone || '-',
-      householdMembers: external.householdMembers || '-',
+      name: item.reporter_name || item.reporter,
+      residentNumber: maskResidentNumber(
+        item.resident_registration_number ||
+        external.resident_registration_number ||
+        external.resident_number,
+      ),
+      address: item.address,
+      phone: maskPhoneNumber(
+        item.contact_number || external.contact_number || external.phone,
+      ),
+      householdMembers: item.household_members || external.household_members || '-',
     },
     payoutAccount: {
-      bankName: external.bankName || '확인 전',
-      accountNumber: external.accountNumber || '***-**-******',
-      accountHolder: external.accountHolder || item.reporter,
+      bankName: item.bank_name || external.bank_name || '확인 전',
+      accountNumber: maskAccountNumber(
+        item.account_number || external.account_number,
+      ),
+      accountHolder:
+        item.account_holder ||
+        external.account_holder ||
+        item.reporter_name ||
+        item.reporter,
     },
-    damagePlace: item.location,
-    damageOccurredAt: external.damageOccurredAt || item.reportedAt,
-    damageDetails: [{ category: item.facility, value: item.description || '접수된 피해 내용을 확인해 주세요.' }],
+    damagePlace: item.address,
+    damageOccurredAt: item.damage_occurred_at
+      ? new Intl.DateTimeFormat('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).format(new Date(item.damage_occurred_at))
+      : item.reportedAt,
+    damageDetails: item.damage_details?.length
+      ? item.damage_details.map((detail) => ({
+        category: detail.category || item.facility,
+        value: [detail.quantity, detail.details].filter(Boolean).join(' · '),
+      }))
+      : [{ category: item.facility, value: item.description || '접수된 피해 내용을 확인해 주세요.' }],
     photos: item.photos || [],
   };
 };
@@ -44,7 +80,8 @@ const createReportView = (item) => {
 const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const { caseId } = useParams();
   const navigate = useNavigate();
-  const item = useCaseStore((state) => state.cases.find((entry) => entry.id === caseId));
+  const item = useCaseStore((state) =>
+    state.cases.find((entry) => entry.case_id === Number(caseId)));
   const analysis = useAnalysisStore((state) => state.analyses[caseId] || EMPTY_ANALYSIS);
   const requestAnalysis = useAnalysisStore((state) => state.requestAnalysis);
   const refreshAnalysis = useAnalysisStore((state) => state.refreshAnalysis);
@@ -62,8 +99,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
 
   if (!item || !report) return null;
   const visiblePhotoIndex = report.photos.length > 0 ? activePhotoIndex % report.photos.length : 0;
-  const disasterEvent = DISASTER_EVENTS.find((event) => isCaseInDisasterEvent(item, event));
-  const caseListPath = disasterEvent ? `/cases?event=${disasterEvent.id}` : '/cases';
+  const caseListPath = '/cases';
 
   const startAnalysis = async () => {
     navigate(`/cases/${caseId}/analysis`);

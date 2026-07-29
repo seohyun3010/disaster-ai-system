@@ -9,6 +9,13 @@ from models.ai_results import AIResult
 from models.case_image import CaseImage
 
 AI_SERVER_URL = "http://127.0.0.1:8001"
+BACKEND_DIRECTORY = Path(__file__).resolve().parent.parent
+
+
+def _resolve_image_path(image_url: str) -> Path:
+    if image_url.startswith("/uploads/"):
+        return BACKEND_DIRECTORY / image_url.removeprefix("/")
+    return Path(image_url)
 
 
 def execute_ai_job(db: Session, job_id: int) -> None:
@@ -25,7 +32,7 @@ def execute_ai_job(db: Session, job_id: int) -> None:
             raise ValueError("분석할 이미지가 없습니다")
 
         for img in images:
-            file_path = Path(img.image_url)
+            file_path = _resolve_image_path(img.image_url)
             with open(file_path, "rb") as f:
                 response = httpx.post(
                     f"{AI_SERVER_URL}/classify",

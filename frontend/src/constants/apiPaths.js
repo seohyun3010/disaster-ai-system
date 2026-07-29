@@ -6,9 +6,9 @@ export const API_PATHS = {
     PERMISSIONS: '/api/auth/permissions',
   },
   CASES: {
-    LIST: '/api/cases',
-    DETAIL: (caseId) => `/api/cases/${caseId}`,
-    DUPLICATE: (caseId) => `/api/cases/${caseId}/duplicate`,
+    LIST: '/cases',
+    DETAIL: (caseId) => `/cases/${caseId}`,
+    DUPLICATE: (caseId) => `/cases/${caseId}/duplicate`,
   },
   ANALYSIS: {
     JOBS: '/api/analysis/jobs',

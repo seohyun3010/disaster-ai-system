@@ -1,5 +1,5 @@
+import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { DISASTER_EVENTS, isCaseInDisasterEvent } from '../mocks/disasterEvents';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
@@ -23,11 +23,14 @@ const CaseWorkflowLayout = () => {
   const { caseId } = useParams();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const item = useCaseStore((state) => state.cases.find((entry) => entry.id === caseId));
+  const item = useCaseStore((state) =>
+    state.cases.find((entry) => entry.case_id === Number(caseId)));
+  const loading = useCaseStore((state) => state.loading);
+  const error = useCaseStore((state) => state.error);
+  const fetchCaseDetail = useCaseStore((state) => state.fetchCaseDetail);
   const analysis = useAnalysisStore((state) => state.analyses[caseId]);
   const workflow = useWorkflowStore((state) => state.workflows[caseId]);
-  const disasterEvent = DISASTER_EVENTS.find((event) => item && isCaseInDisasterEvent(item, event));
-  const listPath = disasterEvent ? `/cases?event=${disasterEvent.id}` : '/cases';
+  const listPath = '/cases';
   const activeIndex = getActiveIndex(pathname);
   const reviewCompleted = ['승인', '수정 승인'].includes(analysis?.reviewStatus)
     || (analysis?.reviewStatus === '보류' && analysis?.holdFieldVerified);
@@ -49,9 +52,13 @@ const CaseWorkflowLayout = () => {
     approvalCompleted,
   ];
 
+  useEffect(() => {
+    if (!item?.isDetail) fetchCaseDetail(caseId).catch(() => {});
+  }, [caseId, fetchCaseDetail, item?.isDetail]);
+
   if (!item) {
     return <div className="case-workflow-missing">
-      <h1>신고 정보를 찾을 수 없습니다.</h1>
+      <h1>{loading ? '신고 정보를 불러오는 중입니다.' : error || '신고 정보를 찾을 수 없습니다.'}</h1>
       <button type="button" className="primary-action" onClick={() => navigate('/cases')}>신고 목록으로</button>
     </div>;
   }
@@ -60,12 +67,11 @@ const CaseWorkflowLayout = () => {
     <header className="case-workflow-head">
       <div>
         <button type="button" onClick={() => navigate(listPath)}>← 신고 목록</button>
-        <h1>{item.id}</h1>
+        <h1>{item.case_number}</h1>
       </div>
       <dl>
-        {disasterEvent && <div><dt>선택 재난</dt><dd>{disasterEvent.name}</dd></div>}
         <div><dt>신고자</dt><dd>{item.reporter}</dd></div>
-        <div><dt>피해 위치</dt><dd>{item.location}</dd></div>
+        <div><dt>피해 위치</dt><dd>{item.address}</dd></div>
       </dl>
     </header>
 

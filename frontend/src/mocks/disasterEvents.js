@@ -1,3 +1,7 @@
+/*
+ * Mock 데이터 비활성화(2026-07-29)
+ * 실제 재난 이벤트 API 연동 전 원본 보존을 위해 삭제하지 않고 주석 처리합니다.
+ *
 export const DISASTER_EVENTS = [
   {
     id: 'rain-2026-0717',
@@ -92,3 +96,7 @@ export const isCaseInDisasterEvent = (item, event) => {
   if (Array.isArray(event.caseIds)) return event.caseIds.includes(item.id);
   return event.disasterTypes.includes(item.type);
 };
+*/
+
+export const DISASTER_EVENTS = [];
+export const isCaseInDisasterEvent = () => false;

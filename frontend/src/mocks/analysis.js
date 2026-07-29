@@ -1,3 +1,7 @@
+/*
+ * Mock 데이터 비활성화(2026-07-29)
+ * 실제 AI API 연동 전 원본 보존을 위해 삭제하지 않고 주석 처리합니다.
+ *
 export const MOCK_ANALYSIS_RESULT = {
   recommendedGrade: '반파',
   damageRatio: 48,
@@ -71,3 +75,14 @@ export const readMockAnalysisResult = (jobId) => {
     completedAt: formatDateTime(new Date(job.requestedAtMs + 3000)),
   };
 };
+*/
+
+export const MOCK_ANALYSIS_RESULT = null;
+export const createMockAnalysisJob = () => {
+  throw new Error('Mock AI analysis is disabled.');
+};
+export const readMockAnalysisStatus = () => ({
+  status: 'failed',
+  stage: 'Mock AI analysis is disabled.',
+});
+export const readMockAnalysisResult = () => null;

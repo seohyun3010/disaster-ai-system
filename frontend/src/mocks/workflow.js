@@ -1,3 +1,7 @@
+/*
+ * Mock 데이터 비활성화(2026-07-29)
+ * 실제 심사·지원금·보고서 API 연동 전 원본 보존을 위해 주석 처리합니다.
+ *
 export const SEVERITY_FACTORS = [
   { key: 'damageScale', label: '피해 규모', aiScore: 22, maxScore: 25 },
   { key: 'facilityImportance', label: '시설 중요도', aiScore: 18, maxScore: 20 },
@@ -90,3 +94,27 @@ export const createInitialWorkflow = () => {
 
 export const DEFAULT_WORKFLOW = createInitialWorkflow();
 import { formatOfficerFull, getCurrentUser } from './currentUser';
+*/
+
+export const SEVERITY_FACTORS = [];
+export const calculateSeverityTotal = () => 0;
+export const getUrgencyGrade = () => '';
+export const SUPPORT_STANDARD = { standard: '', duplicateResult: '' };
+export const calculateExpectedSupport = () => 0;
+export const REPORT_VERSIONS = [];
+export const PROCESS_HISTORY = [];
+export const downloadMockReport = () => {
+  throw new Error('Mock report download is disabled.');
+};
+export const createInitialWorkflow = () => ({
+  severityScores: {},
+  severityReason: '',
+  severityConfirmed: false,
+  supportAmount: 0,
+  supportReason: '',
+  supportConfirmed: false,
+  approvalStatus: '',
+  approvalReason: '',
+  approvalAmount: 0,
+});
+export const DEFAULT_WORKFLOW = createInitialWorkflow();
