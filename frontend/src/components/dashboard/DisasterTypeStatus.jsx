@@ -1,11 +1,11 @@
 const TYPE_META = {
-  집중호우: { color: '#2563eb', soft: '#eaf2ff', icon: '☔' },
-  산사태: { color: '#f97316', soft: '#fff1e7', icon: '▲' },
-  태풍: { color: '#7c3aed', soft: '#f2ebff', icon: '🌀' },
-  지진: { color: '#ef4444', soft: '#feeceb', icon: '⌁' },
-  폭설: { color: '#0ea5e9', soft: '#e8f7fd', icon: '❄' },
-  화재: { color: '#dc2626', soft: '#fee9e7', icon: '●' },
-  기타: { color: '#64748b', soft: '#eef2f6', icon: '＋' },
+  집중호우: { icon: '☔' },
+  산사태: { icon: '▲' },
+  태풍: { icon: '🌀' },
+  지진: { icon: '⌁' },
+  폭설: { icon: '❄' },
+  화재: { icon: '●' },
+  기타: { icon: '＋' },
 };
 
 const DisasterTypeStatus = ({ cases }) => {
@@ -32,12 +32,12 @@ const DisasterTypeStatus = ({ cases }) => {
         const ratio = cases.length ? Math.round((count / cases.length) * 100) : 0;
 
         return <div className="disaster-type-row" key={type}>
-          <span className="disaster-type-icon" style={{ color: meta.color, background: meta.soft }}>{meta.icon}</span>
+          <span className="disaster-type-icon">{meta.icon}</span>
           <div>
             <strong>{type}</strong>
-            <span><i style={{ width: `${ratio}%`, background: meta.color }} /></span>
+            <span><i style={{ width: `${ratio}%` }} /></span>
           </div>
-          <b style={{ color: meta.color }}>{count}<small>건</small></b>
+          <b>{count}<small>건</small></b>
         </div>;
       })}
     </div>

@@ -1,13 +1,13 @@
 import { Outlet } from 'react-router-dom';
-import Sidebar from '../components/layout/Sidebar';
 import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
 
 const MainLayout = () => (
   <div className="app-layout">
-    <Sidebar />
     <div className="app-content">
       <Header />
       <main className="workspace"><Outlet /></main>
+      <Footer />
     </div>
   </div>
 );

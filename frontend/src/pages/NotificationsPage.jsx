@@ -30,7 +30,6 @@ const NotificationsPage = () => {
         <div>
           <p>업무 알림</p>
           <h1>전체 알림</h1>
-          <span>재해 신고와 검토, 분석 및 승인 업무의 주요 알림을 확인합니다.</span>
         </div>
       </header>
 

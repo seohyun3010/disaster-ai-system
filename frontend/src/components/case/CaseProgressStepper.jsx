@@ -1,7 +1,8 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 const STEPS = [
-  { label: 'AI 분석', segment: null },
+  { label: '신고서 확인', segment: null },
+  { label: 'AI 분석', segment: 'analysis' },
   { label: '복구 긴급도', segment: 'severity' },
   { label: '지원금 심사', segment: 'support' },
   { label: '최종 승인', segment: 'final-approval' },
@@ -9,10 +10,11 @@ const STEPS = [
 ];
 
 const getActiveStep = (pathname) => {
-  if (pathname.endsWith('/reports')) return 4;
-  if (pathname.endsWith('/final-approval')) return 3;
-  if (pathname.endsWith('/support')) return 2;
-  if (pathname.endsWith('/severity')) return 1;
+  if (pathname.endsWith('/reports')) return 5;
+  if (pathname.endsWith('/final-approval')) return 4;
+  if (pathname.endsWith('/support')) return 3;
+  if (pathname.endsWith('/severity')) return 2;
+  if (pathname.endsWith('/analysis')) return 1;
   return 0;
 };
 
@@ -27,8 +29,8 @@ const CaseProgressStepper = ({ historyView = false }) => {
     <ol>
       {STEPS.map((step, index) => {
         const state = index < activeStep ? 'completed' : index === activeStep ? 'active' : 'pending';
-        const historyDisabled = activeStep === 3 ? index !== 4 : true;
-        const reportLocked = activeStep === 4;
+        const historyDisabled = activeStep === 4 ? index !== 5 : true;
+        const reportLocked = activeStep === 5;
         const target = step.segment ? `/cases/${caseId}/${step.segment}` : `/cases/${caseId}`;
         return <li key={step.label} className={state} aria-current={state === 'active' ? 'step' : undefined}>
           <button type="button" disabled={reportLocked || (historyView ? historyDisabled : state === 'pending')} onClick={() => navigate(`${target}${historyView ? '?view=history' : ''}`)}>
