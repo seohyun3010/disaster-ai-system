@@ -5,7 +5,6 @@ import LoginPage from '../pages/LoginPage';
 import DashboardPage from '../pages/DashboardPage';
 import CaseListPage from '../pages/CaseListPage';
 import ApprovalHistoryPage from '../pages/ApprovalHistoryPage';
-import ReviewHistoryPage from '../pages/ReviewHistoryPage';
 import ReportManagementPage from '../pages/ReportManagementPage';
 import NotificationsPage from '../pages/NotificationsPage';
 import CaseDetailPage from '../pages/CaseDetailPage';
@@ -39,7 +38,7 @@ const AppRouter = () => {
             <Route path={ROUTES.CASES} element={<CaseListPage />} />
             <Route path={ROUTES.SAFETY24_INTEGRATION} element={<Navigate to={ROUTES.CASES} replace />} />
             <Route path={ROUTES.APPROVAL_HISTORY} element={<ApprovalHistoryPage />} />
-            <Route path={ROUTES.REVIEW_HISTORY} element={<ReviewHistoryPage />} />
+            <Route path={ROUTES.REVIEW_HISTORY} element={<Navigate to={ROUTES.APPROVAL_HISTORY} replace />} />
             <Route path={ROUTES.REPORT_MANAGEMENT} element={<ReportManagementPage />} />
             <Route path={ROUTES.NOTIFICATIONS} element={<NotificationsPage />} />
             <Route path={ROUTES.CASE_DETAIL} element={<CaseWorkflowLayout />}>

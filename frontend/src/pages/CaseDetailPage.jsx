@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ANALYSIS_POLLING_INTERVAL } from '../api/analysisApi';
 import AnalysisDecisionPanel from '../components/analysis/AnalysisDecisionPanel';
 import AnalysisResultCard from '../components/analysis/AnalysisResultCard';
+import { DISASTER_EVENTS, isCaseInDisasterEvent } from '../mocks/disasterEvents';
 import { SAFETY24_REPORTS } from '../mocks/safety24Reports';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
@@ -24,7 +25,8 @@ const createReportView = (item) => {
     applicant: {
       name: item.reporter,
       residentNumber: external.residentNumber || '******-*******',
-      address: item.location,
+      address: external.address || item.location,
+      phone: external.phone || '-',
       householdMembers: external.householdMembers || '-',
     },
     payoutAccount: {
@@ -33,6 +35,7 @@ const createReportView = (item) => {
       accountHolder: external.accountHolder || item.reporter,
     },
     damagePlace: item.location,
+    damageOccurredAt: external.damageOccurredAt || item.reportedAt,
     damageDetails: [{ category: item.facility, value: item.description || '접수된 피해 내용을 확인해 주세요.' }],
     photos: item.photos || [],
   };
@@ -59,6 +62,8 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
 
   if (!item || !report) return null;
   const visiblePhotoIndex = report.photos.length > 0 ? activePhotoIndex % report.photos.length : 0;
+  const disasterEvent = DISASTER_EVENTS.find((event) => isCaseInDisasterEvent(item, event));
+  const caseListPath = disasterEvent ? `/cases?event=${disasterEvent.id}` : '/cases';
 
   const startAnalysis = async () => {
     navigate(`/cases/${caseId}/analysis`);
@@ -88,6 +93,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
               <div><dt>성명</dt><dd>{report.applicant.name}</dd></div>
               <div><dt>주민등록번호</dt><dd>{report.applicant.residentNumber}</dd></div>
               <div><dt>주소</dt><dd>{report.applicant.address}</dd></div>
+              <div><dt>연락처</dt><dd>{report.applicant.phone}</dd></div>
               <div><dt>세대원 수</dt><dd>{report.applicant.householdMembers}{report.applicant.householdMembers !== '-' ? '명' : ''}</dd></div>
             </dl>
           </article>
@@ -103,6 +109,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
             <h3>피해 장소</h3>
             <dl>
               <div><dt>피해 주소</dt><dd>{report.damagePlace}</dd></div>
+              <div><dt>피해 발생 일시</dt><dd>{report.damageOccurredAt}</dd></div>
               <div><dt>시설 유형</dt><dd>{report.facilityType}</dd></div>
               <div><dt>재난 유형</dt><dd>{report.disasterType}</dd></div>
             </dl>
@@ -159,6 +166,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
           reviewStatus={analysis.reviewStatus}
           onSubmit={(review) => submitReview(caseId, review)}
           onReviewApproved={() => navigate(`/cases/${caseId}/severity`)}
+          onReviewHeld={() => navigate(caseListPath)}
         />
       </div>}
     </>}

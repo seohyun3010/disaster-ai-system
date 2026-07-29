@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { CASES } from '../mocks/cases';
+import { CASES, DELETED_DEMO_CASE_IDS } from '../mocks/cases';
 
 const STORAGE_KEY = 'disaster-recovery.cases';
+const DELETED_DEMO_CASE_ID_SET = new Set(DELETED_DEMO_CASE_IDS);
 
 const formatReportedAt = (date) => {
   const pad = (value) => String(value).padStart(2, '0');
@@ -15,6 +16,19 @@ const normalizeCase = (item) => ({
   photos: item.photos || (item.photoUrl ? [{ name: item.photoName || '현장 사진', url: item.photoUrl }] : []),
 });
 
+const sanitizeCases = (items = []) => items
+  .filter((item) => !DELETED_DEMO_CASE_ID_SET.has(item.id))
+  .map(normalizeCase);
+
+const seedMockCases = (items = []) => {
+  const sanitized = sanitizeCases(items);
+  const savedIds = new Set(sanitized.map((item) => item.id));
+  return [
+    ...sanitized,
+    ...CASES.filter((item) => !savedIds.has(item.id)).map(normalizeCase),
+  ];
+};
+
 const createCaseId = (items, date) => {
   const day = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, '0')}${String(date.getDate()).padStart(2, '0')}`;
   const largestSequence = items.reduce((max, item) => Math.max(max, Number(item.id.split('-').at(-1)) || 0), 0);
@@ -24,7 +38,7 @@ const createCaseId = (items, date) => {
 export const useCaseStore = create(
   persist(
     (set) => ({
-      cases: CASES.map(normalizeCase),
+      cases: sanitizeCases(CASES),
       addCase: ({ reporter, type, facility, location, description = '', photos = [], source = 'manual', externalReport = null }) => {
         const createdAt = new Date();
         let createdCase;
@@ -58,9 +72,18 @@ export const useCaseStore = create(
     }),
     {
       name: STORAGE_KEY,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ cases: state.cases }),
-      merge: (persisted, current) => ({ ...current, ...persisted, cases: (persisted?.cases || current.cases).map(normalizeCase) }),
+      migrate: (persisted) => ({
+        ...persisted,
+        cases: seedMockCases(persisted?.cases),
+      }),
+      merge: (persisted, current) => ({
+        ...current,
+        ...persisted,
+        cases: sanitizeCases(persisted?.cases || current.cases),
+      }),
     },
   ),
 );

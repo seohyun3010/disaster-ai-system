@@ -1,6 +1,6 @@
 import axiosInstance from './axiosInstance';
 import { API_PATHS } from '../constants/apiPaths';
-
+ 
 /**
  * 인증 API Mock 사용 여부
  *
@@ -8,7 +8,7 @@ import { API_PATHS } from '../constants/apiPaths';
  * false : 실제 백엔드 API 연결
  */
 const USE_AUTH_MOCK = false;
-
+ 
 /**
  * Mock 계정 및 응답 데이터
  */
@@ -17,7 +17,7 @@ const MOCK_USER = {
   name: '공무원',
   role: 'OFFICER',
 };
-
+ 
 const MOCK_LOGIN_RESPONSE = {
   access_token: 'mock-access-token',
   refresh_token: 'mock-refresh-token',
@@ -27,7 +27,7 @@ const MOCK_LOGIN_RESPONSE = {
   role: MOCK_USER.role,
   mock: true,
 };
-
+ 
 /**
  * 로그인
  *
@@ -44,7 +44,7 @@ export const login = async (credentials) => {
       credentials,
     };
   }
-
+ 
   const response = await axiosInstance.post(
     API_PATHS.AUTH.LOGIN,
     {
@@ -56,10 +56,10 @@ export const login = async (credentials) => {
       skipAuthRedirect: true,
     },
   );
-
+ 
   return response.data;
 };
-
+ 
 /**
  * 로그아웃
  *
@@ -72,7 +72,7 @@ export const logout = async (refreshToken) => {
       mock: true,
     };
   }
-
+ 
   if (!refreshToken) {
     return {
       success: true,
@@ -80,7 +80,7 @@ export const logout = async (refreshToken) => {
       message: 'Refresh Token이 없어 서버 로그아웃 요청을 생략했습니다.',
     };
   }
-
+ 
   const response = await axiosInstance.post(
     API_PATHS.AUTH.LOGOUT,
     {
@@ -90,10 +90,10 @@ export const logout = async (refreshToken) => {
       skipAuthRedirect: true,
     },
   );
-
+ 
   return response.data;
 };
-
+ 
 /**
  * 현재 로그인 사용자 조회
  *
@@ -107,7 +107,7 @@ export const getMe = async () => {
       mock: true,
     };
   }
-
+ 
   /*
    * TODO(BE):
    * /api/auth/me 구현 완료 후 아래 Mock return을 삭제하고
@@ -117,17 +117,17 @@ export const getMe = async () => {
     ...MOCK_USER,
     mock: true,
   };
-
+ 
   /*
   const response = await axiosInstance.get(API_PATHS.AUTH.ME);
-
+ 
   const payload =
     response.data?.data ??
     response.data?.result ??
     response.data;
-
+ 
   const responseUser = payload?.user ?? payload;
-
+ 
   return {
     id:
       responseUser?.user_id ??
@@ -144,7 +144,7 @@ export const getMe = async () => {
   };
   */
 };
-
+ 
 /**
  * 현재 사용자의 권한 조회
  *
@@ -159,7 +159,7 @@ export const getMyPermissions = async () => {
       mock: true,
     };
   }
-
+ 
   /*
    * TODO(BE):
    * /api/auth/permissions 구현 및 사용 시 활성화합니다.
@@ -169,16 +169,16 @@ export const getMyPermissions = async () => {
     permissions: ['*'],
     mock: true,
   };
-
+ 
   /*
   const response = await axiosInstance.get(
     API_PATHS.AUTH.PERMISSIONS,
   );
-
+ 
   return response.data;
   */
 };
-
+ 
 /**
  * 로그인 API 응답을 프론트 인증 구조로 변환합니다.
  *
@@ -209,30 +209,30 @@ export const getLoginPayload = (data) => {
     data?.data ??
     data?.result ??
     data;
-
+ 
   const accessToken =
     payload?.accessToken ??
     payload?.access_token ??
     payload?.token;
-
+ 
   const refreshToken =
     payload?.refreshToken ??
     payload?.refresh_token ??
     null;
-
+ 
   const tokenType =
     payload?.tokenType ??
     payload?.token_type ??
     'bearer';
-
+ 
   if (!accessToken) {
     throw new Error(
       '로그인 응답에 Access Token이 없습니다. API 응답 형식을 확인해 주세요.',
     );
   }
-
+ 
   const responseUser = payload?.user;
-
+ 
   const user = responseUser
     ? {
         id:
@@ -262,7 +262,7 @@ export const getLoginPayload = (data) => {
           payload?.userRole ??
           'OFFICER',
       };
-
+ 
   return {
     accessToken,
     refreshToken,

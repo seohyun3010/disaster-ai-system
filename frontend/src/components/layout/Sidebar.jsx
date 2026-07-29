@@ -21,12 +21,11 @@ const Sidebar = () => {
   const role = user?.role || 'OFFICER';
   const [expanded, setExpanded] = useState({});
   const reportGroupActive = location.pathname === ROUTES.CASES || location.pathname.startsWith('/cases/');
-  const reviewGroupActive = location.pathname === ROUTES.APPROVAL_HISTORY || location.pathname === ROUTES.REVIEW_HISTORY;
   const canView = (roles = ALL_ROLES) => roles.includes(role);
   const toggleGroup = (group) => setExpanded((current) => ({ ...current, [group]: !current[group] }));
 
   return <aside className="sidebar">
-    <div className="sidebar-brand"><div className="brand">재해복구 AI</div><div className="brand-sub">재해 신고·복구 업무 관리</div></div>
+    <div className="sidebar-brand"><div className="brand">NDRMS</div><div className="brand-sub">재해 신고·복구 업무 관리</div></div>
     <p className="sidebar-menu-title">주요 메뉴</p>
     <nav aria-label="주요 메뉴">
       {canView() && <NavLink to={ROUTES.DASHBOARD} end><span className="nav-icon" aria-hidden="true">▦</span><span>대시보드</span></NavLink>}
@@ -40,19 +39,11 @@ const Sidebar = () => {
         </div>
       </div>}
 
-      {canView() && <div className={`sidebar-nav-group ${reviewGroupActive ? 'active-group' : ''} ${expanded.reviews ? 'manual-open' : ''}`}>
-        <button type="button" className="sidebar-group-trigger" onClick={() => toggleGroup('reviews')} aria-expanded={reviewGroupActive || Boolean(expanded.reviews)}>
-          <SidebarIcon type="review" /><span>검토</span><span className="sidebar-chevron" aria-hidden="true">⌃</span>
-        </button>
-        <div className="sidebar-submenu">
-          <NavLink to={ROUTES.APPROVAL_HISTORY}><span className="submenu-dot" aria-hidden="true">•</span><span>승인 처리 이력</span></NavLink>
-          <NavLink to={ROUTES.REVIEW_HISTORY}><span className="submenu-dot" aria-hidden="true">•</span><span>피해등급 검토 이력</span></NavLink>
-        </div>
-      </div>}
+      {canView() && <NavLink className="sidebar-report-link" to={ROUTES.APPROVAL_HISTORY}><SidebarIcon type="review" /><span>승인 처리 이력</span></NavLink>}
 
       {canView() && <NavLink className="sidebar-report-link" to={ROUTES.REPORT_MANAGEMENT}><SidebarIcon type="reports" /><span>보고서 관리</span></NavLink>}
     </nav>
-    <footer>재해복구업무관리시스템</footer>
+    <footer>NDRMS</footer>
   </aside>;
 };
 
