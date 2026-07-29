@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ANALYSIS_POLLING_INTERVAL } from '../api/analysisApi';
 import AnalysisDecisionPanel from '../components/analysis/AnalysisDecisionPanel';
@@ -48,6 +48,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const submitReview = useAnalysisStore((state) => state.submitReview);
   const screen = initialScreen;
   const report = useMemo(() => item ? createReportView(item) : null, [item]);
+  const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
   useEffect(() => {
     if (!analysis.jobId || !['queued', 'processing'].includes(analysis.status)) return undefined;
@@ -57,6 +58,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   }, [analysis.jobId, analysis.status, caseId, refreshAnalysis]);
 
   if (!item || !report) return null;
+  const visiblePhotoIndex = report.photos.length > 0 ? activePhotoIndex % report.photos.length : 0;
 
   const startAnalysis = async () => {
     navigate(`/cases/${caseId}/analysis`);
@@ -78,49 +80,59 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
         </div>
       </header>
 
-      <div className="private-report-grid">
-        <article>
-          <h3>인적 사항</h3>
-          <dl>
-            <div><dt>성명</dt><dd>{report.applicant.name}</dd></div>
-            <div><dt>주민등록번호</dt><dd>{report.applicant.residentNumber}</dd></div>
-            <div><dt>주소</dt><dd>{report.applicant.address}</dd></div>
-            <div><dt>세대원 수</dt><dd>{report.applicant.householdMembers}{report.applicant.householdMembers !== '-' ? '명' : ''}</dd></div>
-          </dl>
-        </article>
-        <article>
-          <h3>지원금 수령 계좌</h3>
-          <dl>
-            <div><dt>은행명</dt><dd>{report.payoutAccount.bankName}</dd></div>
-            <div><dt>계좌번호</dt><dd>{report.payoutAccount.accountNumber}</dd></div>
-            <div><dt>예금주</dt><dd>{report.payoutAccount.accountHolder}</dd></div>
-          </dl>
-        </article>
-        <article>
-          <h3>피해 장소</h3>
-          <dl>
-            <div><dt>피해 주소</dt><dd>{report.damagePlace}</dd></div>
-            <div><dt>시설 유형</dt><dd>{report.facilityType}</dd></div>
-            <div><dt>재난 유형</dt><dd>{report.disasterType}</dd></div>
-          </dl>
-        </article>
-        <article>
-          <h3>피해 종류 및 수량</h3>
-          <dl>
-            {report.damageDetails.map((detail) => <div key={`${detail.category}-${detail.value}`}><dt>{detail.category}</dt><dd>{detail.value}</dd></div>)}
-          </dl>
+      <div className="private-report-content">
+        <div className="private-report-grid">
+          <article>
+            <h3>인적 사항</h3>
+            <dl>
+              <div><dt>성명</dt><dd>{report.applicant.name}</dd></div>
+              <div><dt>주민등록번호</dt><dd>{report.applicant.residentNumber}</dd></div>
+              <div><dt>주소</dt><dd>{report.applicant.address}</dd></div>
+              <div><dt>세대원 수</dt><dd>{report.applicant.householdMembers}{report.applicant.householdMembers !== '-' ? '명' : ''}</dd></div>
+            </dl>
+          </article>
+          <article>
+            <h3>지원금 수령 계좌</h3>
+            <dl>
+              <div><dt>은행명</dt><dd>{report.payoutAccount.bankName}</dd></div>
+              <div><dt>계좌번호</dt><dd>{report.payoutAccount.accountNumber}</dd></div>
+              <div><dt>예금주</dt><dd>{report.payoutAccount.accountHolder}</dd></div>
+            </dl>
+          </article>
+          <article>
+            <h3>피해 장소</h3>
+            <dl>
+              <div><dt>피해 주소</dt><dd>{report.damagePlace}</dd></div>
+              <div><dt>시설 유형</dt><dd>{report.facilityType}</dd></div>
+              <div><dt>재난 유형</dt><dd>{report.disasterType}</dd></div>
+            </dl>
+          </article>
+          <article>
+            <h3>피해 종류 및 수량</h3>
+            <dl>
+              {report.damageDetails.map((detail) => <div key={`${detail.category}-${detail.value}`}><dt>{detail.category}</dt><dd>{detail.value}</dd></div>)}
+            </dl>
+          </article>
+        </div>
+
+        <article className="private-report-photos">
+          <div className="private-report-section-title">
+            <h3>피해 사진</h3>
+            <span>{report.photos.length}장</span>
+          </div>
+          {report.photos.length > 0
+            ? <div className="private-photo-carousel">
+              <figure>
+                <img src={report.photos[visiblePhotoIndex].url} alt={`${visiblePhotoIndex + 1}번 피해 사진`} />
+                <figcaption>사진 {visiblePhotoIndex + 1} · {report.photos[visiblePhotoIndex].name}</figcaption>
+              </figure>
+              <button type="button" className="private-photo-control previous" aria-label="이전 피해 사진" disabled={report.photos.length < 2} onClick={() => setActivePhotoIndex((current) => (current - 1 + report.photos.length) % report.photos.length)}>‹</button>
+              <button type="button" className="private-photo-control next" aria-label="다음 피해 사진" disabled={report.photos.length < 2} onClick={() => setActivePhotoIndex((current) => (current + 1) % report.photos.length)}>›</button>
+              <span className="private-photo-position">{visiblePhotoIndex + 1} / {report.photos.length}</span>
+            </div>
+            : <div className="private-photo-empty"><strong>첨부 사진 없음</strong><span>AI 분석에는 대체 이미지와 신고 내용이 사용됩니다.</span></div>}
         </article>
       </div>
-
-      <article className="private-report-photos">
-        <div className="private-report-section-title">
-          <h3>피해 사진</h3>
-          <span>{report.photos.length}장</span>
-        </div>
-        {report.photos.length > 0
-          ? <div className="private-photo-gallery">{report.photos.map((photo, index) => <figure key={`${photo.name}-${index}`}><img src={photo.url} alt={`${index + 1}번 피해 사진`} /><figcaption>사진 {index + 1} · {photo.name}</figcaption></figure>)}</div>
-          : <div className="private-photo-empty"><strong>첨부 사진 없음</strong><span>AI 분석에는 대체 이미지와 신고 내용이 사용됩니다.</span></div>}
-      </article>
 
       <p className="private-report-security">민감 정보는 마스킹하여 표시됩니다.</p>
     </> : <>

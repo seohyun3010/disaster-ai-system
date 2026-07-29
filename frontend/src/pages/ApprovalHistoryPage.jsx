@@ -29,7 +29,6 @@ const ApprovalHistoryPage = () => {
   const logs = allLogs.filter((log) => filter === '전체' || log.status === filter);
   const countByStatus = (status) => allLogs.filter((log) => log.status === status).length;
   return <div className="case-page approval-history-page">
-    <header className="case-page-head"><div><p>승인 관리 / 처리 이력</p><h1>승인 처리 이력</h1></div></header>
     <section className="approval-metrics">{FILTERS.slice(1).map((status) => <article key={status}><span>{status}</span><strong>{countByStatus(status)}<small>건</small></strong></article>)}</section>
     <section className="case-card approval-history-section"><div className="history-section-head"><div><h2>최종 승인 처리</h2><p>사건별 최종 승인 처리 결과와 담당자, 처리 사유를 확인합니다.</p></div></div>
       <div className="approval-action-filters">{FILTERS.map((value) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{value}</button>)}</div>
