@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { makeCaseFromSafety24Report, SAFETY24_REPORTS } from '../mocks/safety24Reports';
 import { useCaseStore } from '../stores/caseStore';
+import './safety24-integration.css';
 
 const DISASTER_TYPES = ['집중호우', '산사태', '지진', '태풍', '낙뢰', '가뭄', '기타'];
 const FACILITY_TYPES = ['주택', '상가', '농경지', '도로', '공공시설', '수산시설', '기타'];
@@ -51,7 +52,7 @@ const Safety24IntegrationPage = () => {
 
     {connected && <section className="safety24-content">
       <aside className="case-card safety24-report-list"><div className="section-heading"><div><h2>수신 신고서</h2><p>연동된 사유재산 피해신고 {SAFETY24_REPORTS.length}건입니다.</p></div></div>
-        {SAFETY24_REPORTS.map((item) => { const isEdited = Boolean(editedReports[item.reportId]); const current = editedReports[item.reportId] || item; return <button type="button" key={item.reportId} className={item.reportId === selectedReportId ? 'selected' : ''} onClick={() => selectReport(item.reportId)}><div className="safety24-list-tags"><b>{current.facilityType}</b><b>{current.disasterType}</b></div><strong>{current.applicant.name}{isEdited && <em>수정됨</em>}</strong><span className="safety24-list-location">{current.damagePlace}</span><small>{item.receivedAt} · 사진 {item.photos.length}장</small></button>; })}
+        {SAFETY24_REPORTS.map((item) => { const current = editedReports[item.reportId] || item; return <button type="button" key={item.reportId} className={item.reportId === selectedReportId ? 'selected' : ''} onClick={() => selectReport(item.reportId)} aria-label={`${current.disasterType}, ${current.damagePlace}, ${item.receivedAt}`}><span className="safety24-list-row-head"><strong>{current.disasterType}</strong><time>{item.receivedAt}</time></span><span className="safety24-list-location">{current.damagePlace}</span></button>; })}
       </aside>
 
       <section className="case-card safety24-report-detail">

@@ -42,10 +42,8 @@ const PriorityReportTable = ({
           <th>재난 유형</th>
           <th>위치</th>
           <th>긴급도 점수</th>
-          <th>우선 사유</th>
           <th>진행 상태</th>
           <th>액션</th>
-          <th>사건번호</th>
         </tr>
       </thead>
       <tbody>
@@ -58,16 +56,8 @@ const PriorityReportTable = ({
               {item.urgencyScore ?? ({ 긴급: 85, 높음: 70, 보통: 50, 낮음: 30 }[item.urgency] || 0)}점
             </span>
           </td>
-          <td>
-            <div className="priority-reasons">
-              {item.duplicate && <span className="reason-duplicate">중복 의심</span>}
-              {item.status === 'AI 분석 완료' && <span className="reason-ai">AI 분석 완료</span>}
-              {!item.duplicate && item.status !== 'AI 분석 완료' && <span className="reason-empty">-</span>}
-            </div>
-          </td>
           <td><span className={`progress-badge status-${item.status.replaceAll(' ', '-')}`}>{item.status}</span></td>
           <td><button className="table-secondary-action" onClick={() => onOpenCase(item.id)}>상세 보기</button></td>
-          <td><strong>{item.id}</strong><small>{item.reportedAt}</small></td>
         </tr>)}
       </tbody>
     </table>

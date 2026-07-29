@@ -66,8 +66,11 @@ export const downloadMockReport = (report, caseId, details = {}) => {
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = report.status === '최종' ? `${caseId}_final_report.txt` : `${caseId}_${report.version}_report.txt`;
+  anchor.style.display = 'none';
+  document.body.appendChild(anchor);
   anchor.click();
-  URL.revokeObjectURL(url);
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
 
 export const createInitialWorkflow = () => {

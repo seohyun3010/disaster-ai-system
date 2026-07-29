@@ -20,7 +20,7 @@ const Sidebar = () => {
   const user = useAuthStore((state) => state.user);
   const role = user?.role || 'OFFICER';
   const [expanded, setExpanded] = useState({});
-  const reportGroupActive = location.pathname === ROUTES.CASES || location.pathname === ROUTES.SAFETY24_INTEGRATION;
+  const reportGroupActive = location.pathname === ROUTES.CASES || location.pathname.startsWith('/cases/');
   const reviewGroupActive = location.pathname === ROUTES.APPROVAL_HISTORY || location.pathname === ROUTES.REVIEW_HISTORY;
   const canView = (roles = ALL_ROLES) => roles.includes(role);
   const toggleGroup = (group) => setExpanded((current) => ({ ...current, [group]: !current[group] }));
@@ -33,11 +33,10 @@ const Sidebar = () => {
 
       {canView() && <div className={`sidebar-nav-group ${reportGroupActive ? 'active-group' : ''} ${expanded.reports ? 'manual-open' : ''}`}>
         <button type="button" className="sidebar-group-trigger" onClick={() => toggleGroup('reports')} aria-expanded={reportGroupActive || Boolean(expanded.reports)}>
-          <SidebarIcon type="cases" /><span>신고 관리</span><span className="sidebar-chevron" aria-hidden="true">⌃</span>
+          <SidebarIcon type="cases" /><span>신고 목록</span><span className="sidebar-chevron" aria-hidden="true">⌃</span>
         </button>
         <div className="sidebar-submenu">
           <NavLink to={ROUTES.CASES} end><span className="submenu-dot" aria-hidden="true">•</span><span>신고 목록</span></NavLink>
-          <NavLink to={ROUTES.SAFETY24_INTEGRATION}><span className="submenu-dot" aria-hidden="true">•</span><span>국민안전24 연동</span></NavLink>
         </div>
       </div>}
 

@@ -1,0 +1,260 @@
+.case-workflow-page {
+  width: min(1640px, 100%);
+  margin: 0 auto;
+}
+
+.case-workflow-head {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--krds-gray-300);
+}
+
+.case-workflow-head > div {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.case-workflow-head button {
+  border: 0;
+  background: transparent;
+  color: var(--krds-primary-700);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.case-workflow-head h1 {
+  margin: 0;
+  color: var(--krds-gray-950);
+  font-size: 24px;
+  letter-spacing: -.02em;
+}
+
+.case-workflow-head dl {
+  display: flex;
+  gap: 30px;
+  margin: 0;
+}
+
+.case-workflow-head dl > div {
+  display: grid;
+  gap: 4px;
+}
+
+.case-workflow-head dt {
+  color: var(--krds-gray-600);
+  font-size: 11px;
+}
+
+.case-workflow-head dd {
+  margin: 0;
+  color: var(--krds-gray-900);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.case-workflow-grid {
+  display: grid;
+  grid-template-columns: minmax(210px, 250px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.case-workflow-gallery {
+  position: sticky;
+  top: 18px;
+  align-self: start;
+  min-height: calc(100vh - 210px);
+  border: 1px solid var(--krds-gray-300);
+  border-radius: 12px;
+  background: #fff;
+  padding: 16px;
+}
+
+.workflow-gallery-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 3px 16px;
+  border-bottom: 1px solid var(--krds-gray-200);
+}
+
+.workflow-gallery-title span {
+  color: var(--krds-gray-950);
+  font-size: 16px;
+  font-weight: 850;
+}
+
+.workflow-gallery-title strong {
+  color: var(--krds-primary-700);
+  font-size: 12px;
+}
+
+.case-workflow-gallery ol {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.case-workflow-gallery li button {
+  display: grid;
+  width: 100%;
+  min-height: 74px;
+  grid-template-columns: 32px 1fr 12px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--krds-gray-300);
+  border-radius: 9px;
+  background: #fff;
+  padding: 11px;
+  color: var(--krds-gray-800);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease, box-shadow .16s ease;
+}
+
+.case-workflow-gallery li button:hover:not(:disabled) {
+  border-color: var(--krds-primary-500);
+  box-shadow: 0 5px 14px rgba(0, 70, 140, .08);
+}
+
+.case-workflow-gallery li button:disabled {
+  color: var(--krds-gray-500);
+  cursor: not-allowed;
+}
+
+.case-workflow-gallery li.active button {
+  border: 2px solid var(--krds-primary-600);
+  background: var(--krds-primary-50);
+  box-shadow: inset 4px 0 0 var(--krds-primary-700);
+}
+
+.case-workflow-gallery li.completed button {
+  background: var(--krds-gray-50);
+}
+
+.workflow-step-number {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border: 1px solid var(--krds-gray-400);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--krds-gray-700);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.active .workflow-step-number,
+.completed .workflow-step-number {
+  border-color: var(--krds-primary-700);
+  background: var(--krds-primary-700);
+  color: #fff;
+}
+
+.workflow-step-copy {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.workflow-step-copy strong {
+  color: inherit;
+  font-size: 14px;
+}
+
+.workflow-step-copy small {
+  overflow: hidden;
+  color: var(--krds-gray-600);
+  font-size: 10px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-step-arrow {
+  color: var(--krds-gray-500);
+  font-size: 22px;
+}
+
+.case-workflow-stage {
+  min-width: 0;
+}
+
+.case-workflow-stage > .case-page,
+.case-workflow-stage .case-page {
+  max-width: none;
+  margin: 0;
+}
+
+.case-workflow-stage .case-page > .case-page-head,
+.case-workflow-stage .case-page > .case-progress,
+.case-workflow-stage .case-page > .analysis-case-summary,
+.case-workflow-stage .case-page > .persona-guidance {
+  display: none;
+}
+
+.case-workflow-stage .case-page > .stage-two-column,
+.case-workflow-stage .case-page > .reports-layout {
+  grid-template-columns: 1fr;
+}
+
+.case-workflow-stage .case-card {
+  box-shadow: none;
+}
+
+.case-workflow-missing {
+  display: grid;
+  min-height: 380px;
+  place-items: center;
+}
+
+@media (max-width: 1040px) {
+  .case-workflow-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .case-workflow-gallery {
+    position: static;
+    min-height: 0;
+  }
+
+  .case-workflow-gallery ol {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .case-workflow-gallery li {
+    flex: 0 0 190px;
+  }
+}
+
+@media (max-width: 720px) {
+  .case-workflow-head {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-bottom: 16px;
+  }
+
+  .case-workflow-head > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .case-workflow-head dl {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+}

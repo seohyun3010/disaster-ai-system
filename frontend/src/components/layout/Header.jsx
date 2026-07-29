@@ -1,35 +1,95 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../../api/authApi';
 import { useAuthStore } from '../../stores/authStore';
 import { ROUTES } from '../../routes/routeConfig';
 import { formatOfficerAffiliation, formatOfficerName, getCurrentUser } from '../../mocks/currentUser';
 import NotificationMenu from './NotificationMenu';
+import TopNavigation from './TopNavigation';
+
+const SearchIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="11" cy="11" r="6.5" />
+    <path d="m16 16 4 4" />
+  </svg>
+);
+
+const MenuIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M4 7h16M4 12h16M4 17h16" />
+  </svg>
+);
 
 const Header = () => {
   const navigate = useNavigate();
   const clearAuth = useAuthStore((state) => state.clearAuth);
   const user = getCurrentUser();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
       await logout();
     } catch {
-      // 프론트 데모 또는 네트워크 실패 시에도 로컬 인증 정보는 정리합니다.
+      // 서버 응답과 관계없이 로컬 인증 정보는 정리합니다.
     } finally {
       clearAuth();
       navigate(ROUTES.LOGIN, { replace: true });
     }
   };
 
-  return <header className="app-header">
-    <div className="header-title"><strong>재해복구업무관리시스템</strong><span>공무원 업무 포털</span></div>
-    <div className="user-menu">
-      <div className="user-avatar" aria-hidden="true">{user.name.slice(0, 1)}</div>
-      <div><strong>{formatOfficerName(user)}</strong><small>{formatOfficerAffiliation(user)}</small></div>
-      <NotificationMenu />
-      <button type="button" onClick={handleLogout}>로그아웃</button>
-    </div>
-  </header>;
+  const submitSearch = (event) => {
+    event.preventDefault();
+    const keyword = new FormData(event.currentTarget).get('globalSearch')?.toString().trim();
+    navigate(keyword ? `${ROUTES.CASES}?search=${encodeURIComponent(keyword)}` : ROUTES.CASES);
+    setSearchOpen(false);
+  };
+
+  return (
+    <header className="krds-service-header">
+      <div className="krds-brand-row">
+        <div className="krds-header-inner">
+          <button type="button" className="krds-brand" onClick={() => navigate(ROUTES.DASHBOARD)} aria-label="재해복구 AI 대시보드로 이동">
+            <span className="krds-brand-mark" aria-hidden="true"><i /></span>
+            <span className="krds-brand-copy">
+              <strong>재해복구 AI</strong>
+              <small>재해 신고·복구 업무관리시스템</small>
+            </span>
+          </button>
+
+          {searchOpen && (
+            <form className="krds-header-inline-search" onSubmit={submitSearch}>
+              <label className="sr-only" htmlFor="global-search">통합검색</label>
+              <div>
+                <SearchIcon />
+                <input id="global-search" name="globalSearch" placeholder="사건번호, 신고자 또는 피해 위치 검색" autoFocus />
+              </div>
+              <button type="submit">검색</button>
+              <button type="button" className="krds-inline-search-close" onClick={() => setSearchOpen(false)} aria-label="통합검색 닫기">×</button>
+            </form>
+          )}
+
+          <div className="krds-header-actions">
+            <button type="button" className={`krds-icon-action krds-search-action ${searchOpen ? 'is-open' : ''}`} onClick={() => setSearchOpen((current) => !current)} aria-expanded={searchOpen}>
+              <SearchIcon />
+              <span>통합검색</span>
+            </button>
+            <NotificationMenu />
+            <div className="krds-user-summary">
+              <span className="krds-user-avatar" aria-hidden="true">{user.name.slice(0, 1)}</span>
+              <span><strong>{formatOfficerName(user)}</strong><small>{formatOfficerAffiliation(user)}</small></span>
+            </div>
+            <button type="button" className="krds-logout" onClick={handleLogout}>로그아웃</button>
+            <button type="button" className="krds-mobile-menu-button" onClick={() => setMobileMenuOpen((current) => !current)} aria-expanded={mobileMenuOpen} aria-label="전체 메뉴">
+              <MenuIcon />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <TopNavigation mobileOpen={mobileMenuOpen} onNavigate={() => setMobileMenuOpen(false)} />
+    </header>
+  );
 };
 
 export default Header;
