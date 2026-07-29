@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 
 from sqlalchemy import (
     BigInteger,
     Boolean,
     DateTime,
     ForeignKey,
+    JSON,
     Numeric,
     String,
     Text,
@@ -23,7 +24,6 @@ if TYPE_CHECKING:
     from models.benefit_checks import BenefitCheck
     from models.case_image import CaseImage
     from models.duplicate_result import DuplicateResult
-    from models.external_report import ExternalReport
     from models.reports import Report
     from models.reviews import Review
     from models.severities import Severity
@@ -47,7 +47,6 @@ class Case(Base):
 
     external_report_id: Mapped[str | None] = mapped_column(
         String(255),
-        ForeignKey("external_reports.external_report_id"),
         nullable=True,
         unique=True,
     )
@@ -68,6 +67,9 @@ class Case(Base):
         nullable=True,
     )
 
+    disaster_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    facility_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
     latitude: Mapped[Decimal | None] = mapped_column(
         Numeric(10, 7),
         nullable=True,
@@ -82,6 +84,12 @@ class Case(Base):
         String(255),
         nullable=True,
     )
+
+    sido: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    sigungu: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    reported_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    received_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    raw_payload: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
     status: Mapped[str | None] = mapped_column(
         String(255),
@@ -115,9 +123,6 @@ class Case(Base):
     )
     assigned_user: Mapped[User | None] = relationship(
         foreign_keys=[assigned_user_id]
-    )
-    external_report: Mapped[ExternalReport | None] = relationship(
-        back_populates="case"
     )
     case_images: Mapped[list[CaseImage]] = relationship(back_populates="case")
     ai_jobs: Mapped[list[AIJob]] = relationship(back_populates="case")

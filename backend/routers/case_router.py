@@ -2,10 +2,31 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from database.database import get_db
-from schemas.case import CaseListResponse, CaseResponse
-from services.case_service import get_case, list_cases
+from schemas.case import CaseCreate, CaseListResponse, CaseResponse
+from services.case_service import (
+    DuplicateCaseReportError,
+    create_case,
+    get_case,
+    list_cases,
+)
 
 router = APIRouter(prefix="/cases", tags=["cases"])
+
+
+@router.post("", response_model=CaseResponse, status_code=status.HTTP_201_CREATED)
+def register_case(body: CaseCreate, db: Session = Depends(get_db)):
+    try:
+        return create_case(db, body)
+    except DuplicateCaseReportError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "message": "이미 등록된 신고번호입니다.",
+                "external_report_id": error.existing_case.external_report_id,
+                "case_id": error.existing_case.case_id,
+                "case_number": error.existing_case.case_number,
+            },
+        ) from error
 
 
 @router.get("", response_model=CaseListResponse)

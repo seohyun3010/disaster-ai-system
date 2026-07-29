@@ -10,7 +10,6 @@ from routers import (
     auth_router,
     benefit_checks_router,
     case_router,
-    external_report,
     report_router,
     review_router,
     severity,
@@ -39,7 +38,6 @@ app.include_router(auth_router.router, prefix="/api")
 app.include_router(ai_job_router.router)
 app.include_router(ai_result_router.router)
 app.include_router(review_router.router)
-app.include_router(external_report.router)
 app.include_router(case_router.router)
 app.include_router(subsidy_router.router)
 app.include_router(report_router.router)
