@@ -3,7 +3,7 @@ import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-route
 import { useAuthStore } from '../stores/authStore';
 import { ROUTES } from '../routes/routeConfig';
 import { getLoginPayload, login } from '../api/authApi';
-
+ 
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,18 +12,18 @@ const LoginPage = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
-
+ 
   if (isAuthenticated) return <Navigate to={ROUTES.DASHBOARD} replace />;
-
+ 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
-
+ 
     try {
       const response = await login(form);
       const { accessToken, user } = getLoginPayload(response);
       setAuth({ accessToken, user });
-
+ 
       const nextPath = searchParams.get('next');
       const destination =
         location.state?.from?.pathname ||
@@ -33,7 +33,7 @@ const LoginPage = () => {
       setError(loginError.message || '로그인에 실패했습니다.');
     }
   };
-
+ 
   return <main className="login-page">
     <section className="login-intro">
       <p className="login-kicker">DISASTER RECOVERY AI</p>
@@ -53,5 +53,5 @@ const LoginPage = () => {
     </div></section>
   </main>;
 };
-
+ 
 export default LoginPage;

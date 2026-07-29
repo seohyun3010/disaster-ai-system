@@ -1,0 +1,60 @@
+[
+  {
+    "external_report_id": "SAFE24-MOCK-2026-0001",
+    "title": "집중호우로 인한 주택 침수 피해 신고",
+    "description": "단독주택 1층 내부와 마당이 침수되어 바닥과 가전제품 일부가 피해를 입었습니다.",
+    "disaster_type": "HEAVY_RAIN",
+    "facility_type": "HOUSE",
+    "address": "충청북도 청주시 상당구 상당로 123",
+    "sido": "충청북도",
+    "sigungu": "청주시 상당구",
+    "latitude": 36.6359,
+    "longitude": 127.4913,
+    "reported_at": "2026-07-28T06:34:23",
+    "raw_payload": {
+      "source_system": "국민안전24_MOCK",
+      "reporter_type": "VICTIM",
+      "damage_summary": "주택 1층 침수 및 가전제품 피해",
+      "attachment_count": 2,
+      "mock_data": true
+    }
+  },
+  {
+    "external_report_id": "SAFE24-MOCK-2026-0002",
+    "title": "태풍으로 인한 주택 지붕 파손 신고",
+    "description": "강풍으로 주택 지붕 일부가 파손되고 빗물이 내부로 유입되었습니다.",
+    "disaster_type": "TYPHOON",
+    "facility_type": "HOUSE",
+    "address": "부산광역시 연제구 중앙대로 1001",
+    "sido": "부산광역시",
+    "sigungu": "연제구",
+    "latitude": 35.1796,
+    "longitude": 129.0756,
+    "reported_at": "2026-07-28T08:15:00",
+    "raw_payload": {
+      "source_system": "국민안전24_MOCK",
+      "reporter_type": "VICTIM",
+      "attachment_count": 3,
+      "mock_data": true
+    }
+  },
+  {
+    "external_report_id": "SAFE24-MOCK-2026-0003",
+    "title": "산사태로 인한 주택 옹벽 파손 신고",
+    "description": "집중호우 이후 토사가 유입되어 옹벽 일부가 붕괴되었습니다.",
+    "disaster_type": "LANDSLIDE",
+    "facility_type": "RETAINING_WALL",
+    "address": "대구광역시 중구 공평로 88",
+    "sido": "대구광역시",
+    "sigungu": "중구",
+    "latitude": 35.8714,
+    "longitude": 128.6014,
+    "reported_at": "2026-07-28T10:40:00",
+    "raw_payload": {
+      "source_system": "국민안전24_MOCK",
+      "reporter_type": "VICTIM",
+      "attachment_count": 4,
+      "mock_data": true
+    }
+  }
+]
