@@ -51,11 +51,6 @@ const TopNavigation = ({ mobileOpen = false, onNavigate = () => {} }) => {
           <div className={`krds-gnb-group ${reviewActive ? 'active' : ''} ${openGroup === 'review' ? 'open' : ''}`}>
             <button type="button" onClick={() => toggle('review')} aria-expanded={openGroup === 'review'}>검토·승인 <Chevron /></button>
             <section className="krds-mega-menu">
-              <div>
-                <p className="krds-mega-eyebrow">REVIEW & APPROVAL</p>
-                <h2>검토·승인</h2>
-                <p>피해등급 검토와 최종 승인 처리 결과를 확인합니다.</p>
-              </div>
               <ul>
                 <li><NavLink to={ROUTES.APPROVAL_HISTORY} onClick={close}><strong>승인 처리 이력</strong><span>최종 승인·보류·반려 결과 조회</span></NavLink></li>
                 <li><NavLink to={ROUTES.REVIEW_HISTORY} onClick={close}><strong>피해등급 검토 이력</strong><span>AI 분석 기반 피해등급 검토 기록</span></NavLink></li>

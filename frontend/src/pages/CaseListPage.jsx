@@ -32,11 +32,6 @@ const FacilityFilter = ({ value, onChange }) => {
 };
 
 const DisasterEventSelection = ({ cases, onSelect }) => <div className="case-page disaster-selection-page">
-  <header className="case-page-head">
-    <div><p>사유재산 피해신고</p><h1>자연재난 선택</h1></div>
-    <span className="filing-rule-badge">재난 종료일부터 10일 이내 신고</span>
-  </header>
-
   <section className="case-card disaster-event-card">
     <div className="disaster-event-table-wrap">
       <table className="disaster-event-table">

@@ -1,9 +1,8 @@
 .case-workspace-panel {
-  min-height: calc(100vh - 210px);
   border: 1px solid var(--krds-gray-300);
   border-radius: 12px;
   background: #fff;
-  padding: 24px;
+  padding: 18px;
 }
 
 .workspace-panel-head {
@@ -11,8 +10,8 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
-  margin-bottom: 22px;
-  padding-bottom: 18px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
   border-bottom: 1px solid var(--krds-gray-300);
 }
 
@@ -23,7 +22,7 @@
 }
 
 .workspace-panel-head p {
-  margin: 0 0 7px;
+  margin: 0 0 5px;
   color: var(--krds-primary-700);
   font-size: 11px;
   font-weight: 800;
@@ -32,7 +31,7 @@
 .workspace-panel-head h2 {
   margin: 0;
   color: var(--krds-gray-950);
-  font-size: 25px;
+  font-size: 23px;
   letter-spacing: -.02em;
 }
 
@@ -42,36 +41,43 @@
   white-space: nowrap;
 }
 
+.private-report-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, .9fr);
+  align-items: stretch;
+  gap: 12px;
+}
+
 .private-report-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 10px;
 }
 
 .private-report-grid article {
   min-width: 0;
   border: 1px solid var(--krds-gray-300);
   border-radius: 9px;
-  padding: 18px;
+  padding: 14px;
 }
 
 .private-report-grid h3,
 .private-report-section-title h3 {
-  margin: 0 0 15px;
+  margin: 0 0 10px;
   color: var(--krds-gray-900);
   font-size: 15px;
 }
 
 .private-report-grid dl {
   display: grid;
-  gap: 10px;
+  gap: 7px;
   margin: 0;
 }
 
 .private-report-grid dl > div {
   display: grid;
   grid-template-columns: 100px minmax(0, 1fr);
-  gap: 12px;
+  gap: 8px;
 }
 
 .private-report-grid dt {
@@ -88,9 +94,13 @@
 }
 
 .private-report-photos {
-  margin-top: 14px;
-  border-top: 1px solid var(--krds-gray-300);
-  padding-top: 20px;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  margin: 0;
+  border: 1px solid var(--krds-gray-300);
+  border-radius: 9px;
+  padding: 14px;
 }
 
 .private-report-section-title {
@@ -105,28 +115,34 @@
   font-weight: 700;
 }
 
-.private-photo-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px;
-}
-
-.private-photo-gallery figure {
+.private-photo-carousel {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 260px;
   overflow: hidden;
-  margin: 0;
   border: 1px solid var(--krds-gray-300);
   border-radius: 8px;
   background: var(--krds-gray-50);
 }
 
-.private-photo-gallery img {
+.private-photo-carousel figure {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  margin: 0;
+}
+
+.private-photo-carousel img {
   display: block;
   width: 100%;
-  height: 150px;
+  flex: 1;
+  min-height: 220px;
+  max-height: 360px;
   object-fit: cover;
 }
 
-.private-photo-gallery figcaption {
+.private-photo-carousel figcaption {
   overflow: hidden;
   padding: 10px 12px;
   color: var(--krds-gray-700);
@@ -135,11 +151,56 @@
   white-space: nowrap;
 }
 
-.private-photo-empty {
+.private-photo-control {
+  position: absolute;
+  top: 50%;
   display: grid;
-  min-height: 150px;
-  place-content: center;
-  gap: 7px;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .75);
+  border-radius: 50%;
+  background: rgba(20, 35, 50, .68);
+  color: #fff;
+  font: inherit;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.private-photo-control.previous {
+  left: 12px;
+}
+
+.private-photo-control.next {
+  right: 12px;
+}
+
+.private-photo-control:disabled {
+  opacity: .3;
+  cursor: default;
+}
+
+.private-photo-position {
+  position: absolute;
+  right: 12px;
+  bottom: 42px;
+  border-radius: 14px;
+  background: rgba(20, 35, 50, .72);
+  padding: 4px 9px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.private-photo-empty {
+  display: flex;
+  flex: 1;
+  min-height: 260px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   border: 1px dashed var(--krds-gray-400);
   border-radius: 8px;
   background: var(--krds-gray-50);
@@ -158,11 +219,21 @@
 }
 
 .private-report-security {
-  margin: 14px 0 0;
+  margin: 10px 0 0;
   border-radius: 6px;
   background: var(--krds-gray-50);
-  padding: 10px 12px;
+  padding: 8px 10px;
   color: var(--krds-gray-600);
+}
+
+@media (max-width: 1180px) {
+  .private-report-content {
+    grid-template-columns: 1fr;
+  }
+
+  .private-report-photos {
+    min-height: 260px;
+  }
 }
 
 .workspace-analysis-state {

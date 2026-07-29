@@ -49,7 +49,6 @@ const ReviewHistoryPage = () => {
   const logs = allLogs.filter((log) => filter === '전체' || log.status === filter);
   const countByStatus = (status) => allLogs.filter((log) => log.status === status).length;
   return <div className="case-page review-history-page">
-    <header className="case-page-head"><div><p>검토 관리 / 피해등급 검토</p><h1>피해등급 검토 이력</h1></div></header>
     <section className="review-metrics">{FILTERS.slice(1).map((status) => <article key={status}><span>{LABELS[status]}</span><strong>{countByStatus(status)}<small>건</small></strong></article>)}</section>
     <section className="case-card approval-history-section review-history-section"><div className="history-section-head"><div><h2>피해등급 검토</h2><p>처리된 피해등급 검토 결과를 읽기 전용으로 확인합니다. 신고자와 주소가 같으면 하나의 사건으로 묶어 표시합니다.</p></div></div>
       <div className="approval-action-filters review-action-filters">{FILTERS.map((value) => <button key={value} className={filter === value ? 'active' : ''} onClick={() => setFilter(value)}>{value === '전체' ? value : LABELS[value]}</button>)}</div>

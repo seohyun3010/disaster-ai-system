@@ -118,10 +118,6 @@ const ReportManagementPage = () => {
   };
 
   return <div className="case-page report-management-page">
-    <header className="case-page-head">
-      <div><p>보고서 / 보고서 관리</p><h1>보고서 관리</h1></div>
-    </header>
-
     <section className="report-management-metrics">
       <article><span>최종 보고서</span><strong>{reports.length}<small>건</small></strong></article>
     </section>

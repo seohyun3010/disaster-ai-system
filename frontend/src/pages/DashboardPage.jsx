@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCaseStore } from '../stores/caseStore';
-import { ROUTES } from '../routes/routeConfig';
 import DisasterTypeStatus from '../components/dashboard/DisasterTypeStatus';
 import PriorityReportTable from '../components/dashboard/PriorityReportTable';
 import SatelliteDamageMap from '../components/dashboard/SatelliteDamageMap';
@@ -63,14 +62,6 @@ const DashboardPage = () => {
   }, [cases, searchTerm, statusFilter]);
 
   return <div className="case-page dashboard-page">
-    <header className="case-page-head">
-      <div>
-        <p>업무 현황 / 신고 대시보드</p>
-        <h1>신고 대시보드</h1>
-      </div>
-      <button className="primary-action" onClick={() => navigate(ROUTES.CASES)}>신고 목록 보기</button>
-    </header>
-
     <section className="dashboard-summary-grid" aria-label="신고 요약 지표">
       {metrics.map((item) => <article key={item.label} className={`case-metric ${item.tone}`}>
         <span>{item.label}</span>
