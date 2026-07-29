@@ -37,6 +37,7 @@ def execute_ai_job(db: Session, job_id: int) -> None:
 
             result = AIResult(
                 case_id=job.case_id,
+                case_number=job.case.case_number,
                 image_id=img.image_id,
                 damage_grade=output["damage_grade"],
                 confidence=output["confidence"],
