@@ -49,10 +49,10 @@ const Header = () => {
     <header className="krds-service-header">
       <div className="krds-brand-row">
         <div className="krds-header-inner">
-          <button type="button" className="krds-brand" onClick={() => navigate(ROUTES.DASHBOARD)} aria-label="재해복구 AI 대시보드로 이동">
+          <button type="button" className="krds-brand" onClick={() => navigate(ROUTES.DASHBOARD)} aria-label="NDRMS 대시보드로 이동">
             <span className="krds-brand-mark" aria-hidden="true"><i /></span>
             <span className="krds-brand-copy">
-              <strong>재해복구 AI</strong>
+              <strong>NDRMS</strong>
               <small>재해 신고·복구 업무관리시스템</small>
             </span>
           </button>

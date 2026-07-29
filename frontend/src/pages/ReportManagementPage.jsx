@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react';
-import { formatOfficerFull, getCurrentUser } from '../mocks/currentUser';
-import { MOCK_APPROVAL_HISTORY } from '../mocks/history';
-import { calculateSeverityTotal, DEFAULT_WORKFLOW, downloadMockReport } from '../mocks/workflow';
+import { downloadMockReport } from '../mocks/workflow';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
+import { buildFinalReportRecords } from '../utils/reportRecords';
 import './report-management.css';
 
-const FINAL_STATUSES = ['최종 승인', '금액 수정 후 승인'];
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
 
 const ReportManagementPage = () => {
@@ -22,35 +20,10 @@ const ReportManagementPage = () => {
   const [sortOrder, setSortOrder] = useState('latest');
   const [page, setPage] = useState(1);
 
-  const reports = useMemo(() => {
-    const approvalByCase = Object.fromEntries(MOCK_APPROVAL_HISTORY.map((entry) => [entry.caseId, entry]));
-    return cases.flatMap((item, index) => {
-      const workflow = workflows[item.id];
-      const approval = approvalByCase[item.id];
-      const savedApprovalStatus = workflow?.approvalStatus && workflow.approvalStatus !== DEFAULT_WORKFLOW.approvalStatus
-        ? workflow.approvalStatus
-        : null;
-      const approvalStatus = savedApprovalStatus || approval?.status || '승인 대기';
-      if (!FINAL_STATUSES.includes(approvalStatus)) return [];
-      const analysis = analyses[item.id];
-      return [{
-        id: `RPT-${String(index + 1).padStart(3, '0')}`,
-        caseId: item.id,
-        reporter: item.reporter,
-        disasterType: item.type,
-        facility: item.facility,
-        location: item.location,
-        description: item.description,
-        damageGrade: analysis?.reviewedGrade || analysis?.result?.recommendedGrade || item.damage,
-        urgencyScore: calculateSeverityTotal(workflow?.severityScores || DEFAULT_WORKFLOW.severityScores),
-        supportAmount: workflow?.approvalAmount ?? approval?.amount ?? workflow?.supportAmount ?? 0,
-        approvalStatus,
-        status: '최종',
-        createdAt: workflow?.approvedAt || approval?.processedAt || item.reportedAt,
-        creator: workflow?.approvedBy ? formatOfficerFull(workflow.approvedBy) : formatOfficerFull(getCurrentUser()),
-      }];
-    });
-  }, [analyses, cases, workflows]);
+  const reports = useMemo(
+    () => buildFinalReportRecords({ cases, analyses, workflows }),
+    [analyses, cases, workflows],
+  );
 
   const filteredReports = useMemo(() => reports
     .filter((report) => {

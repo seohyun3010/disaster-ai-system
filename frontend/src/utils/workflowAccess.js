@@ -18,7 +18,8 @@ export const getWorkflowStageAccess = ({ caseId, stage, item, analysis, workflow
   const supportPath = `${basePath}/support`;
   const finalApprovalPath = `${basePath}/final-approval`;
   const hasCompletedAnalysis = analysis?.status === 'completed' && Boolean(analysis?.result);
-  const hasApprovedReview = REVIEW_COMPLETED_STATUSES.includes(analysis?.reviewStatus);
+  const hasApprovedReview = REVIEW_COMPLETED_STATUSES.includes(analysis?.reviewStatus)
+    || (analysis?.reviewStatus === '보류' && analysis?.holdFieldVerified);
   const hasConfirmedSeverity = Boolean(workflow?.severityConfirmed || workflow?.severityConfirmedAt);
   const hasConfirmedSupport = Boolean(workflow?.supportConfirmed || workflow?.supportConfirmedAt);
   const hasFinalApproval = FINAL_PROCESSED_STATUSES.includes(workflow?.approvalStatus);
@@ -46,7 +47,7 @@ export const getWorkflowStageAccess = ({ caseId, stage, item, analysis, workflow
   if (stage === 'severity') {
     return makeAccess(
       hasApprovedReview,
-      'AI 피해등급 검토에서 승인 또는 수정 후 승인을 먼저 완료해야 합니다.',
+      'AI 피해등급 검토에서 승인하거나 보류 건의 현장 확인 보고를 먼저 완료해야 합니다.',
       basePath,
       '피해등급 검토로',
     );

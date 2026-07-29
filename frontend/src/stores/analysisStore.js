@@ -2,8 +2,30 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { getAnalysisResult, getAnalysisStatus, requestAnalysis } from '../api/analysisApi';
 import { getCurrentUser } from '../mocks/currentUser';
+import { DELETED_DEMO_CASE_IDS } from '../mocks/cases';
 
-const initialAnalysis = { status: 'idle', jobId: null, result: null, error: null, stage: null, reviewStatus: '검토 전', reviewReason: '', requestedAt: null, completedAt: null, reviewedAt: null, reviewedBy: null };
+const DELETED_DEMO_CASE_ID_SET = new Set(DELETED_DEMO_CASE_IDS);
+
+const initialAnalysis = {
+  status: 'idle',
+  jobId: null,
+  result: null,
+  error: null,
+  stage: null,
+  reviewStatus: '검토 전',
+  reviewReason: '',
+  reviewedGrade: null,
+  requestedAt: null,
+  completedAt: null,
+  reviewedAt: null,
+  reviewedBy: null,
+  holdReason: '',
+  heldAt: null,
+  holdFieldVerified: false,
+  fieldVisitReason: '',
+  fieldVisitedAt: null,
+  holdResolvedAt: null,
+};
 const formatReviewedAt = () => {
   const date = new Date();
   const pad = (value) => String(value).padStart(2, '0');
@@ -11,12 +33,14 @@ const formatReviewedAt = () => {
 };
 
 const restorePersistedAnalyses = (analyses = {}) => Object.fromEntries(
-  Object.entries(analyses).map(([caseId, analysis]) => [
-    caseId,
-    analysis.status === 'failed' && analysis.jobId
-      ? { ...analysis, status: 'queued', error: null, stage: '분석 상태 다시 확인 중' }
-      : analysis,
-  ]),
+  Object.entries(analyses)
+    .filter(([caseId]) => !DELETED_DEMO_CASE_ID_SET.has(caseId))
+    .map(([caseId, analysis]) => [
+      caseId,
+      analysis.status === 'failed' && analysis.jobId
+        ? { ...analysis, status: 'queued', error: null, stage: '분석 상태 다시 확인 중' }
+        : analysis,
+    ]),
 );
 
 export const useAnalysisStore = create(
@@ -46,9 +70,85 @@ export const useAnalysisStore = create(
           set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], status: 'failed', error: error.message || '분석 상태를 확인하지 못했습니다.' } } }));
         }
       },
-      submitReview: (caseId, review) => set((state) => ({
-        analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], reviewStatus: review.status, reviewReason: review.reason || '', reviewedGrade: review.grade || null, reviewedBy: { ...getCurrentUser() }, reviewedAt: formatReviewedAt() } },
-      })),
+      submitReview: (caseId, review) => set((state) => {
+        const current = state.analyses[caseId] || initialAnalysis;
+        const reviewedAt = formatReviewedAt();
+        const reason = review.reason?.trim() || '';
+        const isHold = review.status === '보류';
+        const resolvesHold = current.reviewStatus === '보류' && ['승인', '수정 승인'].includes(review.status);
+        const nextAnalysis = {
+          ...current,
+          reviewStatus: review.status,
+          reviewReason: reason,
+          reviewedGrade: review.grade || null,
+          reviewedBy: { ...getCurrentUser() },
+          reviewedAt,
+        };
+
+        if (isHold) {
+          Object.assign(nextAnalysis, {
+            holdReason: reason,
+            heldAt: reviewedAt,
+            holdFieldVerified: false,
+            fieldVisitReason: '',
+            fieldVisitedAt: null,
+            holdResolvedAt: null,
+          });
+        }
+
+        if (resolvesHold) {
+          Object.assign(nextAnalysis, {
+            fieldVisitReason: reason,
+            fieldVisitedAt: reviewedAt,
+            holdFieldVerified: true,
+            holdResolvedAt: reviewedAt,
+          });
+        }
+
+        return {
+          analyses: {
+            ...state.analyses,
+            [caseId]: nextAnalysis,
+          },
+        };
+      }),
+      confirmHeldReview: (caseId, review) => set((state) => {
+        const current = state.analyses[caseId] || initialAnalysis;
+        const reviewedAt = formatReviewedAt();
+        const reason = review.reason?.trim() || '';
+        return {
+          analyses: {
+            ...state.analyses,
+            [caseId]: {
+              ...current,
+              reviewStatus: '보류',
+              reviewReason: reason,
+              reviewedGrade: review.grade || current.reviewedGrade,
+              reviewedBy: { ...getCurrentUser() },
+              reviewedAt,
+              holdFieldVerified: true,
+              fieldVisitReason: reason,
+              fieldVisitedAt: reviewedAt,
+              holdResolvedAt: null,
+            },
+          },
+        };
+      }),
+      finalizeHeldReview: (caseId) => set((state) => {
+        const current = state.analyses[caseId];
+        if (!current || current.reviewStatus !== '보류' || !current.holdFieldVerified) return state;
+        return {
+          analyses: {
+            ...state.analyses,
+            [caseId]: {
+              ...current,
+              reviewStatus: '수정 승인',
+              reviewedAt: formatReviewedAt(),
+              holdResolvedAt: formatReviewedAt(),
+            },
+          },
+        };
+      }),
       deleteAnalysis: (caseId) => set((state) => {
         const analyses = { ...state.analyses };
         delete analyses[caseId];
@@ -57,7 +157,12 @@ export const useAnalysisStore = create(
     }),
     {
       name: 'disaster-recovery.analyses',
+      version: 2,
       storage: createJSONStorage(() => localStorage),
+      migrate: (persisted) => ({
+        ...persisted,
+        analyses: restorePersistedAnalyses(persisted?.analyses),
+      }),
       merge: (persisted, current) => ({
         ...current,
         analyses: restorePersistedAnalyses(persisted?.analyses),

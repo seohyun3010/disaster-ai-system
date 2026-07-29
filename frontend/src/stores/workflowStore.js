@@ -2,6 +2,13 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { createInitialWorkflow } from '../mocks/workflow';
 import { getCurrentUser } from '../mocks/currentUser';
+import { DELETED_DEMO_CASE_IDS } from '../mocks/cases';
+
+const DELETED_DEMO_CASE_ID_SET = new Set(DELETED_DEMO_CASE_IDS);
+
+const sanitizeRecordMap = (records = {}) => Object.fromEntries(
+  Object.entries(records).filter(([caseId]) => !DELETED_DEMO_CASE_ID_SET.has(caseId)),
+);
 
 const formatApprovedAt = () => {
   const date = new Date();
@@ -50,6 +57,23 @@ export const useWorkflowStore = create(
         };
       }),
     }),
-    { name: 'disaster-recovery.workflows', storage: createJSONStorage(() => localStorage) },
+    {
+      name: 'disaster-recovery.workflows',
+      version: 2,
+      storage: createJSONStorage(() => localStorage),
+      migrate: (persisted) => ({
+        ...persisted,
+        workflows: sanitizeRecordMap(persisted?.workflows),
+        deletedApprovalHistoryIds: (persisted?.deletedApprovalHistoryIds || [])
+          .filter((caseId) => !DELETED_DEMO_CASE_ID_SET.has(caseId)),
+      }),
+      merge: (persisted, current) => ({
+        ...current,
+        ...persisted,
+        workflows: sanitizeRecordMap(persisted?.workflows),
+        deletedApprovalHistoryIds: (persisted?.deletedApprovalHistoryIds || [])
+          .filter((caseId) => !DELETED_DEMO_CASE_ID_SET.has(caseId)),
+      }),
+    },
   ),
 );

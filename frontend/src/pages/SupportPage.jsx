@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import CaseStageHeader from '../components/case/CaseStageHeader';
 import StageNavigation from '../components/case/StageNavigation';
-import DuplicateBenefitCheck from '../components/support/DuplicateBenefitCheck';
 import SupportCalculationCard from '../components/support/SupportCalculationCard';
 import { ReviewGuidance } from '../components/persona/ReviewGuidance';
 import { DEFAULT_WORKFLOW, SUPPORT_STANDARD } from '../mocks/workflow';
@@ -26,7 +25,7 @@ const SupportPage = () => {
   const changeReason = (value) => { setReason(value); setMessage(''); };
   const save = () => { if (Number(amount) !== saved.supportAmount && !reason.trim()) { setError('금액 수정 사유를 입력해 주세요.'); return; } setError(''); saveSupport(caseId, Number(amount), reason.trim()); setReason(reason.trim()); setMessage('금액이 반영되었습니다. 최종 승인 단계로 이동할 수 있습니다.'); };
 
-  return <div className="case-page"><CaseStageHeader item={item} breadcrumb="복구 심사 / 지원금 심사" title="지원금 심사" /><ReviewGuidance current="예상 지원금 계산과 중복 수혜 결과 검토" next="금액 반영 후 최종 승인" caution={item.duplicate ? '중복 수혜 의심 건입니다. 지급 이력 원문을 확인하기 전 최종 승인하지 마세요.' : '산정 기준과 계산 과정이 일치하는지 확인해 주세요.'} /><section className="stage-two-column support-grid"><SupportCalculationCard item={item} standard={SUPPORT_STANDARD} amount={amount} reason={reason} onAmountChange={changeAmount} onReasonChange={changeReason} onSave={save} error={error} message={message} /><DuplicateBenefitCheck duplicate={item.duplicate} result={item.duplicate ? '동일 주소의 기존 수혜 내역이 있어 추가 확인이 필요합니다.' : SUPPORT_STANDARD.duplicateResult} /></section><StageNavigation previousPath={`/cases/${caseId}/severity`} previousLabel="심각도 검토" nextPath={`/cases/${caseId}/final-approval`} nextLabel="최종 승인" nextDisabled={!canProceed} nextHint="금액 반영 버튼을 눌러야 최종 승인으로 이동할 수 있습니다." /></div>;
+  return <div className="case-page"><CaseStageHeader item={item} breadcrumb="복구 심사 / 지원금 심사" title="지원금 심사" /><ReviewGuidance current="예상 지원금 산정 결과 검토" next="금액 반영 후 최종 승인" caution="산정 기준과 계산 과정이 일치하는지 확인해 주세요." /><section className="stage-two-column support-grid support-single"><SupportCalculationCard item={item} standard={SUPPORT_STANDARD} amount={amount} reason={reason} onAmountChange={changeAmount} onReasonChange={changeReason} onSave={save} error={error} message={message} /></section><StageNavigation previousPath={`/cases/${caseId}/severity`} previousLabel="심각도 검토" nextPath={`/cases/${caseId}/final-approval`} nextLabel="최종 승인" nextDisabled={!canProceed} nextHint="금액 반영 버튼을 눌러야 최종 승인으로 이동할 수 있습니다." /></div>;
 };
 
 export default SupportPage;

@@ -259,6 +259,78 @@
   margin-left: 0;
 }
 
+.status-badge.보류,
+.review-status-badge.보류 {
+  border-color: #d8b86f;
+  background: #fff8e8;
+  color: #855b08;
+}
+
+.held-review-modal {
+  width: min(100%, 580px);
+}
+
+.hold-review-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin: 0 24px;
+  border: 1px solid var(--krds-gray-200);
+  border-radius: 8px;
+  background: var(--krds-gray-50);
+}
+
+.hold-review-summary > div {
+  min-width: 0;
+  padding: 15px 16px;
+}
+
+.hold-review-summary > div + div {
+  border-left: 1px solid var(--krds-gray-200);
+}
+
+.hold-review-summary > .full {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--krds-gray-200);
+  border-left: 0;
+}
+
+.hold-review-summary dt {
+  margin-bottom: 6px;
+  color: var(--krds-gray-600);
+  font-size: 11px;
+}
+
+.hold-review-summary dd {
+  margin: 0;
+  color: var(--krds-gray-900);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.held-review-modal > .decision-form {
+  margin: 0;
+  padding: 24px;
+}
+
+.held-review-modal > .form-error {
+  margin: -8px 24px 20px;
+}
+
+.held-review-modal > footer {
+  display: flex;
+  min-height: 74px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--krds-gray-200);
+  background: var(--krds-gray-50);
+  padding: 16px 24px;
+}
+
 @media (max-width: 820px) {
   .disaster-selection-page .case-page-head {
     align-items: flex-start;
@@ -278,6 +350,19 @@
 }
 
 @media (max-width: 520px) {
+  .hold-review-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .hold-review-summary > div + div {
+    border-top: 1px solid var(--krds-gray-200);
+    border-left: 0;
+  }
+
+  .hold-review-summary > .full {
+    grid-column: auto;
+  }
+
   .event-selection-summary dl {
     grid-template-columns: 1fr;
   }

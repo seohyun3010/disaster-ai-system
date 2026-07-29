@@ -29,7 +29,8 @@ const CaseWorkflowLayout = () => {
   const disasterEvent = DISASTER_EVENTS.find((event) => item && isCaseInDisasterEvent(item, event));
   const listPath = disasterEvent ? `/cases?event=${disasterEvent.id}` : '/cases';
   const activeIndex = getActiveIndex(pathname);
-  const reviewCompleted = ['승인', '수정 승인'].includes(analysis?.reviewStatus);
+  const reviewCompleted = ['승인', '수정 승인'].includes(analysis?.reviewStatus)
+    || (analysis?.reviewStatus === '보류' && analysis?.holdFieldVerified);
   const approvalCompleted = Boolean(workflow?.approvalStatus && workflow.approvalStatus !== '승인 대기');
   const completed = [
     activeIndex > 0 || Boolean(analysis && analysis.status !== 'idle'),

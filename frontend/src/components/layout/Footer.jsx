@@ -4,7 +4,7 @@ const Footer = () => (
       <div className="krds-footer-inner">
         <div className="krds-footer-brand">
           <span className="krds-footer-mark" aria-hidden="true"><i /></span>
-          <span><strong>재해복구 AI</strong><small>재해 신고·복구 업무관리시스템</small></span>
+          <span><strong>NDRMS</strong><small>재해 신고·복구 업무관리시스템</small></span>
         </div>
 
         <div className="krds-footer-content">

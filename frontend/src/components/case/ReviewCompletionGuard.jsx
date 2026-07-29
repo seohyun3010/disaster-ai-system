@@ -6,11 +6,12 @@ const APPROVED_REVIEW_STATUSES = ['승인', '수정 승인'];
 const ReviewCompletionGuard = ({ children }) => {
   const { caseId } = useParams();
   const navigate = useNavigate();
-  const reviewStatus = useAnalysisStore((state) => state.analyses[caseId]?.reviewStatus);
+  const analysis = useAnalysisStore((state) => state.analyses[caseId]);
 
-  if (APPROVED_REVIEW_STATUSES.includes(reviewStatus)) return children;
+  if (APPROVED_REVIEW_STATUSES.includes(analysis?.reviewStatus)
+    || (analysis?.reviewStatus === '보류' && analysis?.holdFieldVerified)) return children;
 
-  return <div className="case-page"><section className="case-card review-stage-locked" role="alert"><span>피해등급 검토 필요</span><h1>피해등급 검토를 먼저 완료해 주세요.</h1><p>통합 AI 분석 화면에서 추천 등급을 확인한 뒤 <b>추천 등급 승인</b> 또는 <b>등급 수정 후 승인</b> 처리해야 복구 긴급도 단계로 이동할 수 있습니다.</p><button type="button" className="primary-action" onClick={() => navigate(`/cases/${caseId}/analysis`)}>AI 분석 화면으로 이동</button></section></div>;
+  return <div className="case-page"><section className="case-card review-stage-locked" role="alert"><span>피해등급 검토 필요</span><h1>피해등급 검토를 먼저 완료해 주세요.</h1><p>AI 분석 화면에서 피해등급을 <b>승인</b>하거나, 보류 건의 현장 확인 보고를 완료해야 복구 긴급도 단계로 이동할 수 있습니다.</p><button type="button" className="primary-action" onClick={() => navigate(`/cases/${caseId}/analysis`)}>AI 분석 화면으로 이동</button></section></div>;
 };
 
 export default ReviewCompletionGuard;

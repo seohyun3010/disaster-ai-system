@@ -7,7 +7,7 @@ export const DISASTER_EVENTS = [
     filingDeadline: '2026.08.03',
     status: '진행중',
     disasterTypes: ['집중호우', '호우', '산사태'],
-    caseIds: ['NDMS-2026-0716-0048', 'NDMS-2026-0716-0042', 'NDMS-2026-0715-0039', 'NDMS-2026-0714-0028', 'NDMS-2026-0714-0021'],
+    caseIds: [],
   },
   {
     id: 'wildfire-2026-0324',

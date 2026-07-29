@@ -231,6 +231,10 @@
   gap: 12px;
 }
 
+.case-workflow-stage .case-page > .support-grid.support-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .case-workflow-stage .support-grid > .case-card {
   align-self: start;
 }
@@ -264,8 +268,9 @@
 }
 
 .case-workflow-stage .severity-grid > .case-card {
-  height: 590px;
-  overflow-y: auto;
+  min-height: 0;
+  height: auto;
+  overflow-y: visible;
 }
 
 .case-workflow-stage .severity-grid .stage-reason-field textarea {

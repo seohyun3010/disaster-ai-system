@@ -37,7 +37,7 @@ const LoginPage = () => {
   return <main className="login-page">
     <section className="login-intro">
       <p className="login-kicker">DISASTER RECOVERY AI</p>
-      <h1>재해복구업무관리시스템</h1>
+      <h1>NDRMS</h1>
       <p>신고 접수부터 AI 분석, 검토·승인과 보고서 발행까지<br />하나의 흐름으로 관리합니다.</p>
     </section>
     <section className="login-panel" aria-labelledby="login-title"><div className="login-card">

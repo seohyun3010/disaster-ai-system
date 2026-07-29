@@ -14,11 +14,13 @@ const FinalApprovalPage = () => {
   const historyView = new URLSearchParams(search).get('view') === 'history';
   const item = useCaseStore((state) => state.cases.find((entry) => entry.id === caseId));
   const analysis = useAnalysisStore((state) => state.analyses[caseId]);
+  const finalizeHeldReview = useAnalysisStore((state) => state.finalizeHeldReview);
   const workflow = useWorkflowStore((state) => state.workflows[caseId] || DEFAULT_WORKFLOW);
   const submitApproval = useWorkflowStore((state) => state.submitApproval);
   const urgencyScore = calculateSeverityTotal(workflow.severityScores);
   const handleApproval = (approval) => {
     submitApproval(caseId, approval);
+    if (['최종 승인', '금액 수정 후 승인'].includes(approval.status)) finalizeHeldReview(caseId);
     navigate(`/cases/${caseId}/reports${historyView ? '?view=history' : ''}`);
   };
 
