@@ -115,6 +115,12 @@ class Case(Base):
     duplicate_suspected: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False
     )
+    duplicate_status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="NOT_CHECKED"
+    )
+    duplicate_of_case_id: Mapped[int | None] = mapped_column(
+        BigInteger, ForeignKey("cases.case_id"), nullable=True
+    )
     priority: Mapped[str] = mapped_column(
         String(50), nullable=False, default="NORMAL"
     )

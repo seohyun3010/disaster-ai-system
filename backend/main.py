@@ -12,6 +12,7 @@ from routers import (
     auth_router,
     benefit_checks_router,
     case_router,
+    duplicate_router,
     report_router,
     review_router,
     severity,
@@ -49,6 +50,7 @@ app.include_router(ai_job_router.router)
 app.include_router(ai_result_router.router)
 app.include_router(review_router.router)
 app.include_router(case_router.router)
+app.include_router(duplicate_router.router)
 app.include_router(subsidy_router.router)
 app.include_router(report_router.router)
 app.include_router(severity.router)

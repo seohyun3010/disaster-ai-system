@@ -30,8 +30,14 @@ export const API_PATHS = {
     HISTORY: (caseId) => `/api/subsidy/${caseId}/history`,
   },
   REPORT: {
-    GENERATE: '/api/report/generate',
-    DETAIL: (reportId) => `/api/report/${reportId}`,
-    DOWNLOAD: (reportId) => `/api/report/download/${reportId}`,
+    // 기존 연동 전 주소는 삭제하지 않고 주석으로 보존합니다.
+    // GENERATE: '/api/report/generate',
+    // DETAIL: (reportId) => `/api/report/${reportId}`,
+    // DOWNLOAD: (reportId) => `/api/report/download/${reportId}`,
+    LIST: '/reports',
+    GENERATE: (caseId) => `/reports/cases/${caseId}`,
+    CASE_DETAIL: (caseId) => `/reports/cases/${caseId}`,
+    DETAIL: (reportId) => `/reports/${reportId}`,
+    DOWNLOAD: (reportId) => `/reports/${reportId}/download`,
   },
 };

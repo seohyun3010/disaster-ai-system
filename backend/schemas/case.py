@@ -45,6 +45,8 @@ class CaseResponse(BaseModel):
     external_report_id: str | None
     status: str | None
     duplicate_suspected: bool
+    duplicate_status: str
+    duplicate_of_case_id: int | None
     priority: str
     title: str | None
     description: str | None
