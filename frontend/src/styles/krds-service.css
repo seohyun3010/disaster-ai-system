@@ -89,8 +89,10 @@ textarea:focus-visible {
 }
 
 .krds-header-inner {
-  width: min(100% - 64px, 1520px);
+  width: 100%;
   margin-inline: auto;
+  box-sizing: border-box;
+  padding-inline: 24px;
 }
 
 .krds-official-bar {
@@ -223,6 +225,190 @@ textarea:focus-visible {
   flex: 0 0 auto;
   align-items: center;
   gap: 8px;
+}
+
+/* Login: single centered authentication card with the shared public-service footer. */
+.login-page.login-page-centered {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.login-page-centered .login-main {
+  flex: 1 0 auto;
+  min-height: 620px;
+  display: grid;
+  place-items: center;
+  padding: clamp(48px, 8vh, 88px) 24px;
+  background: #fff;
+}
+
+.login-page-centered .login-panel {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.login-page-centered .login-card {
+  width: min(100%, 440px);
+  padding: 40px;
+  border: 1px solid var(--krds-gray-300);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 14px 38px rgba(18, 35, 52, 0.08);
+}
+
+.login-page-centered .login-brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--krds-gray-200);
+}
+
+.login-page-centered .login-brand .krds-footer-mark {
+  flex: 0 0 auto;
+}
+
+.login-page-centered .login-brand-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.login-page-centered .login-brand-copy strong {
+  color: var(--krds-gray-950);
+  font-size: 25px;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.login-page-centered .login-brand-copy small {
+  color: var(--krds-gray-600);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.login-page-centered .login-heading {
+  padding-top: 30px;
+}
+
+.login-page-centered .login-heading .login-kicker {
+  margin: 0 0 10px;
+  color: var(--krds-primary-700);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.login-page-centered .login-heading h1 {
+  margin: 0;
+  color: var(--krds-gray-950);
+  font-size: 31px;
+  line-height: 1.25;
+  letter-spacing: -1.2px;
+}
+
+.login-page-centered .login-heading > p:last-child {
+  margin: 10px 0 26px;
+  color: var(--krds-gray-600);
+  font-size: 14px;
+}
+
+.login-page-centered .login-form label {
+  color: var(--krds-gray-800);
+}
+
+.login-page-centered .login-form input {
+  min-height: 50px;
+  border-color: var(--krds-gray-400);
+  border-radius: 8px;
+}
+
+.login-page-centered .login-form input:focus {
+  border-color: var(--krds-primary-700);
+  box-shadow: 0 0 0 3px rgba(23, 97, 168, 0.13);
+}
+
+.login-page-centered .login-submit {
+  min-height: 52px;
+  border-radius: 8px;
+  background: var(--krds-primary-700);
+  box-shadow: none;
+}
+
+.login-page-centered .login-submit:not(:disabled):hover {
+  background: var(--krds-primary-800);
+}
+
+@media (max-width: 720px) {
+  .login-page-centered .login-main {
+    min-height: 560px;
+    padding: 36px 18px;
+  }
+
+  .login-page-centered .login-card {
+    padding: 30px 24px;
+  }
+
+  .login-page-centered .login-heading h1 {
+    font-size: 27px;
+  }
+}
+
+.krds-refresh-summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-right: 2px;
+}
+
+.krds-refresh-action {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--krds-gray-300);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--krds-gray-700);
+  cursor: pointer;
+}
+
+.krds-refresh-action:hover {
+  border-color: var(--krds-primary-500);
+  background: var(--krds-primary-50);
+  color: var(--krds-primary-700);
+}
+
+.krds-refresh-action svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.krds-refresh-summary > span {
+  display: grid;
+  gap: 1px;
+  white-space: nowrap;
+}
+
+.krds-refresh-summary small {
+  color: var(--krds-gray-500);
+  font-size: 9px;
+}
+
+.krds-refresh-summary time {
+  color: var(--krds-gray-700);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
 }
 
 .krds-header-inline-search {
@@ -2442,7 +2628,8 @@ textarea:focus-visible {
 
 @media (max-width: 1100px) {
   .krds-header-inner {
-    width: min(100% - 40px, 1520px);
+    width: 100%;
+    padding-inline: 20px;
   }
 
   .krds-brand-row .krds-header-inner {
@@ -2472,7 +2659,8 @@ textarea:focus-visible {
 
 @media (max-width: 760px) {
   .krds-header-inner {
-    width: min(100% - 28px, 1520px);
+    width: 100%;
+    padding-inline: 14px;
   }
 
   .krds-official-bar .krds-header-inner {
@@ -2482,7 +2670,8 @@ textarea:focus-visible {
   .krds-utility-links,
   .krds-search-action span,
   .krds-logout,
-  .krds-brand-copy small {
+  .krds-brand-copy small,
+  .krds-refresh-summary > span {
     display: none;
   }
 

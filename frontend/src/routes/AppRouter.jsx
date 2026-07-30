@@ -18,9 +18,6 @@ import DisasterMapPage from '../pages/DisasterMapPage';
 import ReportDetailPage from '../pages/ReportDetailPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import ProtectedRoute from './ProtectedRoute';
-import ReviewCompletionGuard from '../components/case/ReviewCompletionGuard';
-import SupportCompletionGuard from '../components/case/SupportCompletionGuard';
-import StageAccessGuard from '../components/case/StageAccessGuard';
 import { ROUTES } from './routeConfig';
 
 const AppRouter = () => {
@@ -46,10 +43,10 @@ const AppRouter = () => {
               <Route path="ai-result" element={<AiResultPage />} />
               <Route path="analysis" element={<CaseDetailPage initialScreen="analysis" />} />
               <Route path="review" element={<Navigate to={ROUTES.REVIEW_HISTORY} replace />} />
-              <Route path="severity" element={<ReviewCompletionGuard><SeverityPage /></ReviewCompletionGuard>} />
-              <Route path="support" element={<StageAccessGuard stage="support"><SupportPage /></StageAccessGuard>} />
-              <Route path="final-approval" element={<SupportCompletionGuard><FinalApprovalPage /></SupportCompletionGuard>} />
-              <Route path="reports" element={<StageAccessGuard stage="reports"><ReportsPage /></StageAccessGuard>} />
+              <Route path="severity" element={<SeverityPage />} />
+              <Route path="support" element={<SupportPage />} />
+              <Route path="final-approval" element={<FinalApprovalPage />} />
+              <Route path="reports" element={<ReportsPage />} />
             </Route>
             <Route path={ROUTES.STATISTICS} element={<StatisticsPage />} />
             <Route path={ROUTES.MAP} element={<DisasterMapPage />} />

@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
+import { useWorkflowNavigation } from '../hooks/useWorkflowNavigation';
 import './case-workflow-layout.css';
 
 const STEPS = [
@@ -30,6 +31,7 @@ const CaseWorkflowLayout = () => {
   const fetchCaseDetail = useCaseStore((state) => state.fetchCaseDetail);
   const analysis = useAnalysisStore((state) => state.analyses[caseId]);
   const workflow = useWorkflowStore((state) => state.workflows[caseId]);
+  const { maxUnlockedStage, canAccessStage } = useWorkflowNavigation(caseId);
   const listPath = '/cases';
   const activeIndex = getActiveIndex(pathname);
   const reviewCompleted = ['승인', '수정 승인'].includes(analysis?.reviewStatus)
@@ -43,18 +45,21 @@ const CaseWorkflowLayout = () => {
     approvalCompleted,
     false,
   ];
-  const available = [
-    true,
-    true,
-    reviewCompleted,
-    Boolean(workflow?.severityConfirmed),
-    Boolean(workflow?.supportConfirmed),
-    approvalCompleted,
-  ];
+  const requestedStage = activeIndex + 1;
+  const requestedStageLocked = !canAccessStage(requestedStage);
 
   useEffect(() => {
     if (!item?.isDetail) fetchCaseDetail(caseId).catch(() => {});
   }, [caseId, fetchCaseDetail, item?.isDetail]);
+
+  useEffect(() => {
+    if (!requestedStageLocked) return;
+    const lastUnlockedStep = STEPS[maxUnlockedStage - 1] || STEPS[0];
+    const target = lastUnlockedStep.path
+      ? `/cases/${caseId}/${lastUnlockedStep.path}`
+      : `/cases/${caseId}`;
+    navigate(target, { replace: true });
+  }, [caseId, maxUnlockedStage, navigate, requestedStageLocked]);
 
   if (!item) {
     return <div className="case-workflow-missing">
@@ -83,19 +88,35 @@ const CaseWorkflowLayout = () => {
         </div>
         <ol>
           {STEPS.map((step, index) => {
-            const state = index === activeIndex ? 'active' : completed[index] ? 'completed' : 'pending';
+            const stageNumber = index + 1;
+            const unlocked = canAccessStage(stageNumber);
+            const wasPassed = stageNumber < maxUnlockedStage;
+            const state = index === activeIndex
+              ? 'active'
+              : completed[index] || wasPassed
+                ? 'completed'
+                : 'pending';
             const target = step.path ? `/cases/${caseId}/${step.path}` : `/cases/${caseId}`;
             return <li key={step.label} className={state}>
               <button
                 type="button"
                 onClick={() => navigate(target)}
-                disabled={!available[index] || (activeIndex === 5 && index < 5)}
+                disabled={!unlocked}
                 aria-current={index === activeIndex ? 'step' : undefined}
+                title={unlocked ? undefined : '이전 단계를 완료하면 이동할 수 있습니다.'}
               >
-                <span className="workflow-step-number">{completed[index] ? '✓' : index + 1}</span>
+                <span className="workflow-step-number">{completed[index] || wasPassed ? '✓' : stageNumber}</span>
                 <span className="workflow-step-copy">
                   <strong>{step.label}</strong>
-                  <small>{index === activeIndex ? '현재 단계' : completed[index] ? '완료' : available[index] ? '진행 가능' : '이전 단계 완료 후 진행'}</small>
+                  <small>
+                    {index === activeIndex
+                      ? '현재 단계'
+                      : completed[index] || wasPassed
+                        ? '완료'
+                        : unlocked
+                          ? '이동 가능'
+                          : '이전 단계 완료 후 진행'}
+                  </small>
                 </span>
                 <span className="workflow-step-arrow" aria-hidden="true">›</span>
               </button>
@@ -105,7 +126,7 @@ const CaseWorkflowLayout = () => {
       </aside>
 
       <main className="case-workflow-stage">
-        <Outlet context={{ item }} />
+        {!requestedStageLocked && <Outlet context={{ item }} />}
       </main>
     </div>
   </div>;

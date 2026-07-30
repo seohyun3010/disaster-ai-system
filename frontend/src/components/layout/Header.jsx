@@ -14,6 +14,18 @@ const SearchIcon = () => (
   </svg>
 );
 
+const RefreshIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M19 8a8 8 0 1 0 1 6" />
+    <path d="M19 3v5h-5" />
+  </svg>
+);
+
+const formatRefreshTime = (date) => {
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
 const MenuIcon = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
     <path d="M4 7h16M4 12h16M4 17h16" />
@@ -26,6 +38,11 @@ const Header = () => {
   const user = getCurrentUser();
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [lastRefreshedAt] = useState(() => new Date());
+
+  const refreshPage = () => {
+    window.location.reload();
+  };
 
   const handleLogout = async () => {
     try {
@@ -49,7 +66,7 @@ const Header = () => {
     <header className="krds-service-header">
       <div className="krds-brand-row">
         <div className="krds-header-inner">
-          <button type="button" className="krds-brand" onClick={() => navigate(ROUTES.DASHBOARD)} aria-label="NDRMS 대시보드로 이동">
+          <button type="button" className="krds-brand" onClick={() => navigate(ROUTES.DASHBOARD)} aria-label="NDRMS 종합 현황으로 이동">
             <span className="krds-brand-mark" aria-hidden="true"><i /></span>
             <span className="krds-brand-copy">
               <strong>NDRMS</strong>
@@ -60,6 +77,12 @@ const Header = () => {
           <TopNavigation mobileOpen={mobileMenuOpen} onNavigate={() => setMobileMenuOpen(false)} />
 
           <div className="krds-header-actions">
+            <div className="krds-refresh-summary">
+              <button type="button" className="krds-refresh-action" onClick={refreshPage} aria-label="데이터 새로고침">
+                <RefreshIcon />
+              </button>
+              <span><small>마지막 갱신</small><time dateTime={lastRefreshedAt.toISOString()}>{formatRefreshTime(lastRefreshedAt)}</time></span>
+            </div>
             <button type="button" className={`krds-icon-action krds-search-action ${searchOpen ? 'is-open' : ''}`} onClick={() => setSearchOpen((current) => !current)} aria-expanded={searchOpen} aria-label="통합검색 열기">
               <SearchIcon />
             </button>
