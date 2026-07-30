@@ -57,22 +57,11 @@ const Header = () => {
             </span>
           </button>
 
-          {searchOpen && (
-            <form className="krds-header-inline-search" onSubmit={submitSearch}>
-              <label className="sr-only" htmlFor="global-search">통합검색</label>
-              <div>
-                <SearchIcon />
-                <input id="global-search" name="globalSearch" placeholder="사건번호, 신고자 또는 피해 위치 검색" autoFocus />
-              </div>
-              <button type="submit">검색</button>
-              <button type="button" className="krds-inline-search-close" onClick={() => setSearchOpen(false)} aria-label="통합검색 닫기">×</button>
-            </form>
-          )}
+          <TopNavigation mobileOpen={mobileMenuOpen} onNavigate={() => setMobileMenuOpen(false)} />
 
           <div className="krds-header-actions">
-            <button type="button" className={`krds-icon-action krds-search-action ${searchOpen ? 'is-open' : ''}`} onClick={() => setSearchOpen((current) => !current)} aria-expanded={searchOpen}>
+            <button type="button" className={`krds-icon-action krds-search-action ${searchOpen ? 'is-open' : ''}`} onClick={() => setSearchOpen((current) => !current)} aria-expanded={searchOpen} aria-label="통합검색 열기">
               <SearchIcon />
-              <span>통합검색</span>
             </button>
             <NotificationMenu />
             <div className="krds-user-summary">
@@ -85,9 +74,19 @@ const Header = () => {
             </button>
           </div>
         </div>
-      </div>
 
-      <TopNavigation mobileOpen={mobileMenuOpen} onNavigate={() => setMobileMenuOpen(false)} />
+        {searchOpen && (
+          <form className="krds-header-inline-search" onSubmit={submitSearch}>
+            <label className="sr-only" htmlFor="global-search">통합검색</label>
+            <div>
+              <SearchIcon />
+              <input id="global-search" name="globalSearch" placeholder="사건번호, 신고자 또는 피해 위치 검색" autoFocus />
+            </div>
+            <button type="submit">검색</button>
+            <button type="button" className="krds-inline-search-close" onClick={() => setSearchOpen(false)} aria-label="통합검색 닫기">×</button>
+          </form>
+        )}
+      </div>
     </header>
   );
 };
