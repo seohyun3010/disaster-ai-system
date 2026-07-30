@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ANALYSIS_POLLING_INTERVAL } from '../api/analysisApi';
+import { ANALYSIS_POLLING_INTERVAL, getCaseAnalysisResult } from '../api/analysisApi';
 import AnalysisDecisionPanel from '../components/analysis/AnalysisDecisionPanel';
 import AnalysisResultCard from '../components/analysis/AnalysisResultCard';
 import { useAnalysisStore } from '../stores/analysisStore';
@@ -90,6 +90,23 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const report = useMemo(() => item ? createReportView(item) : null, [item]);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
+  // 판독 결과는 서버(ai_results)를 단일 출처로 삼는다.
+  // 브라우저 저장소 상태에 의존하면 DB에 결과가 있어도 화면이 비는
+  // 문제가 발생하므로, 진입 시 항상 서버에서 조회한다.
+  const [serverResult, setServerResult] = useState(null);
+  const [resultLoading, setResultLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    setResultLoading(true);
+    getCaseAnalysisResult(caseId)
+      .then((data) => { if (alive) setServerResult(data); })
+      .catch(() => { if (alive) setServerResult(null); })
+      .finally(() => { if (alive) setResultLoading(false); });
+    return () => { alive = false; };
+  }, [caseId, analysis.status]);
+
+  // 분석 진행 중에는 서버 상태를 주기적으로 확인한다.
   useEffect(() => {
     if (!analysis.jobId || !['queued', 'processing'].includes(analysis.status)) return undefined;
     refreshAnalysis(caseId);
@@ -97,13 +114,26 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
     return () => window.clearInterval(intervalId);
   }, [analysis.jobId, analysis.status, caseId, refreshAnalysis]);
 
+  // 결과가 아직 없으면 폴링으로 확인한다 (백그라운드 판독 완료 대기).
+  useEffect(() => {
+    if (serverResult || !['queued', 'processing'].includes(analysis.status)) return undefined;
+    const timer = window.setInterval(() => {
+      getCaseAnalysisResult(caseId)
+        .then((data) => { if (data) setServerResult(data); })
+        .catch(() => {});
+    }, ANALYSIS_POLLING_INTERVAL);
+    return () => window.clearInterval(timer);
+  }, [serverResult, analysis.status, caseId]);
+
   if (!item || !report) return null;
   const visiblePhotoIndex = report.photos.length > 0 ? activePhotoIndex % report.photos.length : 0;
   const caseListPath = '/cases';
+  const isRunning = ['queued', 'processing'].includes(analysis.status);
 
   const startAnalysis = async () => {
     navigate(`/cases/${caseId}/analysis`);
-    if (analysis.status === 'idle' || analysis.status === 'failed') await requestAnalysis(caseId);
+    setServerResult(null);
+    await requestAnalysis(caseId);
   };
 
   return <section className="case-workspace-panel">
@@ -116,7 +146,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
         <div>
           <span className="workspace-received-at">{report.receivedAt}</span>
           <button type="button" className="primary-action" onClick={startAnalysis}>
-            {analysis.status === 'completed' ? 'AI 분석 결과 보기' : 'AI 분석 시작'}
+            {serverResult ? 'AI 분석 결과 보기' : 'AI 분석 시작'}
           </button>
         </div>
       </header>
@@ -187,18 +217,30 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
         <button type="button" className="secondary-action" onClick={() => navigate(`/cases/${caseId}`)}>신고서 보기</button>
       </header>
 
-      {['idle', 'queued', 'processing', 'failed'].includes(analysis.status) && <article className={`workspace-analysis-state ${analysis.status}`}>
-        <span className="analysis-state-badge">{analysis.status === 'failed' ? '분석 실패' : analysis.status === 'processing' ? '분석 진행 중' : '분석 대기'}</span>
+      {!serverResult && <article className={`workspace-analysis-state ${analysis.status}`}>
+        <span className="analysis-state-badge">
+          {resultLoading ? '불러오는 중'
+            : analysis.status === 'failed' ? '분석 실패'
+              : isRunning ? '분석 진행 중'
+                : '분석 대기'}
+        </span>
         <div className="workspace-ai-visual" aria-hidden="true"><span>AI</span></div>
-        <h3>{analysis.status === 'failed' ? '분석 요청을 완료하지 못했습니다.' : '피해 사진과 신고 내용을 분석하고 있습니다.'}</h3>
-        <p>{analysis.stage || '피해 영역 탐지와 예상 피해등급 산출을 준비합니다.'}</p>
-        {analysis.status === 'failed' && <button type="button" className="primary-action" onClick={startAnalysis}>다시 분석</button>}
+        <h3>
+          {resultLoading ? '판독 결과를 확인하고 있습니다.'
+            : analysis.status === 'failed' ? '분석 요청을 완료하지 못했습니다.'
+              : isRunning ? '피해 사진을 판독하고 있습니다.'
+                : 'AI 판독을 요청할 수 있습니다.'}
+        </h3>
+        <p>{analysis.stage || '배경 분리 · 등급 분류 · 판독 근거 생성 순으로 진행됩니다.'}</p>
+        {!resultLoading && !isRunning && <button type="button" className="primary-action" onClick={startAnalysis}>
+          {analysis.status === 'failed' ? '다시 분석' : 'AI 분석 요청'}
+        </button>}
       </article>}
 
-      {analysis.status === 'completed' && analysis.result && <div className="workspace-analysis-results">
-        <AnalysisResultCard analysis={analysis} />
+      {serverResult && <div className="workspace-analysis-results">
+        <AnalysisResultCard result={serverResult} analysis={{ completedAt: serverResult.completedAt }} />
         <AnalysisDecisionPanel
-          recommendedGrade={analysis.result.recommendedGrade}
+          recommendedGrade={serverResult.recommendedGrade}
           reviewStatus={analysis.reviewStatus}
           onSubmit={(review) => submitReview(caseId, review)}
           onReviewApproved={() => navigate(`/cases/${caseId}/severity`)}
