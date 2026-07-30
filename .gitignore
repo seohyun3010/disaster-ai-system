@@ -1,3 +1,4 @@
 # Environment variables
 .env
 backend/ai/weights/
+backend/uploads/cam/
