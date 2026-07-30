@@ -162,6 +162,10 @@ textarea:focus-visible {
   text-decoration: underline;
 }
 
+.krds-brand-row {
+  position: relative;
+}
+
 .krds-brand-row .krds-header-inner {
   display: flex;
   min-height: 88px;
@@ -172,6 +176,7 @@ textarea:focus-visible {
 
 .krds-brand {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 10px;
   border: 0;
@@ -221,13 +226,20 @@ textarea:focus-visible {
 }
 
 .krds-header-inline-search {
+  position: absolute;
+  z-index: 140;
+  top: 100%;
+  right: 32px;
   display: flex;
   height: 44px;
-  min-width: 280px;
-  max-width: 620px;
-  flex: 1 1 620px;
+  width: min(620px, calc(100% - 64px));
   align-items: stretch;
-  margin-left: auto;
+  padding: 12px;
+  box-sizing: content-box;
+  border: 1px solid var(--krds-gray-200);
+  border-radius: 0 0 10px 10px;
+  background: #fff;
+  box-shadow: 0 12px 24px rgba(19, 20, 22, .12);
 }
 
 .krds-header-inline-search > div {
@@ -309,6 +321,10 @@ textarea:focus-visible {
 .krds-search-action.is-open {
   background: var(--krds-primary-50);
   color: var(--krds-primary-700);
+}
+
+.krds-icon-action.krds-search-action {
+  min-width: 46px;
 }
 
 .krds-icon-action,
@@ -447,28 +463,25 @@ textarea:focus-visible {
 }
 
 .krds-main-navigation {
-  border-top: 1px solid var(--krds-gray-100);
-  background: #fff;
-}
-
-.krds-main-navigation > .krds-header-inner {
   display: flex;
-  min-height: 64px;
+  min-width: 0;
+  align-self: stretch;
   align-items: stretch;
-  gap: 12px;
+  gap: 4px;
+  background: #fff;
 }
 
 .krds-gnb-link,
 .krds-gnb-group > button {
   position: relative;
   display: flex;
-  min-width: 142px;
+  min-width: 112px;
   align-items: center;
   justify-content: center;
   gap: 8px;
   border: 0;
   background: transparent;
-  padding: 0 24px;
+  padding: 0 18px;
   color: var(--krds-gray-800);
   font-size: 16px;
   font-weight: 800;
@@ -2479,16 +2492,13 @@ textarea:focus-visible {
   }
 
   .krds-header-inline-search {
-    position: absolute;
-    z-index: 140;
-    top: 62px;
-    right: 0;
-    left: 0;
-    width: 100%;
+    top: 100%;
+    right: 14px;
+    left: 14px;
+    width: auto;
     max-width: none;
     margin: 0;
-    background: #fff;
-    box-shadow: 0 12px 24px rgba(19, 20, 22, .12);
+    box-sizing: border-box;
   }
 
   .krds-brand-mark {
@@ -2508,7 +2518,7 @@ textarea:focus-visible {
   .krds-main-navigation {
     display: none;
     position: fixed;
-    top: 96px;
+    top: 68px;
     right: 0;
     bottom: 0;
     left: 0;
@@ -2520,7 +2530,7 @@ textarea:focus-visible {
     display: block;
   }
 
-  .krds-main-navigation > .krds-header-inner {
+  .krds-main-navigation.mobile-open {
     display: grid;
     width: 100%;
     align-content: start;
