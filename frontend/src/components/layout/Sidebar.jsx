@@ -28,7 +28,7 @@ const Sidebar = () => {
     <div className="sidebar-brand"><div className="brand">NDRMS</div><div className="brand-sub">재해 신고·복구 업무 관리</div></div>
     <p className="sidebar-menu-title">주요 메뉴</p>
     <nav aria-label="주요 메뉴">
-      {canView() && <NavLink to={ROUTES.DASHBOARD} end><span className="nav-icon" aria-hidden="true">▦</span><span>대시보드</span></NavLink>}
+      {canView() && <NavLink to={ROUTES.DASHBOARD} end><span className="nav-icon" aria-hidden="true">▦</span><span>종합 현황</span></NavLink>}
 
       {canView() && <div className={`sidebar-nav-group ${reportGroupActive ? 'active-group' : ''} ${expanded.reports ? 'manual-open' : ''}`}>
         <button type="button" className="sidebar-group-trigger" onClick={() => toggleGroup('reports')} aria-expanded={reportGroupActive || Boolean(expanded.reports)}>
@@ -39,7 +39,7 @@ const Sidebar = () => {
         </div>
       </div>}
 
-      {canView() && <NavLink className="sidebar-report-link" to={ROUTES.APPROVAL_HISTORY}><SidebarIcon type="review" /><span>승인 처리 이력</span></NavLink>}
+      {canView() && <NavLink className="sidebar-report-link" to={ROUTES.APPROVAL_HISTORY}><SidebarIcon type="review" /><span>이력 관리</span></NavLink>}
 
       {canView() && <NavLink className="sidebar-report-link" to={ROUTES.REPORT_MANAGEMENT}><SidebarIcon type="reports" /><span>보고서 관리</span></NavLink>}
     </nav>

@@ -31,13 +31,30 @@ export const useWorkflowStore = create(
     (set) => ({
       workflows: {},
       deletedApprovalHistoryIds: [],
-      saveSeverity: (caseId, scores, reason) => set((state) => updateCaseWorkflow(state, caseId, {
-        severityScores: scores,
-        severityReason: reason,
-        severityConfirmed: true,
-        supportConfirmed: false,
-      })),
-      saveSupport: (caseId, amount, reason) => set((state) => updateCaseWorkflow(state, caseId, { supportAmount: amount, supportReason: reason, supportConfirmed: true })),
+      unlockStage: (caseId, stage) => set((state) => {
+        const current = state.workflows[caseId] || createInitialWorkflow();
+        return updateCaseWorkflow(state, caseId, {
+          maxUnlockedStage: Math.max(current.maxUnlockedStage || 1, stage),
+        });
+      }),
+      saveSeverity: (caseId, scores, reason) => set((state) => {
+        const current = state.workflows[caseId] || createInitialWorkflow();
+        return updateCaseWorkflow(state, caseId, {
+          severityScores: scores,
+          severityReason: reason,
+          severityConfirmed: true,
+          maxUnlockedStage: Math.max(current.maxUnlockedStage || 1, 4),
+        });
+      }),
+      saveSupport: (caseId, amount, reason) => set((state) => {
+        const current = state.workflows[caseId] || createInitialWorkflow();
+        return updateCaseWorkflow(state, caseId, {
+          supportAmount: amount,
+          supportReason: reason,
+          supportConfirmed: true,
+          maxUnlockedStage: Math.max(current.maxUnlockedStage || 1, 5),
+        });
+      }),
       submitApproval: (caseId, approval) => set((state) => ({
         ...updateCaseWorkflow(state, caseId, {
           approvalStatus: approval.status,
@@ -45,6 +62,10 @@ export const useWorkflowStore = create(
           approvalAmount: approval.amount,
           approvedAt: formatApprovedAt(),
           approvedBy: { ...getCurrentUser() },
+          maxUnlockedStage: Math.max(
+            state.workflows[caseId]?.maxUnlockedStage || 1,
+            6,
+          ),
         }),
         deletedApprovalHistoryIds: state.deletedApprovalHistoryIds.filter((id) => id !== caseId),
       })),
@@ -59,7 +80,7 @@ export const useWorkflowStore = create(
     }),
     {
       name: 'disaster-recovery.workflows',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       migrate: (persisted) => ({
         ...persisted,

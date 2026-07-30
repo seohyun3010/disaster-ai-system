@@ -5,6 +5,7 @@ import AnalysisDecisionPanel from '../components/analysis/AnalysisDecisionPanel'
 import AnalysisResultCard from '../components/analysis/AnalysisResultCard';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
+import { useWorkflowStore } from '../stores/workflowStore';
 import './case-workspace.css';
 
 const EMPTY_ANALYSIS = { status: 'idle', jobId: null, result: null, reviewStatus: '검토 전' };
@@ -86,6 +87,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const requestAnalysis = useAnalysisStore((state) => state.requestAnalysis);
   const refreshAnalysis = useAnalysisStore((state) => state.refreshAnalysis);
   const submitReview = useAnalysisStore((state) => state.submitReview);
+  const unlockStage = useWorkflowStore((state) => state.unlockStage);
   const screen = initialScreen;
   const report = useMemo(() => item ? createReportView(item) : null, [item]);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
@@ -131,6 +133,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const isRunning = ['queued', 'processing'].includes(analysis.status);
 
   const startAnalysis = async () => {
+    unlockStage(caseId, 2);
     navigate(`/cases/${caseId}/analysis`);
     setServerResult(null);
     await requestAnalysis(caseId);
@@ -243,7 +246,10 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
           recommendedGrade={serverResult.recommendedGrade}
           reviewStatus={analysis.reviewStatus}
           onSubmit={(review) => submitReview(caseId, review)}
-          onReviewApproved={() => navigate(`/cases/${caseId}/severity`)}
+          onReviewApproved={() => {
+            unlockStage(caseId, 3);
+            navigate(`/cases/${caseId}/severity`);
+          }}
           onReviewHeld={() => navigate(caseListPath)}
         />
       </div>}
