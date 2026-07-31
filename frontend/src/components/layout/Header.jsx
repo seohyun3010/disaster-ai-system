@@ -70,7 +70,7 @@ const Header = () => {
             <span className="krds-brand-mark" aria-hidden="true"><i /></span>
             <span className="krds-brand-copy">
               <strong>NDRMS</strong>
-              <small>재해 신고·복구 업무관리시스템</small>
+              <small>복구 업무관리시스템</small>
             </span>
           </button>
 
