@@ -238,7 +238,7 @@
 .dashboard-map-body {
   position: relative;
   height: calc(100% - 48px);
-  min-height: 650px;
+  min-height: 490px;
   overflow: hidden;
   border-top: 1px solid #edf1f5;
   background: linear-gradient(135deg, #f8fbfe, #e9f3fb);
@@ -246,12 +246,9 @@
 
 .dashboard-map-canvas {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  inset: 0;
+  width: 100%;
   height: 100%;
-  max-width: 78%;
-  aspect-ratio: 900 / 1289;
-  transform: translate(-50%, -50%) scale(1.06);
 }
 
 .dashboard-map-canvas > img {
@@ -339,7 +336,12 @@
 }
 
 .dashboard-left-column {
-  grid-template-rows: 1.35fr .72fr;
+  align-content: start;
+  grid-template-rows: auto auto;
+}
+
+.report-summary-card {
+  min-height: 230px;
 }
 
 .dashboard-right-column {

@@ -280,10 +280,6 @@ const ReportManagementPage = () => {
   };
 
   return <div className="case-page report-management-page">
-    <section className="report-management-metrics">
-      <article><span>최종 보고서</span><strong>{total}<small>건</small></strong></article>
-    </section>
-
     <section className="case-card report-management-card">
       <div className="report-management-toolbar">
         <label>보고서 검색<input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="보고서번호, 사건번호, 신고자, 재난 유형, 위치 검색" /></label>
