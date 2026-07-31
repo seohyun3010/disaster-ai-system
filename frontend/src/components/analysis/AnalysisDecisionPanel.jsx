@@ -8,7 +8,7 @@ const MODE_LABELS = { approve: '승인', hold: '보류' };
 const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit, onReviewApproved, onReviewHeld }) => {
   const officer = getCurrentUser();
   const gradeCode = String(recommendedGrade || '').match(/DS[0-4]/i)?.[0]?.toUpperCase();
-  const isHoldOnlyGrade = ['DS1', 'DS2'].includes(gradeCode);
+  const isHoldOnlyGrade = ['DS0', 'DS1', 'DS2'].includes(gradeCode);
   const [mode, setMode] = useState(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');

@@ -35,12 +35,21 @@ const formatReviewedAt = () => {
 const restorePersistedAnalyses = (analyses = {}) => Object.fromEntries(
   Object.entries(analyses)
     .filter(([caseId]) => !DELETED_DEMO_CASE_ID_SET.has(caseId))
-    .map(([caseId, analysis]) => [
-      caseId,
-      analysis.status === 'failed' && analysis.jobId
-        ? { ...analysis, status: 'queued', error: null, stage: '분석 상태 다시 확인 중' }
-        : analysis,
-    ]),
+    .map(([caseId, analysis]) => {
+      const normalized = analysis.reviewStatus === '보류' && analysis.holdFieldVerified
+        ? {
+          ...analysis,
+          reviewStatus: '수정 승인',
+          holdResolvedAt: analysis.holdResolvedAt || analysis.fieldVisitedAt || analysis.reviewedAt,
+        }
+        : analysis;
+      return [
+        caseId,
+        normalized.status === 'failed' && normalized.jobId
+          ? { ...normalized, status: 'queued', error: null, stage: '분석 상태 다시 확인 중' }
+          : normalized,
+      ];
+    }),
 );
 
 export const useAnalysisStore = create(
@@ -121,7 +130,7 @@ export const useAnalysisStore = create(
             ...state.analyses,
             [caseId]: {
               ...current,
-              reviewStatus: '보류',
+              reviewStatus: '수정 승인',
               reviewReason: reason,
               reviewedGrade: review.grade || current.reviewedGrade,
               reviewedBy: { ...getCurrentUser() },
@@ -129,7 +138,7 @@ export const useAnalysisStore = create(
               holdFieldVerified: true,
               fieldVisitReason: reason,
               fieldVisitedAt: reviewedAt,
-              holdResolvedAt: null,
+              holdResolvedAt: reviewedAt,
             },
           },
         };
@@ -157,7 +166,7 @@ export const useAnalysisStore = create(
     }),
     {
       name: 'disaster-recovery.analyses',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       migrate: (persisted) => ({
         ...persisted,

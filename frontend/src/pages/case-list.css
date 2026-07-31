@@ -116,7 +116,7 @@
 }
 
 .disaster-event-card {
-  padding: 0;
+  padding: 24px;
   overflow: hidden;
 }
 
@@ -186,7 +186,8 @@
   color: var(--krds-primary-800);
 }
 
-.event-status.진행완료 {
+.event-status.진행완료,
+.event-status.완료 {
   border-color: var(--krds-gray-300);
   background: #fff;
   color: var(--krds-gray-600);
@@ -313,6 +314,61 @@
 .held-review-modal > .decision-form {
   margin: 0;
   padding: 24px;
+}
+
+.held-review-checklist {
+  border: 1px solid var(--krds-primary-200);
+  border-radius: 7px;
+  background: var(--krds-primary-50);
+  padding: 13px 14px;
+}
+
+.held-review-checklist .form-group,
+.held-review-checklist .form-conts,
+.held-review-checklist .krds-check-area {
+  min-width: 0;
+}
+
+.held-review-checklist .krds-form-check {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 4px 10px;
+  align-items: start;
+}
+
+.held-review-checklist .krds-form-check input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  border: 1px solid var(--krds-gray-400);
+  border-radius: 3px;
+  padding: 0;
+  accent-color: var(--krds-primary-700);
+  cursor: pointer;
+}
+
+.held-review-checklist .krds-form-check label {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  color: var(--krds-gray-900);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.held-review-checklist .krds-form-check-cnt {
+  grid-column: 2;
+}
+
+.held-review-checklist .krds-form-check-p {
+  margin: 0;
+  color: var(--krds-gray-600);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.6;
 }
 
 .held-review-modal > .form-error {

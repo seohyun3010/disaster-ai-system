@@ -173,6 +173,8 @@ export default ReportManagementPage;
 
 import { useEffect, useState } from 'react';
 import { downloadReport, getReports } from '../api/reportApi';
+import { formatOfficerName, getCurrentUser } from '../mocks/currentUser';
+import { formatDisasterType } from '../utils/disasterTypeLabels';
 import './report-management.css';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
@@ -186,6 +188,8 @@ const formatDateTime = (value) => value
     hour12: false,
   }).format(new Date(value))
   : '-';
+
+const getApproverName = () => formatOfficerName(getCurrentUser());
 
 const ReportManagementPage = () => {
   const [reports, setReports] = useState([]);
@@ -323,7 +327,7 @@ const ReportManagementPage = () => {
         <div className="report-structured-table-wrap">
           <table className="report-structured-table">
             <caption>최종 승인된 사건 보고서 목록</caption>
-            <thead><tr><th scope="col">선택</th><th scope="col">보고서 정보</th><th scope="col">신고자 / 재난 유형</th><th scope="col">피해 위치</th><th scope="col">상태</th><th scope="col">생성일시 / 생성자</th><th scope="col"><span className="sr-only">다운로드</span></th></tr></thead>
+            <thead><tr><th scope="col">선택</th><th scope="col">보고서 정보</th><th scope="col">신고자</th><th scope="col">재난 유형</th><th scope="col">피해 위치</th><th scope="col">상태</th><th scope="col">생성일시</th><th scope="col">승인자</th><th scope="col"><span className="sr-only">다운로드</span></th></tr></thead>
             <tbody>{reports.map((report) => <tr key={report.report_id}>
               <th scope="row" data-label="선택">
                 <label className="krds-report-check icon-only">
@@ -331,12 +335,16 @@ const ReportManagementPage = () => {
                   <span className="sr-only">{report.report_number} 선택</span>
                 </label>
               </th>
-              <td data-label="보고서 정보"><strong>{report.report_number}</strong><small>{report.case_number}</small></td>
-              <td data-label="신고자 / 재난 유형"><b>{report.reporter_name || '-'}</b><small>{report.disaster_type || '-'}</small></td>
+              <td data-label="보고서 정보">
+                <strong>{report.report_number}</strong><small>{report.case_number}</small>
+              </td>
+              <td data-label="신고자"><b>{report.reporter_name || '-'}</b></td>
+              <td data-label="재난 유형">{formatDisasterType(report.disaster_type)}</td>
               <td data-label="피해 위치">{report.address || '-'}</td>
               <td data-label="상태"><span className={`report-status-badge ${report.status}`}>{report.status}</span></td>
-              <td data-label="생성일시 / 생성자"><span>{formatDateTime(report.created_at)}</span><small>{report.creator_name}</small></td>
-              <td data-label="다운로드"><button type="button" className="report-row-download" onClick={() => download(report)}><span aria-hidden="true">↓</span> 다운로드</button></td>
+              <td data-label="생성일시"><span>{formatDateTime(report.created_at)}</span></td>
+              <td data-label="승인자"><b>{getApproverName()}</b></td>
+              <td data-label="다운로드"><button type="button" className="report-row-download" onClick={() => download(report)} aria-label={`${report.report_number} 다운로드`}><span aria-hidden="true">↓</span> 다운로드</button></td>
             </tr>)}</tbody>
           </table>
           {!loading && !reports.length && <p className="empty-case">조건에 맞는 보고서가 없습니다.</p>}
