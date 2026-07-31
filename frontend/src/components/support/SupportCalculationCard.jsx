@@ -1,16 +1,120 @@
-const formatCurrency = (value) => `${Number(value).toLocaleString('ko-KR')}원`;
-
 import { EvidencePanel } from '../persona/ReviewGuidance';
 
-const SupportCalculationCard = ({ item, standard, amount, reason, onAmountChange, onReasonChange, onSave, error, message }) => <article className="case-card stage-card">
-  <div className="section-heading"><div><h2>예상 지원금 산정</h2></div></div>
-  <div className="support-amount"><span>예상 지원금</span><strong>{formatCurrency(standard.unitPrice * standard.damageRatio)}</strong></div>
-  <div className="calculation-flow" aria-label="지원금 계산 과정"><div><span>기준 단가</span><strong>{formatCurrency(standard.unitPrice)}</strong></div><i>×</i><div><span>피해 비율</span><strong>{standard.damageRatio * 100}%</strong></div><i>=</i><div><span>예상 지원금</span><strong>{formatCurrency(standard.unitPrice * standard.damageRatio)}</strong></div></div>
-  <dl className="stage-summary-list support-details"><div><dt>피해등급</dt><dd>{item.damage}</dd></div><div><dt>시설 유형</dt><dd>{item.facility}</dd></div><div><dt>산정 기준</dt><dd>{standard.standard}</dd></div><div><dt>단가</dt><dd>{formatCurrency(standard.unitPrice)}</dd></div><div><dt>계산 과정</dt><dd>{formatCurrency(standard.unitPrice)} × 피해 비율 {standard.damageRatio * 100}%</dd></div></dl>
-  <EvidencePanel title="지원금 산정 근거 확인"><p><b>적용 기준:</b> {standard.standard}</p><p><b>참고 문서:</b> 자연재난 구호 및 복구 비용 부담기준 등에 관한 규정 및 지자체 재난지원금 집행 지침</p><p>표시 금액은 UI 검증용 Mock 산정값이며 실제 지급 결정 전 최신 기준표와 중복 수혜 결과를 확인해야 합니다.</p></EvidencePanel>
-  <div className="support-edit"><label>최종 검토 금액<input type="number" min="0" step="10000" value={amount} onChange={(event) => onAmountChange(event.target.value)} /></label><label><span className="support-edit-label">금액 수정 사유 <span className="required-mark">변경 시 필수</span></span><textarea value={reason} onChange={(event) => onReasonChange(event.target.value)} placeholder="변경 금액, 적용 기준, 검토 근거를 입력해 주세요." /></label></div>
-  {error && <p className="form-error" role="alert">{error}</p>}{message && <p className="decision-success" role="status">{message}</p>}
-  <div className="stage-card-actions"><button type="button" className="primary-action" onClick={onSave}>금액 반영</button></div>
-</article>;
+const formatCurrency = (value) =>
+  value === null || value === undefined ? '-' : `${Number(value).toLocaleString('ko-KR')}원`;
+
+const toIntegerAmount = (value) => {
+  if (value === null || value === undefined || value === '') return 0;
+  const num = typeof value === 'string' ? parseFloat(value) : Number(value);
+  return Number.isFinite(num) ? Math.round(num) : 0;
+};
+
+const formatNumberInput = (value) => {
+  const amount = toIntegerAmount(value);
+  return amount ? amount.toLocaleString('ko-KR') : '';
+};
+
+const parseNumberInput = (value) => value.replace(/[^0-9]/g, '');
+
+const SupportCalculationCard = ({
+  item,
+  subsidy,
+  loading,
+  calculating,
+  confirming,
+  confirmAmount,
+  onConfirmAmountChange,
+  reason,
+  onReasonChange,
+  onCalculate,
+  onConfirm,
+  error,
+  message,
+}) => (
+  <article className="case-card stage-card">
+    <div className="section-heading"><div><h2>예상 지원금 산정</h2></div></div>
+
+    {loading && <p>불러오는 중...</p>}
+
+    {!loading && !subsidy && (
+      <div className="support-empty">
+        <p>아직 산정된 지원금이 없습니다.</p>
+        <button type="button" className="primary-action" onClick={onCalculate} disabled={calculating}>
+          {calculating ? '계산 중...' : '지원금 계산'}
+        </button>
+      </div>
+    )}
+
+    {subsidy && (
+      <>
+        <div className="support-amount">
+          <span>예상 지원금</span>
+          <strong>{formatCurrency(subsidy.estimated_amount)}</strong>
+        </div>
+
+        <div className="calculation-flow" aria-label="지원금 계산 과정">
+          <div><span>기준 단가</span><strong>{formatCurrency(subsidy.unit_price)}</strong></div>
+          <i>×</i>
+          <div><span>피해 비율</span><strong>{subsidy.damage_ratio_percent ?? '-'}%</strong></div>
+          <i>=</i>
+          <div><span>예상 지원금</span><strong>{formatCurrency(subsidy.estimated_amount)}</strong></div>
+        </div>
+
+        <dl className="stage-summary-list support-details">
+          <div><dt>피해등급</dt><dd>{subsidy.damage_grade ?? item.damage}</dd></div>
+          <div><dt>시설 유형</dt><dd>{item.facility}</dd></div>
+          <div><dt>산정 기준</dt><dd>{subsidy.calculation_standard ?? '-'}</dd></div>
+          <div><dt>단가</dt><dd>{formatCurrency(subsidy.unit_price)} <small>(전파 등급 기준액)</small></dd></div>
+        </dl>
+
+        <EvidencePanel title="지원금 산정 근거 확인">
+          {subsidy.calculation_basis ? (
+            <ul className="basis-list">
+              {subsidy.calculation_basis.split('\n').map((line, idx) => (
+                <li key={idx}>{line}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>근거 정보 없음</p>
+          )}
+        </EvidencePanel>
+
+        <div className="support-edit">
+          <label>
+            최종 검토 금액
+            <input
+              type="text"
+              inputMode="numeric"
+              value={formatNumberInput(confirmAmount)}
+              onChange={(event) => onConfirmAmountChange(parseNumberInput(event.target.value))}
+            />
+          </label>
+          <label>
+            <span className="support-edit-label">
+              금액 수정 사유 <span className="required-mark">변경 시 필수</span>
+            </span>
+            <textarea
+              value={reason}
+              onChange={(event) => onReasonChange(event.target.value)}
+              placeholder="변경 금액, 적용 기준, 검토 근거를 입력해 주세요."
+            />
+          </label>
+        </div>
+
+        {error && <p className="form-error" role="alert">{error}</p>}
+        {message && <p className="decision-success" role="status">{message}</p>}
+
+        <div className="stage-card-actions">
+          <button type="button" className="secondary-action" onClick={onCalculate} disabled={calculating}>
+            {calculating ? '재계산 중...' : '다시 계산'}
+          </button>
+          <button type="button" className="primary-action" onClick={onConfirm} disabled={confirming}>
+            {confirming ? '반영 중...' : '금액 반영'}
+          </button>
+        </div>
+      </>
+    )}
+  </article>
+);
 
 export default SupportCalculationCard;
