@@ -66,6 +66,7 @@ export const normalizeCase = (data) => {
     caseId: data.case_id,
     caseNumber: data.case_number,
     reporter:
+      data.reporter_name ||
       rawPayload.reporter_name ||
       rawPayload.applicant_name ||
       rawPayload.reporter ||
