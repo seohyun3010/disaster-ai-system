@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import './case-list.css';
 
@@ -7,8 +8,10 @@ const PAGE_SIZE = 5;
 const COMPLETED_STATUSES = ['AI 분석 완료', '처리 완료', '최종 승인'];
 const STATUS_FILTERS = ['전체', '완료', '미완료', '보류'];
 
-const getSimpleStatus = (status) =>
-  COMPLETED_STATUSES.includes(status) ? '완료' : '미완료';
+const getSimpleStatus = (status, reviewStatus) => {
+  if (reviewStatus === '보류') return '보류';
+  return COMPLETED_STATUSES.includes(status) ? '완료' : '미완료';
+};
 
 const toDate = (item) => new Date(item.reported_at || item.received_at);
 const formatDate = (date) => Number.isNaN(date.getTime())
@@ -145,6 +148,7 @@ const DisasterEventSelection = ({ events, loading, error, onSelect }) =>
 const CaseListPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const analyses = useAnalysisStore((state) => state.analyses);
   const cases = useCaseStore((state) => state.cases);
   const loading = useCaseStore((state) => state.loading);
   const error = useCaseStore((state) => state.error);
@@ -170,14 +174,15 @@ const CaseListPage = () => {
   );
 
   const filtered = useMemo(() => eventCases.filter((item) => {
-    const simpleStatus = getSimpleStatus(item.status);
+    const reviewStatus = analyses[String(item.case_id ?? item.id)]?.reviewStatus;
+    const simpleStatus = getSimpleStatus(item.status, reviewStatus);
     const matchesStatus = status === '전체' || simpleStatus === status;
     const matchesFacility = facility === '전체' || item.facility === facility;
     const keyword = `${item.case_number} ${item.reporter} ${item.address}`.toLowerCase();
     return matchesStatus &&
       matchesFacility &&
       keyword.includes(search.trim().toLowerCase());
-  }), [eventCases, facility, search, status]);
+  }), [analyses, eventCases, facility, search, status]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const rows = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -230,7 +235,8 @@ const CaseListPage = () => {
         <table className="case-table case-list-table">
           <thead><tr><th>사건번호 / 신고일시</th><th>피해 위치</th><th>신고자</th><th>시설 유형</th><th>상태</th></tr></thead>
           <tbody>{rows.map((item) => {
-            const simpleStatus = getSimpleStatus(item.status);
+            const reviewStatus = analyses[String(item.case_id ?? item.id)]?.reviewStatus;
+            const simpleStatus = getSimpleStatus(item.status, reviewStatus);
             return <tr key={item.case_id} className="clickable-row" onClick={() => navigate(`/cases/${item.case_id}`)}>
               <td><strong>{item.case_number}</strong><small>{item.reportedAt}</small></td>
               <td>{item.address}</td>
