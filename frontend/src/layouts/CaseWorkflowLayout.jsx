@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
@@ -58,22 +58,18 @@ const CaseWorkflowLayout = () => {
     approvalCompleted,
     false,
   ];
-
-  const requestedStage = activeIndex + 1;
-  const requestedStageLocked = !canAccessStage(requestedStage);
+  const available = [
+    true,
+    true,
+    reviewCompleted,
+    Boolean(workflow?.severityConfirmed),
+    Boolean(workflow?.supportConfirmed),
+    approvalCompleted,
+  ];
 
   useEffect(() => {
     if (!item?.isDetail) fetchCaseDetail(caseId).catch(() => {});
   }, [caseId, fetchCaseDetail, item?.isDetail]);
-
-  useEffect(() => {
-    if (!requestedStageLocked) return;
-    const lastUnlockedStep = STEPS[maxUnlockedStage - 1] || STEPS[0];
-    const target = lastUnlockedStep.path
-      ? `/cases/${caseId}/${lastUnlockedStep.path}`
-      : `/cases/${caseId}`;
-    navigate(target, { replace: true });
-  }, [caseId, maxUnlockedStage, navigate, requestedStageLocked]);
 
   if (!item) {
     return <div className="case-workflow-missing">
