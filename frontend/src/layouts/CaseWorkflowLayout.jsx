@@ -1,149 +1,428 @@
 import { useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
+import {
+  Outlet,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router-dom';
+
+import { getSubsidy } from '../api/subsidyApi';
+import { useWorkflowNavigation } from '../hooks/useWorkflowNavigation';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
-import { getSubsidy } from '../api/subsidyApi';
-import { useWorkflowNavigation } from '../hooks/useWorkflowNavigation';
+
 import './case-workflow-layout.css';
 
 const STEPS = [
-  { label: '신고서 확인', path: '' },
-  { label: 'AI 분석', path: 'analysis' },
-  { label: '복구 긴급도', path: 'severity' },
-  { label: '지원금 심사', path: 'support' },
-  { label: '최종 승인', path: 'final-approval' },
-  { label: '보고서', path: 'reports' },
+  {
+    label: '신고서 확인',
+    path: '',
+  },
+  {
+    label: 'AI 분석',
+    path: 'analysis',
+  },
+  {
+    label: '복구 긴급도',
+    path: 'severity',
+  },
+  {
+    label: '지원금 심사',
+    path: 'support',
+  },
+  {
+    label: '최종 승인',
+    path: 'final-approval',
+  },
+  {
+    label: '보고서',
+    path: 'reports',
+  },
 ];
 
 const getActiveIndex = (pathname) => {
-  const index = STEPS.findIndex((step) => step.path && pathname.endsWith(`/${step.path}`));
+  const index = STEPS.findIndex(
+    (step) => (
+      step.path
+      && pathname.endsWith(`/${step.path}`)
+    ),
+  );
+
   return index < 0 ? 0 : index;
 };
+
+const getStepPath = (caseId, step) => (
+  step.path
+    ? `/cases/${caseId}/${step.path}`
+    : `/cases/${caseId}`
+);
 
 const CaseWorkflowLayout = () => {
   const { caseId } = useParams();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const item = useCaseStore((state) =>
-    state.cases.find((entry) => entry.case_id === Number(caseId)));
-  const loading = useCaseStore((state) => state.loading);
-  const error = useCaseStore((state) => state.error);
-  const fetchCaseDetail = useCaseStore((state) => state.fetchCaseDetail);
-  const analysis = useAnalysisStore((state) => state.analyses[caseId]);
-  const workflow = useWorkflowStore((state) => state.workflows[caseId]);
-  const listPath = '/cases';
+
+  const numericCaseId = Number(caseId);
+
+  const item = useCaseStore(
+    (state) => state.cases.find(
+      (entry) => entry.case_id === numericCaseId,
+    ),
+  );
+
+  const loading = useCaseStore(
+    (state) => state.loading,
+  );
+
+  const error = useCaseStore(
+    (state) => state.error,
+  );
+
+  const fetchCaseDetail = useCaseStore(
+    (state) => state.fetchCaseDetail,
+  );
+
+  const analysis = useAnalysisStore(
+    (state) => state.analyses[caseId],
+  );
+
+  const workflow = useWorkflowStore(
+    (state) => state.workflows[caseId],
+  );
+
+  /*
+   * null  : 지원금 상태 조회 중
+   * false : 조회 완료, 아직 확정되지 않음
+   * true  : 지원금 확정 완료
+   */
+  const [subsidyConfirmed, setSubsidyConfirmed] = useState(null);
+
   const activeIndex = getActiveIndex(pathname);
-  const reviewCompleted = ['승인', '수정 승인'].includes(analysis?.reviewStatus)
-    || (analysis?.reviewStatus === '보류' && analysis?.holdFieldVerified);
-  const approvalCompleted = Boolean(workflow?.approvalStatus && workflow.approvalStatus !== '승인 대기');
+  const requestedStage = activeIndex + 1;
 
-  const [subsidyConfirmed, setSubsidyConfirmed] = useState(false);
-  useEffect(() => {
-    if (!caseId) return;
-    let ignore = false;
-    getSubsidy(caseId)
-      .then((data) => { if (!ignore) setSubsidyConfirmed(data.status === 'CONFIRMED'); })
-      .catch(() => { if (!ignore) setSubsidyConfirmed(false); });
-    return () => { ignore = true; };
-  }, [caseId]);
+  const reviewCompleted = Boolean(
+    ['승인', '수정 승인'].includes(
+      analysis?.reviewStatus,
+    )
+    || (
+      analysis?.reviewStatus === '보류'
+      && analysis?.holdFieldVerified
+    ),
+  );
 
-  const { maxUnlockedStage, canAccessStage } = useWorkflowNavigation(caseId, { subsidyConfirmed });
+  const severityCompleted = Boolean(
+    workflow?.severityConfirmed
+    || workflow?.severityConfirmedAt,
+  );
+
+  const approvalCompleted = Boolean(
+    workflow?.approvalStatus
+    && workflow.approvalStatus !== '승인 대기',
+  );
+
+  const subsidyLoading = subsidyConfirmed === null;
+
+  const {
+    maxUnlockedStage,
+    canAccessStage,
+  } = useWorkflowNavigation(caseId, {
+    subsidyConfirmed,
+  });
+
+  const requestedStageLocked = !canAccessStage(
+    requestedStage,
+  );
 
   const completed = [
-    activeIndex > 0 || Boolean(analysis && analysis.status !== 'idle'),
+    activeIndex > 0
+      || Boolean(
+        analysis
+        && analysis.status !== 'idle',
+      ),
+
     reviewCompleted,
-    Boolean(workflow?.severityConfirmed),
-    subsidyConfirmed,
+
+    severityCompleted,
+
+    subsidyConfirmed === true
+      || Boolean(
+        workflow?.supportConfirmed
+        || workflow?.supportConfirmedAt,
+      ),
+
     approvalCompleted,
+
     false,
   ];
 
-  const requestedStage = activeIndex + 1;
-  const requestedStageLocked = !canAccessStage(requestedStage);
-
+  /*
+   * 신고 상세 정보 조회
+   */
   useEffect(() => {
-    if (!item?.isDetail) fetchCaseDetail(caseId).catch(() => {});
-  }, [caseId, fetchCaseDetail, item?.isDetail]);
+    if (!caseId || item?.isDetail) {
+      return;
+    }
 
+    fetchCaseDetail(caseId).catch((fetchError) => {
+      console.error(
+        '신고 상세 정보 조회 실패:',
+        fetchError,
+      );
+    });
+  }, [
+    caseId,
+    fetchCaseDetail,
+    item?.isDetail,
+  ]);
+
+  /*
+   * 지원금 심사 상태 조회
+   */
   useEffect(() => {
-    if (!requestedStageLocked) return;
-    const lastUnlockedStep = STEPS[maxUnlockedStage - 1] || STEPS[0];
-    const target = lastUnlockedStep.path
-      ? `/cases/${caseId}/${lastUnlockedStep.path}`
-      : `/cases/${caseId}`;
-    navigate(target, { replace: true });
-  }, [caseId, maxUnlockedStage, navigate, requestedStageLocked]);
+    if (!caseId) {
+      setSubsidyConfirmed(false);
+      return undefined;
+    }
 
+    let ignore = false;
+
+    setSubsidyConfirmed(null);
+
+    const fetchSubsidyStatus = async () => {
+      try {
+        const data = await getSubsidy(caseId);
+
+        if (ignore) return;
+
+        setSubsidyConfirmed(
+          data?.status === 'CONFIRMED',
+        );
+      } catch (subsidyError) {
+        if (ignore) return;
+
+        /*
+         * 404는 해당 신고의 지원금 심사 정보가 아직
+         * 생성되지 않은 정상적인 초기 상태로 처리합니다.
+         */
+        if (subsidyError.response?.status === 404) {
+          setSubsidyConfirmed(false);
+          return;
+        }
+
+        console.error(
+          '지원금 심사 상태 조회 실패:',
+          subsidyError,
+        );
+
+        setSubsidyConfirmed(false);
+      }
+    };
+
+    fetchSubsidyStatus();
+
+    return () => {
+      ignore = true;
+    };
+  }, [caseId]);
+
+  /*
+   * 잠긴 단계의 URL로 직접 접근한 경우
+   * 현재 접근 가능한 마지막 단계로 이동시킵니다.
+   *
+   * 지원금 상태 확인 전에는 잘못된 리다이렉트가
+   * 발생할 수 있으므로 조회 완료 후 검사합니다.
+   */
+  useEffect(() => {
+    if (
+      !caseId
+      || subsidyLoading
+      || !requestedStageLocked
+    ) {
+      return;
+    }
+
+    const lastUnlockedStep = (
+      STEPS[maxUnlockedStage - 1]
+      || STEPS[0]
+    );
+
+    const target = getStepPath(
+      caseId,
+      lastUnlockedStep,
+    );
+
+    navigate(target, {
+      replace: true,
+    });
+  }, [
+    caseId,
+    maxUnlockedStage,
+    navigate,
+    requestedStageLocked,
+    subsidyLoading,
+  ]);
+
+  /*
+   * 신고 정보가 아직 스토어에 없는 경우
+   */
   if (!item) {
-    return <div className="case-workflow-missing">
-      <h1>{loading ? '신고 정보를 불러오는 중입니다.' : error || '신고 정보를 찾을 수 없습니다.'}</h1>
-      <button type="button" className="primary-action" onClick={() => navigate('/cases')}>신고 목록으로</button>
-    </div>;
+    return (
+      <div className="case-workflow-missing">
+        <h1>
+          {loading
+            ? '신고 정보를 불러오는 중입니다.'
+            : error || '신고 정보를 찾을 수 없습니다.'}
+        </h1>
+
+        <button
+          type="button"
+          className="primary-action"
+          onClick={() => navigate('/cases')}
+        >
+          신고 목록으로
+        </button>
+      </div>
+    );
   }
 
-  return <div className="case-workflow-page">
-    <header className="case-workflow-head">
-      <div>
-        <button type="button" onClick={() => navigate(listPath)}>← 신고 목록</button>
-        <h1>{item.case_number}</h1>
-      </div>
-      <dl>
-        <div><dt>신고자</dt><dd>{item.reporter}</dd></div>
-        <div><dt>피해 위치</dt><dd>{item.address}</dd></div>
-      </dl>
-    </header>
+  return (
+    <div className="case-workflow-page">
+      <header className="case-workflow-head">
+        <div>
+          <button
+            type="button"
+            onClick={() => navigate('/cases')}
+          >
+            ← 신고 목록
+          </button>
 
-    <div className="case-workflow-grid">
-      <aside className="case-workflow-gallery" aria-label="업무 진행 단계">
-        <div className="workflow-gallery-title">
-          <span>업무 진행</span>
-          <strong>{activeIndex + 1} / {STEPS.length}</strong>
+          <h1>{item.case_number}</h1>
         </div>
-        <ol>
-          {STEPS.map((step, index) => {
-            const stageNumber = index + 1;
-            const unlocked = canAccessStage(stageNumber);
-            const wasPassed = stageNumber < maxUnlockedStage;
-            const state = index === activeIndex
-              ? 'active'
-              : completed[index] || wasPassed
-                ? 'completed'
-                : 'pending';
-            const target = step.path ? `/cases/${caseId}/${step.path}` : `/cases/${caseId}`;
-            return <li key={step.label} className={state}>
-              <button
-                type="button"
-                onClick={() => navigate(target)}
-                disabled={!unlocked}
-                aria-current={index === activeIndex ? 'step' : undefined}
-                title={unlocked ? undefined : '이전 단계를 완료하면 이동할 수 있습니다.'}
-              >
-                <span className="workflow-step-number">{completed[index] || wasPassed ? '✓' : stageNumber}</span>
-                <span className="workflow-step-copy">
-                  <strong>{step.label}</strong>
-                  <small>
-                    {index === activeIndex
-                      ? '현재 단계'
-                      : completed[index] || wasPassed
-                        ? '완료'
-                        : unlocked
-                          ? '이동 가능'
-                          : '이전 단계 완료 후 진행'}
-                  </small>
-                </span>
-                <span className="workflow-step-arrow" aria-hidden="true">→</span>
-              </button>
-            </li>;
-          })}
-        </ol>
-      </aside>
 
-      <main className="case-workflow-stage">
-        {!requestedStageLocked && <Outlet context={{ item }} />}
-      </main>
+        <dl>
+          <div>
+            <dt>신고자</dt>
+            <dd>{item.reporter}</dd>
+          </div>
+
+          <div>
+            <dt>피해 위치</dt>
+            <dd>{item.address}</dd>
+          </div>
+        </dl>
+      </header>
+
+      <div className="case-workflow-grid">
+        <aside
+          className="case-workflow-gallery"
+          aria-label="업무 진행 단계"
+        >
+          <div className="workflow-gallery-title">
+            <span>업무 진행</span>
+
+            <strong>
+              {activeIndex + 1} / {STEPS.length}
+            </strong>
+          </div>
+
+          <ol>
+            {STEPS.map((step, index) => {
+              const stageNumber = index + 1;
+              const unlocked = canAccessStage(stageNumber);
+              const wasPassed = (
+                stageNumber < maxUnlockedStage
+              );
+
+              let stepState = 'pending';
+
+              if (index === activeIndex) {
+                stepState = 'active';
+              } else if (
+                completed[index]
+                || wasPassed
+              ) {
+                stepState = 'completed';
+              }
+
+              const target = getStepPath(
+                caseId,
+                step,
+              );
+
+              let description = (
+                '이전 단계 완료 후 진행'
+              );
+
+              if (index === activeIndex) {
+                description = '현재 단계';
+              } else if (
+                completed[index]
+                || wasPassed
+              ) {
+                description = '완료';
+              } else if (unlocked) {
+                description = '이동 가능';
+              }
+
+              return (
+                <li
+                  key={step.label}
+                  className={stepState}
+                >
+                  <button
+                    type="button"
+                    onClick={() => navigate(target)}
+                    disabled={!unlocked}
+                    aria-current={
+                      index === activeIndex
+                        ? 'step'
+                        : undefined
+                    }
+                    title={
+                      unlocked
+                        ? undefined
+                        : '이전 단계를 완료하면 이동할 수 있습니다.'
+                    }
+                  >
+                    <span className="workflow-step-number">
+                      {completed[index] || wasPassed
+                        ? '✓'
+                        : stageNumber}
+                    </span>
+
+                    <span className="workflow-step-copy">
+                      <strong>{step.label}</strong>
+                      <small>{description}</small>
+                    </span>
+
+                    <span
+                      className="workflow-step-arrow"
+                      aria-hidden="true"
+                    >
+                      →
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </aside>
+
+        <main className="case-workflow-stage">
+          {subsidyLoading && requestedStage >= 5 ? (
+            <div className="case-workflow-loading">
+              지원금 심사 상태를 확인하고 있습니다.
+            </div>
+          ) : (
+            !requestedStageLocked && (
+              <Outlet context={{ item }} />
+            )
+          )}
+        </main>
+      </div>
     </div>
-  </div>;
+  );
 };
 
 export default CaseWorkflowLayout;
