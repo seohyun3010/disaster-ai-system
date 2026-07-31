@@ -34,46 +34,18 @@ const createReportView = (item) => {
     disasterType: item.type,
     facilityType: item.facility,
     applicant: {
-      name: item.reporter_name || item.reporter,
-      residentNumber: maskResidentNumber(
-        item.resident_registration_number ||
-        external.resident_registration_number ||
-        external.resident_number,
-      ),
+      name: item.reporter,
+      residentNumber: external.resident_number || '******-*******',
       address: item.address,
-      phone: maskPhoneNumber(
-        item.contact_number || external.contact_number || external.phone,
-      ),
-      householdMembers: item.household_members || external.household_members || '-',
+      householdMembers: external.household_members || '-',
     },
     payoutAccount: {
-      bankName: item.bank_name || external.bank_name || '확인 전',
-      accountNumber: maskAccountNumber(
-        item.account_number || external.account_number,
-      ),
-      accountHolder:
-        item.account_holder ||
-        external.account_holder ||
-        item.reporter_name ||
-        item.reporter,
+      bankName: external.bank_name || '확인 전',
+      accountNumber: external.account_number || '***-**-******',
+      accountHolder: external.account_holder || item.reporter,
     },
     damagePlace: item.address,
-    damageOccurredAt: item.damage_occurred_at
-      ? new Intl.DateTimeFormat('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      }).format(new Date(item.damage_occurred_at))
-      : item.reportedAt,
-    damageDetails: item.damage_details?.length
-      ? item.damage_details.map((detail) => ({
-        category: detail.category || item.facility,
-        value: [detail.quantity, detail.details].filter(Boolean).join(' · '),
-      }))
-      : [{ category: item.facility, value: item.description || '접수된 피해 내용을 확인해 주세요.' }],
+    damageDetails: [{ category: item.facility, value: item.description || '접수된 피해 내용을 확인해 주세요.' }],
     photos: item.photos || [],
   };
 };

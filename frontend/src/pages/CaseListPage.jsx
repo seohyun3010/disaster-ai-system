@@ -15,18 +15,59 @@ const formatDate = (date) => Number.isNaN(date.getTime())
   ? '-'
   : new Intl.DateTimeFormat('ko-KR').format(date);
 
+const DISASTER_SCHEDULES = {
+  HEAVY_RAIN: {
+    name: '집중호우',
+    occurredFrom: '2026-07-15',
+    occurredTo: '2026-07-18',
+  },
+  LANDSLIDE: {
+    name: '산사태',
+    occurredFrom: '2026-04-03',
+    occurredTo: '2026-04-05',
+  },
+  EARTHQUAKE: {
+    name: '지진',
+    occurredFrom: '2026-06-12',
+    occurredTo: '2026-06-13',
+  },
+};
+
+const parseLocalDate = (value) => new Date(`${value}T00:00:00`);
+const addDays = (date, days) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+const formatMonthDay = (date) => `${date.getMonth() + 1}.${date.getDate()}`;
+const formatPeriod = (from, to) =>
+  `${formatMonthDay(from)} ~ ${formatMonthDay(to)}`;
+
 const buildDisasterEvents = (cases) => {
   const groups = new Map();
   cases.forEach((item) => {
+    if (item.disaster_type === 'TYPHOON') return;
     const date = toDate(item);
     const year = Number.isNaN(date.getTime()) ? '미상' : date.getFullYear();
     const key = `${year}-${item.disaster_type || 'OTHER'}`;
+    const schedule = DISASTER_SCHEDULES[item.disaster_type];
+    const occurredFrom = schedule ? parseLocalDate(schedule.occurredFrom) : null;
+    const occurredTo = schedule ? parseLocalDate(schedule.occurredTo) : null;
+    const filingFrom = occurredTo ? addDays(occurredTo, 1) : null;
+    const filingTo = filingFrom ? addDays(filingFrom, 9) : null;
+    const deadlineFrom = filingTo ? addDays(filingTo, 1) : null;
+    const deadlineTo = deadlineFrom ? addDays(deadlineFrom, 13) : null;
     const current = groups.get(key) || {
       id: key,
       year,
-      name: `${year}년 ${item.type}`,
+      name: schedule
+        ? `${formatMonthDay(occurredFrom)} ~ ${formatMonthDay(occurredTo)} ${schedule.name}`
+        : `${year}년 ${item.type}`,
       status: '진행중',
-      filingDeadline: '-',
+      occurredPeriod: schedule ? formatPeriod(occurredFrom, occurredTo) : '-',
+      filingPeriod: schedule ? formatPeriod(filingFrom, filingTo) : '-',
+      deadlinePeriod: schedule ? formatPeriod(deadlineFrom, deadlineTo) : '-',
+      deadlineAt: deadlineTo?.getTime() || 0,
       dates: [],
       caseIds: [],
     };
@@ -46,7 +87,7 @@ const buildDisasterEvents = (cases) => {
         reportCount: event.caseIds.length,
       };
     })
-    .sort((a, b) => String(b.year).localeCompare(String(a.year)));
+    .sort((a, b) => b.deadlineAt - a.deadlineAt);
 };
 
 const FacilityFilter = ({ options, value, onChange }) => {
@@ -85,12 +126,12 @@ const DisasterEventSelection = ({ events, loading, error, onSelect }) =>
       {error && <p className="empty-case">{error}</p>}
       {!loading && !error && <div className="disaster-event-table-wrap">
         <table className="disaster-event-table">
-          <thead><tr><th>년도</th><th>재해명</th><th>신고 기간</th><th>신고</th><th /></tr></thead>
+          <thead><tr><th>년도</th><th>재해명</th><th>마감 기간</th><th>신고</th><th /></tr></thead>
           <tbody>
             {events.map((event) => <tr key={event.id}>
               <td><strong>{event.year}</strong></td>
               <td><strong>{event.name}</strong><span className={`event-status ${event.status}`}>{event.status}</span></td>
-              <td>{event.period}</td>
+              <td>{event.deadlinePeriod}</td>
               <td><b className="event-case-count">{event.reportCount}건</b></td>
               <td><button type="button" className="event-select-button" onClick={() => onSelect(event.id)}>신고목록 보기</button></td>
             </tr>)}
@@ -167,8 +208,8 @@ const CaseListPage = () => {
 
     <section className="event-selection-summary" aria-label="선택한 자연재난">
       <dl>
-        <div><dt>재난 기간</dt><dd>{selectedEvent.period}</dd></div>
-        <div><dt>신고 기한</dt><dd>{selectedEvent.filingDeadline}</dd></div>
+        <div><dt>재해 발생 기간</dt><dd>{selectedEvent.occurredPeriod}</dd></div>
+        <div><dt>마감 기간</dt><dd>{selectedEvent.deadlinePeriod}</dd></div>
         <div><dt>진행 상태</dt><dd><span className={`event-status ${selectedEvent.status}`}>{selectedEvent.status}</span></dd></div>
         <div><dt>신고 건수</dt><dd>{eventCases.length}건</dd></div>
       </dl>

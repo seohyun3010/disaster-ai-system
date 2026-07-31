@@ -163,6 +163,34 @@ REPORTS = [
         ],
         "image": "urban-flood.png",
     },
+    {
+        "external_report_id": "SAFE24-MOCK-2026-0009",
+        "title": "지진으로 인한 주택 벽체 균열 신고",
+        "description": "지진 발생 후 주택 외벽과 내부 벽체에 균열이 생기고 일부 마감재가 떨어졌습니다.",
+        "disaster_type": "EARTHQUAKE",
+        "facility_type": "HOUSE",
+        "address": "충청북도 괴산군 괴산읍 읍내로 215",
+        "sido": "충청북도",
+        "sigungu": "괴산군",
+        "latitude": 36.8153,
+        "longitude": 127.7866,
+        "reported_at": datetime(2026, 6, 18, 9, 20),
+        "reporter_name": "강현수",
+        "resident_registration_number": "820614-1234567",
+        "contact_number": "010-6842-3175",
+        "household_members": 3,
+        "bank_name": "국민은행",
+        "account_number": "456-781-230945",
+        "account_holder": "강현수",
+        "damage_occurred_at": datetime(2026, 6, 13, 14, 35),
+        "damage_details": [
+            {
+                "category": "주택",
+                "quantity": "1동",
+                "details": "외벽과 내부 벽체 균열 및 마감재 일부 탈락",
+            }
+        ],
+    },
 ]
 
 
@@ -176,12 +204,12 @@ def main() -> None:
     created_images = 0
     try:
         for report in REPORTS:
-            image_name = report["image"]
+            image_name = report.get("image")
             case_data = {key: value for key, value in report.items() if key != "image"}
             case_data["raw_payload"] = {
                 "source_system": "국민안전24_MOCK",
                 "reporter_type": "VICTIM",
-                "attachment_count": 1,
+                "attachment_count": 1 if image_name else 0,
                 "mock_data": True,
             }
             case = db.scalar(
@@ -197,6 +225,9 @@ def main() -> None:
                     if field != "raw_payload":
                         setattr(case, field, value)
                 db.commit()
+
+            if image_name is None:
+                continue
 
             image_path = (
                 BACKEND_DIRECTORY / "uploads" / "mock-cases" / image_name
