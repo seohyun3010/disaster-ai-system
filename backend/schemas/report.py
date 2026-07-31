@@ -41,6 +41,11 @@ class ReportCaseResponse(BaseModel):
     facility_type: str | None = None
     address: str | None = None
     reported_at: datetime | None = None
+    received_at: datetime | None = None
+    damage_occurred_at: datetime | None = None
+    contact_number: str | None = None
+    latitude: Decimal | None = None
+    longitude: Decimal | None = None
     description: str | None = None
 
 
@@ -48,6 +53,14 @@ class ReportAnalysisResponse(BaseModel):
     damage_grade: str | None = None
     confidence: float | None = None
     explanation: str | None = None
+    inspection_required: bool | None = None
+
+
+class ReportImageResponse(BaseModel):
+    image_id: int
+    image_url: str | None = None
+    thumbnail_url: str | None = None
+    taken_at: datetime | None = None
 
 
 class ReportSeverityResponse(BaseModel):
@@ -60,6 +73,12 @@ class ReportSubsidyResponse(BaseModel):
     estimated_amount: Decimal | None = None
     confirmed_amount: Decimal | None = None
     status: str | None = None
+
+
+class ReportVerificationResponse(BaseModel):
+    duplicate_report_result: str = "검사 이력 없음"
+    duplicate_benefit_result: str = "검사 이력 없음"
+    reviewer_comment: str | None = None
 
 
 class ReportTimelineResponse(BaseModel):
@@ -82,6 +101,10 @@ class ReportDetailResponse(BaseModel):
     analysis: ReportAnalysisResponse
     severity: ReportSeverityResponse
     subsidy: ReportSubsidyResponse
+    verification: ReportVerificationResponse = Field(
+        default_factory=ReportVerificationResponse
+    )
+    images: list[ReportImageResponse] = Field(default_factory=list)
     approval_result: str
     summary: str | None = None
     download_url: str

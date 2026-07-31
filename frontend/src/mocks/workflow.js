@@ -107,7 +107,6 @@ export const downloadMockReport = () => {
   throw new Error('Mock report download is disabled.');
 };
 export const createInitialWorkflow = () => ({
-  maxUnlockedStage: 1,
   severityScores: {},
   severityReason: '',
   severityConfirmed: false,
