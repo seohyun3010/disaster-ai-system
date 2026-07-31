@@ -192,6 +192,12 @@ const DashboardPage = () => {
 
   return (
     <div className="dashboard-page light-dashboard">
+      <section className="dashboard-deadline-notice" role="status" aria-label="사유재산 피해신고 마감기한 안내">
+        <span className="dashboard-deadline-badge">마감 임박</span>
+        <strong>7.17 ~ 7.24 호우 사유재산 피해신고 마감까지 3일 남았습니다.</strong>
+        <span className="dashboard-deadline-date">신고 기한 2026.08.03</span>
+      </section>
+
       <section className="compact-query-panel" aria-labelledby="compact-query-title">
         <h1 id="compact-query-title">재난 현황 조회</h1>
         <form onSubmit={(event) => event.preventDefault()}>
@@ -272,6 +278,15 @@ const DashboardPage = () => {
                 aria-label="최근 1년 전체 1,248건 중 호우 412건, 태풍 286건, 산불 214건, 대설 183건, 지진 153건"
               >
                 <div><strong>1,248</strong><span>전체 누적</span></div>
+                {DISASTER_YEAR_STATS.map(([name, value], index) => (
+                  <span
+                    className={`annual-donut-percent annual-donut-percent-${index + 1}`}
+                    key={`${name}-percent`}
+                    aria-hidden="true"
+                  >
+                    {Math.round((value / 1248) * 100)}%
+                  </span>
+                ))}
               </div>
               <ul className="annual-donut-legend">
                 {DISASTER_YEAR_STATS.map(([name, value]) => (
