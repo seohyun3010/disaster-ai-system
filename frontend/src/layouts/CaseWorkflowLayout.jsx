@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
+import { getSubsidy } from '../api/subsidyApi';
 import { useWorkflowNavigation } from '../hooks/useWorkflowNavigation';
 import './case-workflow-layout.css';
 
@@ -31,7 +32,6 @@ const CaseWorkflowLayout = () => {
   const fetchCaseDetail = useCaseStore((state) => state.fetchCaseDetail);
   const analysis = useAnalysisStore((state) => state.analyses[caseId]);
   const workflow = useWorkflowStore((state) => state.workflows[caseId]);
-  const { maxUnlockedStage, canAccessStage } = useWorkflowNavigation(caseId);
   const listPath = '/cases';
   const activeIndex = getActiveIndex(pathname);
   const reviewCompleted = ['승인', '수정 승인'].includes(analysis?.reviewStatus)
@@ -48,6 +48,8 @@ const CaseWorkflowLayout = () => {
     return () => { ignore = true; };
   }, [caseId]);
 
+  const { maxUnlockedStage, canAccessStage } = useWorkflowNavigation(caseId, { subsidyConfirmed });
+
   const completed = [
     activeIndex > 0 || Boolean(analysis && analysis.status !== 'idle'),
     reviewCompleted,
@@ -56,6 +58,7 @@ const CaseWorkflowLayout = () => {
     approvalCompleted,
     false,
   ];
+
   const requestedStage = activeIndex + 1;
   const requestedStageLocked = !canAccessStage(requestedStage);
 
