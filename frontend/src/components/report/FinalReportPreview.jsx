@@ -1,6 +1,7 @@
 import './final-report-preview.css';
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('ko-KR')}원`;
+const display = (value) => value || '-';
 
 const FinalReportPreview = ({
   item,
@@ -22,16 +23,18 @@ const FinalReportPreview = ({
       <header>
         <span>재해복구 업무 처리 보고서</span>
         <h3>피해 복구 지원 최종 보고서</h3>
-        <p>{item.id}</p>
+        {/* 기존 mock 필드: <p>{item.id}</p> */}
+        <p>{item.case_number}</p>
       </header>
 
       <dl className="final-report-meta">
-        <div><dt>신고자</dt><dd>{item.reporter}</dd></div>
-        <div><dt>재난 유형</dt><dd>{item.type}</dd></div>
-        <div><dt>시설 유형</dt><dd>{item.facility}</dd></div>
-        <div><dt>피해 위치</dt><dd>{item.location}</dd></div>
-        <div><dt>신고 일시</dt><dd>{item.reportedAt}</dd></div>
-        <div><dt>최종 승인 일시</dt><dd>{report.createdAt}</dd></div>
+        {/* 기존 mock 필드(item.reporter/type/facility/location/reportedAt)는 백엔드 snake_case로 교체 */}
+        <div><dt>신고자</dt><dd>{display(item.reporter_name)}</dd></div>
+        <div><dt>재난 유형</dt><dd>{display(item.disaster_type)}</dd></div>
+        <div><dt>시설 유형</dt><dd>{display(item.facility_type)}</dd></div>
+        <div><dt>피해 위치</dt><dd>{display(item.address)}</dd></div>
+        <div><dt>신고 일시</dt><dd>{display(item.reported_at)}</dd></div>
+        <div><dt>최종 승인 일시</dt><dd>{display(report.approved_at)}</dd></div>
       </dl>
 
       <div className="final-report-result">
@@ -42,9 +45,9 @@ const FinalReportPreview = ({
 
       <div className="final-report-summary">
         <h4>피해 및 처리 결과</h4>
-        <p>{item.description}</p>
+        <p>{display(report.summary || item.description)}</p>
         <div><span>최종 처리 결과</span><strong>{approvalStatus}</strong></div>
-        <div><span>보고서 작성자</span><strong>{report.creator}</strong></div>
+        <div><span>보고서 작성자</span><strong>{report.creator.name}</strong></div>
       </div>
     </section>
 
