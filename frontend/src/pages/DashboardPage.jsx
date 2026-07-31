@@ -7,6 +7,7 @@ import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { buildFinalReportRecords } from '../utils/reportRecords';
 import '../components/dashboard/dashboard.css';
+import CaseMap from '../components/dashboard/CaseMap';
 
 const EVENT_DASHBOARD_META = {
   'rain-2026-0717': {
@@ -345,26 +346,7 @@ const DashboardPage = () => {
 
           {regionView === 'map' ? (
             <div className="dashboard-map-content" role="tabpanel">
-              <div className="dashboard-map-stage">
-                <img
-                  src="/korea-administrative-map.png"
-                  alt="대한민국 광역자치단체 행정구역 지도"
-                />
-                {REGION_MARKERS.map((region) => {
-                  const count = dashboardData.regionCounts[region.name] || 0;
-                  return (
-                    <span
-                      key={region.name}
-                      className={`dashboard-region-marker ${count > 0 ? 'has-cases' : ''}`}
-                      style={{ left: `${region.x}%`, top: `${region.y}%` }}
-                      title={`${region.name} ${count.toLocaleString()}건`}
-                    >
-                      <b>{region.name}</b>
-                      <em>{count.toLocaleString()}</em>
-                    </span>
-                  );
-                })}
-              </div>
+              <CaseMap />
             </div>
           ) : (
             <div className="dashboard-column-chart" role="tabpanel">

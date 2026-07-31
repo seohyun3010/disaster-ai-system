@@ -1,0 +1,253 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  Map as KakaoMap,
+  MapMarker,
+  CustomOverlayMap,
+  useKakaoLoader,
+} from "react-kakao-maps-sdk";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+
+const STATUS_LABELS = {
+  RECEIVED: "접수됨",
+  IN_REVIEW: "심사중",
+  APPROVED: "승인",
+  REJECTED: "반려",
+};
+
+const PRIORITY_LABELS = {
+  NORMAL: "일반",
+  URGENT: "긴급",
+};
+
+const DISASTER_TYPE_LABELS = {
+  HEAVY_RAIN: "호우",
+  TYPHOON: "태풍",
+  FLOOD: "침수",
+};
+
+// 시/도 중심 좌표 (근사값)
+const REGION_CENTERS = [
+  { name: "서울", lat: 37.5665, lng: 126.978, prefixes: ["서울특별시", "서울"] },
+  { name: "부산", lat: 35.1796, lng: 129.0756, prefixes: ["부산광역시", "부산"] },
+  { name: "대구", lat: 35.8714, lng: 128.6014, prefixes: ["대구광역시", "대구"] },
+  { name: "인천", lat: 37.4563, lng: 126.7052, prefixes: ["인천광역시", "인천"] },
+  { name: "광주", lat: 35.1595, lng: 126.8526, prefixes: ["광주광역시", "광주"] },
+  { name: "대전", lat: 36.3504, lng: 127.3845, prefixes: ["대전광역시", "대전"] },
+  { name: "울산", lat: 35.5384, lng: 129.3114, prefixes: ["울산광역시", "울산"] },
+  { name: "세종", lat: 36.4801, lng: 127.289, prefixes: ["세종특별자치시", "세종"] },
+  { name: "경기", lat: 37.4138, lng: 127.5183, prefixes: ["경기도", "경기"] },
+  { name: "강원", lat: 37.8228, lng: 128.1555, prefixes: ["강원특별자치도", "강원도", "강원"] },
+  { name: "충북", lat: 36.8, lng: 127.7, prefixes: ["충청북도", "충북"] },
+  { name: "충남", lat: 36.5184, lng: 126.8, prefixes: ["충청남도", "충남"] },
+  { name: "전북", lat: 35.7175, lng: 127.153, prefixes: ["전북특별자치도", "전라북도", "전북"] },
+  { name: "전남", lat: 34.8161, lng: 126.4629, prefixes: ["전라남도", "전남"] },
+  { name: "경북", lat: 36.4919, lng: 128.8889, prefixes: ["경상북도", "경북"] },
+  { name: "경남", lat: 35.4606, lng: 128.2132, prefixes: ["경상남도", "경남"] },
+  { name: "제주", lat: 33.4996, lng: 126.5312, prefixes: ["제주특별자치도", "제주도", "제주"] },
+];
+
+const REGION_VIEW_LEVEL_THRESHOLD = 9; // 이 레벨(축소)보다 크면 지역 배지, 작으면(확대) 개별 핀
+
+function resolveRegion(sido = "") {
+  return REGION_CENTERS.find(({ prefixes }) =>
+    prefixes.some((prefix) => sido.startsWith(prefix))
+  );
+}
+
+function CaseMap() {
+  useKakaoLoader({
+    appkey: import.meta.env.VITE_KAKAO_MAP_KEY,
+  });
+
+  const [cases, setCases] = useState([]);
+  const [selectedCase, setSelectedCase] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [level, setLevel] = useState(13);
+  const [center, setCenter] = useState({ lat: 36.2683, lng: 127.6358 });
+
+  useEffect(() => {
+    async function fetchCases() {
+      try {
+        const res = await fetch(`${API_BASE_URL}/cases`);
+        if (!res.ok) {
+          throw new Error(`요청 실패 (${res.status})`);
+        }
+        const data = await res.json();
+        setCases(data.items ?? []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCases();
+  }, []);
+
+  const validCases = useMemo(
+    () => cases.filter((c) => c.latitude && c.longitude),
+    [cases]
+  );
+
+  const regionData = useMemo(() => {
+    const data = new Map();
+    validCases.forEach((c) => {
+      const region = resolveRegion(c.sido || "");
+      if (!region) return;
+      const entry = data.get(region.name) || { count: 0, latSum: 0, lngSum: 0 };
+      entry.count += 1;
+      entry.latSum += Number(c.latitude);
+      entry.lngSum += Number(c.longitude);
+      data.set(region.name, entry);
+    });
+    return data;
+  }, [validCases]);
+
+  if (loading) {
+    return <div style={{ padding: "1rem" }}>지도를 불러오는 중...</div>;
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: "1rem", color: "#c0392b" }}>
+        지도를 불러오지 못했습니다: {error}
+      </div>
+    );
+  }
+
+  const showRegionView = level >= REGION_VIEW_LEVEL_THRESHOLD;
+
+  return (
+    <KakaoMap
+      center={center}
+      level={level}
+      style={{ width: "100%", height: "600px" }}
+      onZoomChanged={(map) => setLevel(map.getLevel())}
+      onCenterChanged={(map) => {
+        const c = map.getCenter();
+        setCenter({ lat: c.getLat(), lng: c.getLng() });
+      }}
+    >
+      {showRegionView
+        ? // 지역 요약 배지 뷰
+          REGION_CENTERS.map((region) => {
+            const entry = regionData.get(region.name);
+            const count = entry?.count || 0;
+            const badgePosition = entry
+              ? { lat: entry.latSum / entry.count, lng: entry.lngSum / entry.count }
+              : { lat: region.lat, lng: region.lng };
+            return (
+              <CustomOverlayMap
+                key={region.name}
+                position={badgePosition}
+              >
+                <div
+                  onClick={() => {
+                    setCenter(badgePosition);
+                    setLevel(REGION_VIEW_LEVEL_THRESHOLD - 3);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "4px 10px",
+                    borderRadius: "999px",
+                    background: count > 0 ? "#2563eb" : "#fff",
+                    color: count > 0 ? "#fff" : "#999",
+                    border: "1px solid",
+                    borderColor: count > 0 ? "#2563eb" : "#ddd",
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+                  }}
+                >
+                  <span>{region.name}</span>
+                  <span
+                    style={{
+                      background: count > 0 ? "rgba(255,255,255,0.25)" : "#eee",
+                      borderRadius: "999px",
+                      padding: "0 6px",
+                    }}
+                  >
+                    {count}
+                  </span>
+                </div>
+              </CustomOverlayMap>
+            );
+          })
+        : // 개별 케이스 핀 뷰
+          validCases.map((c) => (
+            <MapMarker
+              key={c.case_id}
+              position={{ lat: Number(c.latitude), lng: Number(c.longitude) }}
+              onClick={() => setSelectedCase(c)}
+            />
+          ))}
+
+      {!showRegionView && selectedCase && (
+        <CustomOverlayMap
+          position={{
+            lat: Number(selectedCase.latitude),
+            lng: Number(selectedCase.longitude),
+          }}
+          yAnchor={1.3}
+        >
+          <div
+            style={{
+              background: "#fff",
+              border: "1px solid #ddd",
+              borderRadius: "8px",
+              padding: "12px 14px",
+              minWidth: "220px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              fontSize: "13px",
+              position: "relative",
+            }}
+          >
+            <button
+              onClick={() => setSelectedCase(null)}
+              style={{
+                position: "absolute",
+                top: "4px",
+                right: "6px",
+                border: "none",
+                background: "none",
+                cursor: "pointer",
+                fontSize: "14px",
+                color: "#888",
+              }}
+              aria-label="닫기"
+            >
+              ✕
+            </button>
+            <div style={{ fontWeight: 600, marginBottom: "4px" }}>
+              {selectedCase.case_number}
+            </div>
+            <div style={{ marginBottom: "6px", color: "#333" }}>
+              {selectedCase.title}
+            </div>
+            <div style={{ color: "#555", marginBottom: "4px" }}>
+              {selectedCase.address}
+            </div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <span>
+                상태: {STATUS_LABELS[selectedCase.status] ?? selectedCase.status}
+              </span>
+              <span>
+                우선순위: {PRIORITY_LABELS[selectedCase.priority] ?? selectedCase.priority}
+              </span>
+            </div>
+            <div style={{ marginTop: "4px", color: "#555" }}>
+              재해유형: {DISASTER_TYPE_LABELS[selectedCase.disaster_type] ?? selectedCase.disaster_type}
+            </div>
+          </div>
+        </CustomOverlayMap>
+      )}
+    </KakaoMap>
+  );
+}
+
+export default CaseMap;
