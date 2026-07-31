@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
@@ -37,11 +37,22 @@ const CaseWorkflowLayout = () => {
   const reviewCompleted = ['승인', '수정 승인'].includes(analysis?.reviewStatus)
     || (analysis?.reviewStatus === '보류' && analysis?.holdFieldVerified);
   const approvalCompleted = Boolean(workflow?.approvalStatus && workflow.approvalStatus !== '승인 대기');
+
+  const [subsidyConfirmed, setSubsidyConfirmed] = useState(false);
+  useEffect(() => {
+    if (!caseId) return;
+    let ignore = false;
+    getSubsidy(caseId)
+      .then((data) => { if (!ignore) setSubsidyConfirmed(data.status === 'CONFIRMED'); })
+      .catch(() => { if (!ignore) setSubsidyConfirmed(false); });
+    return () => { ignore = true; };
+  }, [caseId]);
+
   const completed = [
     activeIndex > 0 || Boolean(analysis && analysis.status !== 'idle'),
     reviewCompleted,
     Boolean(workflow?.severityConfirmed),
-    Boolean(workflow?.supportConfirmed),
+    subsidyConfirmed,
     approvalCompleted,
     false,
   ];
@@ -118,7 +129,7 @@ const CaseWorkflowLayout = () => {
                           : '이전 단계 완료 후 진행'}
                   </small>
                 </span>
-                <span className="workflow-step-arrow" aria-hidden="true">›</span>
+                <span className="workflow-step-arrow" aria-hidden="true">→</span>
               </button>
             </li>;
           })}

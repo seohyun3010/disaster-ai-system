@@ -23,11 +23,17 @@ export const API_PATHS = {
     SEVERITY: (caseId) => `/api/severity/${caseId}`,
     POLICY_VERSIONS: '/api/rag/policies/versions',
   },
+  // SUBSIDY: {
+  //   CALCULATE: '/api/subsidy/calculate',
+  //   DUPLICATE: (caseId) => `/api/subsidy/duplicate/${caseId}`,
+  //   CONFIRM: '/api/subsidy/confirm',
+  //   HISTORY: (caseId) => `/api/subsidy/${caseId}/history`,
+  // },
   SUBSIDY: {
-    CALCULATE: '/api/subsidy/calculate',
-    DUPLICATE: (caseId) => `/api/subsidy/duplicate/${caseId}`,
-    CONFIRM: '/api/subsidy/confirm',
-    HISTORY: (caseId) => `/api/subsidy/${caseId}/history`,
+    CALCULATE: (caseId) => `/subsidies/${caseId}/calculate`,
+    CONFIRM: (caseId) => `/subsidies/${caseId}`,
+    DETAIL: (caseId) => `/subsidies/${caseId}`,
+    // DUPLICATE, HISTORY: 백엔드 미구현 (담당자 확인 필요)
   },
   REPORT: {
     // 기존 연동 전 주소는 삭제하지 않고 주석으로 보존합니다.
