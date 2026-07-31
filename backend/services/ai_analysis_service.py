@@ -36,28 +36,15 @@ def execute_ai_job(db: Session, job_id: int) -> None:
         # 존재하는 파일만 추림
         valid = []
         for img in images:
-            path = _resolve_image_path(img.image_url)
-            if path.exists():
-                valid.append((img, path))
-            else:
-                print(f"[AI JOB {job_id}] 파일 없음, 건너뜀: {path}")
-
-        if not valid:
-            raise FileNotFoundError("분석 가능한 이미지 파일이 없습니다")
-
-        # 다중 뷰를 한 번에 전송 → 추론 서버가 집 단위 softmax 평균 수행
-        with ExitStack() as stack:
-            files = [
-                ("files", (path.name, stack.enter_context(open(path, "rb")), "image/jpeg"))
-                for _, path in valid
-            ]
-            response = httpx.post(
-                f"{AI_SERVER_URL}/classify",
-                files=files,
-                timeout=120.0,
-            )
-        response.raise_for_status()
-        output = response.json()
+            file_path = _resolve_image_path(img.image_url)
+            with open(file_path, "rb") as f:
+                response = httpx.post(
+                    f"{AI_SERVER_URL}/classify",
+                    files={"files": (file_path.name, f, "image/jpeg")},
+                    timeout=60.0,
+                )
+            response.raise_for_status()
+            output = response.json()
 
         # 집 단위 결과 1건만 저장 (대표 이미지 = 첫 번째 뷰)
         result = AIResult(

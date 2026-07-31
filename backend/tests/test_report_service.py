@@ -23,6 +23,7 @@ from services.report_service import (
     list_report_details,
 )
 from services.report_pdf_service import render_report_pdf
+from services.report_pdf_form_service import render_form_report_pdf
 
 
 class ReportServiceTest(unittest.TestCase):
@@ -155,9 +156,11 @@ class ReportServiceTest(unittest.TestCase):
 
     def test_pdf_download_content_is_generated(self):
         detail = build_report_detail(self.db, self.report)
-        content = render_report_pdf(detail)
+        # 기존 1페이지 PDF 생성기도 회귀 확인을 위해 유지합니다.
+        self.assertTrue(render_report_pdf(detail).startswith(b"%PDF-"))
+        content = render_form_report_pdf(detail)
         self.assertTrue(content.startswith(b"%PDF-"))
-        self.assertGreater(len(content), 2000)
+        self.assertGreater(len(content), 5000)
 
 
 if __name__ == "__main__":

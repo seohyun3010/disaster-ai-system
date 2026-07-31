@@ -5,11 +5,13 @@ import StageNavigation from '../components/case/StageNavigation';
 import SupportCalculationCard from '../components/support/SupportCalculationCard';
 import { ReviewGuidance } from '../components/persona/ReviewGuidance';
 import { useCaseStore } from '../stores/caseStore';
+import { useWorkflowStore } from '../stores/workflowStore';
 import { calculateSubsidy, confirmSubsidy, getSubsidy } from '../api/subsidyApi';
 
 const SupportPage = () => {
   const { caseId } = useParams();
   const item = useCaseStore((state) => state.cases.find((entry) => entry.id === caseId));
+  const saveSupport = useWorkflowStore((state) => state.saveSupport);
 
   const [subsidy, setSubsidy] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -84,6 +86,7 @@ const SupportPage = () => {
       };
       const data = await confirmSubsidy(caseId, payload);
       setSubsidy(data);
+      saveSupport(caseId, Number(data.confirmed_amount), reason.trim());
       setMessage('지원금이 확정되었습니다. 최종 확인 단계로 이동할 수 있습니다.');
     } catch (err) {
       setError(err.response?.data?.detail || err.message);

@@ -116,6 +116,12 @@ const CaseWorkflowLayout = () => {
     || workflow?.severityConfirmedAt,
   );
 
+  const supportCompleted = Boolean(
+    subsidyConfirmed === true
+    || workflow?.supportConfirmed
+    || workflow?.supportConfirmedAt,
+  );
+
   const approvalCompleted = Boolean(
     workflow?.approvalStatus
     && workflow.approvalStatus !== '승인 대기',
@@ -145,11 +151,7 @@ const CaseWorkflowLayout = () => {
 
     severityCompleted,
 
-    subsidyConfirmed === true
-      || Boolean(
-        workflow?.supportConfirmed
-        || workflow?.supportConfirmedAt,
-      ),
+    supportCompleted,
 
     approvalCompleted,
 
@@ -193,13 +195,17 @@ const CaseWorkflowLayout = () => {
       try {
         const data = await getSubsidy(caseId);
 
-        if (ignore) return;
+        if (ignore) {
+          return;
+        }
 
         setSubsidyConfirmed(
           data?.status === 'CONFIRMED',
         );
       } catch (subsidyError) {
-        if (ignore) return;
+        if (ignore) {
+          return;
+        }
 
         /*
          * 404는 해당 신고의 지원금 심사 정보가 아직
@@ -330,6 +336,7 @@ const CaseWorkflowLayout = () => {
             {STEPS.map((step, index) => {
               const stageNumber = index + 1;
               const unlocked = canAccessStage(stageNumber);
+
               const wasPassed = (
                 stageNumber < maxUnlockedStage
               );

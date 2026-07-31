@@ -6,7 +6,9 @@ from sqlalchemy import func, or_, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from models.ai_results import AIResult
+from models.benefit_checks import BenefitCheck
 from models.case import Case
+from models.duplicate_result import DuplicateResult
 from models.reports import Report
 from models.reviews import Review
 from models.severity_result import SeverityResult
@@ -18,12 +20,14 @@ from schemas.report import (
     ReportCreatorResponse,
     ReportDetailResponse,
     ReportGenerateRequest,
+    ReportImageResponse,
     ReportListItemResponse,
     ReportListResponse,
     ReportSeverityResponse,
     ReportSubsidyResponse,
     ReportTimelineResponse,
     ReportUpsertRequest,
+    ReportVerificationResponse,
 )
 
 
@@ -224,6 +228,7 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
         .options(
             selectinload(Case.user),
             selectinload(Case.assigned_user),
+            selectinload(Case.case_images),
         )
         .where(Case.case_id == report.case_id)
     )
@@ -239,6 +244,12 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
         SeverityResult.result_id,
     )
     subsidy = _latest(db, Subsidy, case.case_id, Subsidy.subsidy_id)
+    duplicate_result = _latest(
+        db, DuplicateResult, case.case_id, DuplicateResult.checked_at, DuplicateResult.duplicate_id
+    )
+    benefit_check = _latest(
+        db, BenefitCheck, case.case_id, BenefitCheck.checked_at, BenefitCheck.check_id
+    )
     review = db.scalar(
         select(Review)
         .options(selectinload(Review.reviewer))
@@ -268,12 +279,18 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
             facility_type=case.facility_type,
             address=case.address,
             reported_at=case.reported_at,
+            received_at=case.received_at,
+            damage_occurred_at=case.damage_occurred_at,
+            contact_number=case.contact_number,
+            latitude=case.latitude,
+            longitude=case.longitude,
             description=case.description,
         ),
         analysis=ReportAnalysisResponse(
             damage_grade=ai_result.damage_grade if ai_result else None,
             confidence=ai_result.confidence if ai_result else None,
             explanation=ai_result.ai_explanation if ai_result else None,
+            inspection_required=ai_result.inspection_required if ai_result else None,
         ),
         severity=ReportSeverityResponse(
             urgency_score=severity.recovery_urgency_score if severity else 0,
@@ -285,6 +302,32 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
             confirmed_amount=subsidy.confirmed_amount if subsidy else None,
             status=subsidy.status if subsidy else None,
         ),
+        verification=ReportVerificationResponse(
+            duplicate_report_result=(
+                "중복 의심"
+                if duplicate_result and duplicate_result.is_duplicate
+                else "중복 없음"
+                if duplicate_result
+                else "검사 이력 없음"
+            ),
+            duplicate_benefit_result=(
+                "중복 수혜 의심"
+                if benefit_check and benefit_check.is_duplicate_benefit
+                else "해당 없음"
+                if benefit_check
+                else "검사 이력 없음"
+            ),
+            reviewer_comment=review.comment if review else None,
+        ),
+        images=[
+            ReportImageResponse(
+                image_id=image.image_id,
+                image_url=image.image_url,
+                thumbnail_url=image.thumbnail_url,
+                taken_at=image.taken_at,
+            )
+            for image in sorted(case.case_images, key=lambda item: item.image_id)[:4]
+        ],
         approval_result=approval_result,
         summary=report.summary or case.description,
         download_url=f"/reports/{report.report_id}/download",
