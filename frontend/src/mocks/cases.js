@@ -21,3 +21,5 @@ export const STATUS_COUNTS = [
 
 export const CASES = [];
 export const STATUS_COUNTS = [];
+// 기존 store가 삭제된 데모 사건 ID 목록을 참조하므로 빈 호환 export는 유지합니다.
+export const DELETED_DEMO_CASE_IDS = [];
