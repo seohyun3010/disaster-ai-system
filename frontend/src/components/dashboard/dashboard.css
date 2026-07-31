@@ -42,11 +42,70 @@
   font-size: 12px;
 }
 
-.dashboard-deadline-date {
+.dashboard-deadline-marquee {
+  position: relative;
+  min-width: 0;
+  min-height: 18px;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.dashboard-deadline-message {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: none;
+  white-space: nowrap;
+  animation: dashboard-deadline-flow-right 20s linear infinite;
+  will-change: left, transform;
+}
+
+.dashboard-deadline-marquee:hover .dashboard-deadline-message {
+  animation-play-state: paused;
+}
+
+.dashboard-deadline-meta {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
   margin-left: auto;
+}
+
+.dashboard-deadline-position,
+.dashboard-deadline-date {
   color: #645b49;
   font-size: 11px;
   white-space: nowrap;
+}
+
+.dashboard-deadline-position {
+  border-radius: 999px;
+  background: #f4e5be;
+  padding: 3px 7px;
+  font-weight: 800;
+}
+
+@keyframes dashboard-deadline-flow-right {
+  from {
+    left: 0;
+    transform: translateX(-100%);
+  }
+
+  to {
+    left: 100%;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-deadline-message {
+    position: static;
+    overflow: hidden;
+    animation: none;
+    text-overflow: ellipsis;
+  }
 }
 
 .compact-query-panel {
@@ -63,15 +122,15 @@
 
 .compact-query-panel h1 {
   align-self: center;
-  margin: 12px 0 0;
+  margin: 0;
   font-size: 12px;
   white-space: nowrap;
 }
 
 .compact-query-panel form {
   display: grid;
-  grid-template-columns: minmax(350px, 470px) 48px;
-  align-items: end;
+  grid-template-columns: minmax(350px, 520px) 48px;
+  align-items: center;
   gap: 7px;
   justify-content: start;
 }
@@ -79,13 +138,16 @@
 .compact-query-panel label {
   display: grid;
   min-width: 0;
-  gap: 3px;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
 }
 
 .compact-query-panel label > span {
   color: #536274;
   font-size: 9px;
   font-weight: 800;
+  white-space: nowrap;
 }
 
 .compact-date-field > div {
@@ -134,12 +196,6 @@
   cursor: pointer;
 }
 
-.dashboard-kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
-}
-
 .dashboard-kpi,
 .dashboard-card {
   border: 1px solid #dce4ec;
@@ -151,11 +207,11 @@
 .dashboard-kpi {
   position: relative;
   display: grid;
-  min-height: 104px;
-  grid-template-columns: 38px 1fr;
-  align-items: start;
+  min-height: 88px;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
   gap: 10px;
-  padding: 17px 15px 28px;
+  padding: 14px 15px;
 }
 
 .dashboard-kpi-icon {
@@ -169,7 +225,8 @@
 
 .dashboard-kpi > div {
   display: grid;
-  gap: 6px;
+  min-width: 0;
+  gap: 5px;
 }
 
 .dashboard-kpi > div > span {
@@ -191,16 +248,16 @@
 }
 
 .dashboard-kpi footer {
-  position: absolute;
-  right: 15px;
-  bottom: 9px;
-  left: 63px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
   color: #87929e;
   font-size: 9px;
+  white-space: nowrap;
 }
 
 .dashboard-kpi footer b {
-  float: right;
+  float: none;
 }
 
 .dashboard-kpi footer .red { color: #ef3038; }
@@ -336,8 +393,7 @@
 }
 
 .dashboard-left-column {
-  align-content: start;
-  grid-template-rows: auto auto;
+  grid-template-rows: 88px 88px auto minmax(230px, 1fr);
 }
 
 .report-summary-card {
@@ -798,22 +854,16 @@
 .reports-card th, .reports-card td { height: 28px; border-bottom: 1px solid #edf1f4; padding: 0 5px; text-align: left; white-space: nowrap; }
 .report-status { display: inline-block; border: 1px solid #b9cfdf; border-radius: 999px; padding: 3px 7px; color: #17619a; }
 
-@media (max-width: 1200px) {
-  .dashboard-kpi-grid { grid-template-columns: repeat(3, 1fr); }
-}
-
 @media (max-width: 820px) {
   .app-content .workspace:has(.light-dashboard) {
     padding-right: 14px;
     padding-left: 14px;
   }
 
-  .dashboard-kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .dashboard-main-grid { grid-template-columns: 1fr; }
   .dashboard-map-body { min-height: 600px; }
   .dashboard-left-column,
   .dashboard-right-column { grid-template-rows: auto; }
-  .dashboard-map-card { grid-row: 1; }
 }
 
 @media (max-width: 620px) {
@@ -822,9 +872,13 @@
   }
 
   .dashboard-deadline-date {
+    white-space: normal;
+  }
+
+  .dashboard-deadline-meta {
     width: 100%;
+    justify-content: flex-end;
     margin-left: 0;
-    padding-left: 70px;
   }
 
   .compact-query-panel {

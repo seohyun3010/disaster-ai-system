@@ -152,18 +152,15 @@
 
 // export default DashboardPage;
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import CaseMap from '../components/dashboard/CaseMap';
 import { useCaseStore } from '../stores/caseStore';
+import { buildDisasterEvents } from '../utils/disasterEvents';
 import '../components/dashboard/dashboard.css';
 
 const KPIS = [
   { icon: '☀', label: '재난 발생 (금일)', value: '5', unit: '건', change: '-1건', tone: 'blue' },
   { icon: '▤', label: '피해 신고 (누적)', value: '1,248', unit: '건', change: '+87건', tone: 'red' },
-  { icon: '♙', label: '현장 확인 완료', value: '896', unit: '건', change: '+36건', tone: 'red' },
-  { icon: '☑', label: '복구 승인 (누적)', value: '562', unit: '건', change: '+22건', tone: 'red' },
-  { icon: '▱', label: '지급금 심사 중', value: '314', unit: '건', change: '+18건', tone: 'red' },
-  { icon: '₩', label: '지급금 지급 완료', value: '128', unit: '건', change: '+9건', tone: 'red' },
 ];
 
 const DISASTER_YEAR_STATS = [
@@ -182,21 +179,60 @@ const REPORTS = [
   ['R-0120', '안산시 상록구', '주택', '2026.07.28 09:58'],
 ];
 
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const DEADLINE_NOTICE_WINDOW_DAYS = 14;
+const formatDeadlineDate = (timestamp) => {
+  const date = new Date(timestamp);
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
+};
+
 const DashboardPage = () => {
   const fetchCases = useCaseStore((state) => state.fetchCases);
+  const cases = useCaseStore((state) => state.cases);
   const mapRef = useRef(null);
+  const [deadlineNoticeIndex, setDeadlineNoticeIndex] = useState(0);
+  const deadlineNotices = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return buildDisasterEvents(cases)
+      .map((event) => ({
+        ...event,
+        daysRemaining: Math.ceil((event.deadlineAt - today.getTime()) / DAY_IN_MS),
+      }))
+      .filter((event) => event.deadlineAt && event.daysRemaining >= 0 && event.daysRemaining <= DEADLINE_NOTICE_WINDOW_DAYS)
+      .sort((left, right) => left.daysRemaining - right.daysRemaining);
+  }, [cases]);
+  const activeDeadlineNotice = deadlineNotices.length
+    ? deadlineNotices[deadlineNoticeIndex % deadlineNotices.length]
+    : null;
 
   useEffect(() => {
     fetchCases({ limit: 100, offset: 0 }).catch(() => {});
   }, [fetchCases]);
 
+  useEffect(() => {
+    if (deadlineNotices.length <= 1) return undefined;
+    const intervalId = window.setInterval(() => {
+      setDeadlineNoticeIndex((current) => (current + 1) % deadlineNotices.length);
+    }, 5000);
+    return () => window.clearInterval(intervalId);
+  }, [deadlineNotices.length]);
+
   return (
     <div className="dashboard-page light-dashboard">
-      <section className="dashboard-deadline-notice" role="status" aria-label="사유재산 피해신고 마감기한 안내">
+      {activeDeadlineNotice && <section className="dashboard-deadline-notice" role="status" aria-live="polite" aria-label="사유재산 피해신고 마감기한 안내">
         <span className="dashboard-deadline-badge">마감 임박</span>
-        <strong>7.17 ~ 7.24 호우 사유재산 피해신고 마감까지 3일 남았습니다.</strong>
-        <span className="dashboard-deadline-date">신고 기한 2026.08.03</span>
-      </section>
+        <div className="dashboard-deadline-marquee">
+          <strong className="dashboard-deadline-message" key={activeDeadlineNotice.id}>
+            {activeDeadlineNotice.name} 사유재산 피해신고 마감까지 {activeDeadlineNotice.daysRemaining === 0 ? '오늘 마감입니다.' : `${activeDeadlineNotice.daysRemaining}일 남았습니다.`}
+          </strong>
+        </div>
+        <div className="dashboard-deadline-meta">
+          {deadlineNotices.length > 1 && <span className="dashboard-deadline-position">{deadlineNoticeIndex % deadlineNotices.length + 1} / {deadlineNotices.length}</span>}
+          <span className="dashboard-deadline-date">신고 기한 {formatDeadlineDate(activeDeadlineNotice.deadlineAt)}</span>
+        </div>
+      </section>}
 
       <section className="compact-query-panel" aria-labelledby="compact-query-title">
         <h1 id="compact-query-title">재난 현황 조회</h1>
@@ -213,18 +249,16 @@ const DashboardPage = () => {
         </form>
       </section>
 
-      <section className="dashboard-kpi-grid" aria-label="핵심 현황">
-        {KPIS.map((kpi) => (
-          <article className="dashboard-kpi" key={kpi.label}>
-            <span className="dashboard-kpi-icon" aria-hidden="true">{kpi.icon}</span>
-            <div><span>{kpi.label}</span><strong>{kpi.value}<small>{kpi.unit}</small></strong></div>
-            <footer>전일 대비 <b className={kpi.tone}>{kpi.change}</b></footer>
-          </article>
-        ))}
-      </section>
-
       <section className="dashboard-main-grid">
-        <aside className="dashboard-left-column">
+        <aside className="dashboard-left-column" aria-label="핵심 현황 및 최근 업무">
+          {KPIS.map((kpi) => (
+            <article className="dashboard-kpi" key={kpi.label}>
+              <span className="dashboard-kpi-icon" aria-hidden="true">{kpi.icon}</span>
+              <div><span>{kpi.label}</span><strong>{kpi.value}<small>{kpi.unit}</small></strong></div>
+              <footer>전일 대비 <b className={kpi.tone}>{kpi.change}</b></footer>
+            </article>
+          ))}
+
           <article className="dashboard-card recent-card">
             <CardTitle title="최근 접수" action="더보기 ›" />
             <ul className="recent-report-list">

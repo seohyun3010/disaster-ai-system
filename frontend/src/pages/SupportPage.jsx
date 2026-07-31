@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import { useLocation, useParams } from 'react-router-dom';
 import CaseStageHeader from '../components/case/CaseStageHeader';
 import StageNavigation from '../components/case/StageNavigation';
 import SupportCalculationCard from '../components/support/SupportCalculationCard';
@@ -10,6 +10,8 @@ import { calculateSubsidy, confirmSubsidy, getSubsidy } from '../api/subsidyApi'
 
 const SupportPage = () => {
   const { caseId } = useParams();
+  const { search } = useLocation();
+  const historyView = new URLSearchParams(search).get('view') === 'history';
   const item = useCaseStore((state) => state.cases.find((entry) => entry.id === caseId));
   const saveSupport = useWorkflowStore((state) => state.saveSupport);
 
@@ -22,7 +24,7 @@ const SupportPage = () => {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  const runCalculate = async () => {
+  const runCalculate = useCallback(async () => {
     setCalculating(true);
     setError('');
     setMessage('');
@@ -35,7 +37,7 @@ const SupportPage = () => {
     } finally {
       setCalculating(false);
     }
-  };
+  }, [caseId]);
 
   useEffect(() => {
     if (!caseId) return;
@@ -51,7 +53,7 @@ const SupportPage = () => {
       } catch (err) {
         if (ignore) return;
         if (err.response?.status === 404) {
-          await runCalculate();
+          if (!historyView) await runCalculate();
         } else {
           setError(err.message);
         }
@@ -62,7 +64,7 @@ const SupportPage = () => {
 
     load();
     return () => { ignore = true; };
-  }, [caseId]);
+  }, [caseId, historyView, runCalculate]);
 
   // 예상 지원금과 최종 검토 금액이 다른 경우에만 "수정"으로 간주
   const isAmountChanged = () => {
@@ -107,7 +109,7 @@ const SupportPage = () => {
 
   return (
     <div className="case-page">
-      <CaseStageHeader item={item} breadcrumb="복구 심사 / 지원금 심사" title="지원금 심사" />
+      <CaseStageHeader item={item} breadcrumb="복구 심사 / 지원금 심사" title="지원금 심사" progressHistoryView={historyView} />
       <ReviewGuidance
         current="예상 지원금 산정 결과 검토"
         next="금액 반영 후 최종 확인"

@@ -60,8 +60,9 @@ const getStepPath = (caseId, step) => (
 
 const CaseWorkflowLayout = () => {
   const { caseId } = useParams();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
   const navigate = useNavigate();
+  const historyView = new URLSearchParams(search).get('view') === 'history';
 
   const numericCaseId = Number(caseId);
 
@@ -96,7 +97,14 @@ const CaseWorkflowLayout = () => {
    * false : 조회 완료, 아직 확정되지 않음
    * true  : 지원금 확정 완료
    */
-  const [subsidyConfirmed, setSubsidyConfirmed] = useState(null);
+  const [subsidyStatus, setSubsidyStatus] = useState({
+    caseId: null,
+    confirmed: null,
+  });
+
+  const subsidyConfirmed = subsidyStatus.caseId === caseId
+    ? subsidyStatus.confirmed
+    : null;
 
   const activeIndex = getActiveIndex(pathname);
   const requestedStage = activeIndex + 1;
@@ -136,9 +144,9 @@ const CaseWorkflowLayout = () => {
     subsidyConfirmed,
   });
 
-  const requestedStageLocked = !canAccessStage(
-    requestedStage,
-  );
+  const requestedStageLocked = historyView
+    ? false
+    : !canAccessStage(requestedStage);
 
   const completed = [
     activeIndex > 0
@@ -183,13 +191,10 @@ const CaseWorkflowLayout = () => {
    */
   useEffect(() => {
     if (!caseId) {
-      setSubsidyConfirmed(false);
       return undefined;
     }
 
     let ignore = false;
-
-    setSubsidyConfirmed(null);
 
     const fetchSubsidyStatus = async () => {
       try {
@@ -199,9 +204,10 @@ const CaseWorkflowLayout = () => {
           return;
         }
 
-        setSubsidyConfirmed(
-          data?.status === 'CONFIRMED',
-        );
+        setSubsidyStatus({
+          caseId,
+          confirmed: data?.status === 'CONFIRMED',
+        });
       } catch (subsidyError) {
         if (ignore) {
           return;
@@ -212,7 +218,10 @@ const CaseWorkflowLayout = () => {
          * 생성되지 않은 정상적인 초기 상태로 처리합니다.
          */
         if (subsidyError.response?.status === 404) {
-          setSubsidyConfirmed(false);
+          setSubsidyStatus({
+            caseId,
+            confirmed: false,
+          });
           return;
         }
 
@@ -221,7 +230,10 @@ const CaseWorkflowLayout = () => {
           subsidyError,
         );
 
-        setSubsidyConfirmed(false);
+        setSubsidyStatus({
+          caseId,
+          confirmed: false,
+        });
       }
     };
 
@@ -293,14 +305,14 @@ const CaseWorkflowLayout = () => {
   }
 
   return (
-    <div className="case-workflow-page">
+    <div className={`case-workflow-page${historyView ? ' history-mode' : ''}`}>
       <header className="case-workflow-head">
         <div>
           <button
             type="button"
-            onClick={() => navigate('/cases')}
+            onClick={() => navigate(historyView ? '/approval-history' : '/cases')}
           >
-            ← 신고 목록
+            ← {historyView ? '이력 관리' : '신고 목록'}
           </button>
 
           <h1>{item.case_number}</h1>
@@ -327,15 +339,16 @@ const CaseWorkflowLayout = () => {
           <div className="workflow-gallery-title">
             <span>업무 진행</span>
 
-            <strong>
-              {activeIndex + 1} / {STEPS.length}
-            </strong>
+            <div className="workflow-gallery-meta">
+              {historyView && <em>읽기 전용</em>}
+              <strong>{activeIndex + 1} / {STEPS.length}</strong>
+            </div>
           </div>
 
           <ol>
             {STEPS.map((step, index) => {
               const stageNumber = index + 1;
-              const unlocked = canAccessStage(stageNumber);
+              const unlocked = historyView || canAccessStage(stageNumber);
 
               const wasPassed = (
                 stageNumber < maxUnlockedStage
@@ -356,13 +369,18 @@ const CaseWorkflowLayout = () => {
                 caseId,
                 step,
               );
+              const historyTarget = `${target}${historyView ? '?view=history' : ''}`;
 
               let description = (
                 '이전 단계 완료 후 진행'
               );
 
               if (index === activeIndex) {
-                description = '현재 단계';
+                description = historyView ? '현재 단계 · 읽기 전용' : '현재 단계';
+              } else if (
+                historyView
+              ) {
+                description = '이력 조회';
               } else if (
                 completed[index]
                 || wasPassed
@@ -379,7 +397,7 @@ const CaseWorkflowLayout = () => {
                 >
                   <button
                     type="button"
-                    onClick={() => navigate(target)}
+                    onClick={() => navigate(historyTarget)}
                     disabled={!unlocked}
                     aria-current={
                       index === activeIndex
@@ -417,15 +435,18 @@ const CaseWorkflowLayout = () => {
         </aside>
 
         <main className="case-workflow-stage">
-          {subsidyLoading && requestedStage >= 5 ? (
-            <div className="case-workflow-loading">
-              지원금 심사 상태를 확인하고 있습니다.
-            </div>
-          ) : (
-            !requestedStageLocked && (
-              <Outlet context={{ item }} />
-            )
-          )}
+          {historyView && <div className="history-readonly-notice" role="status"><strong>이력 조회 모드</strong><span>각 업무 단계의 기록을 확인할 수 있으며 수정·저장·승인 처리는 할 수 없습니다.</span></div>}
+          <fieldset className="history-readonly-stage" disabled={historyView}>
+            {!historyView && subsidyLoading && requestedStage >= 5 ? (
+              <div className="case-workflow-loading">
+                지원금 심사 상태를 확인하고 있습니다.
+              </div>
+            ) : (
+              !requestedStageLocked && (
+                <Outlet context={{ item, historyView }} />
+              )
+            )}
+          </fieldset>
         </main>
       </div>
     </div>
