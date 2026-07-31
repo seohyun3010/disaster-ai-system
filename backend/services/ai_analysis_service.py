@@ -34,15 +34,35 @@ def execute_ai_job(db: Session, job_id: int) -> None:
             raise ValueError("분석할 이미지가 없습니다")
 
         # 존재하는 파일만 추림
-        valid = []
+        valid: list[tuple[CaseImage, Path]] = []
         for img in images:
+            if not img.image_url:
+                continue
             file_path = _resolve_image_path(img.image_url)
-            with open(file_path, "rb") as f:
-                response = httpx.post(
-                    f"{AI_SERVER_URL}/classify",
-                    files={"files": (file_path.name, f, "image/jpeg")},
-                    timeout=60.0,
+            if file_path.is_file():
+                valid.append((img, file_path))
+
+        if not valid:
+            raise ValueError("분석할 수 있는 이미지 파일이 없습니다")
+
+        # 추론 서버는 여러 뷰의 확률을 평균하므로 유효 이미지를 한 번에 전송한다.
+        with ExitStack() as stack:
+            files = [
+                (
+                    "files",
+                    (
+                        file_path.name,
+                        stack.enter_context(file_path.open("rb")),
+                        "image/jpeg",
+                    ),
                 )
+                for _, file_path in valid
+            ]
+            response = httpx.post(
+                f"{AI_SERVER_URL}/classify",
+                files=files,
+                timeout=60.0,
+            )
             response.raise_for_status()
             output = response.json()
 
