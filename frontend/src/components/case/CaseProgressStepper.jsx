@@ -1,4 +1,5 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useWorkflowNavigation } from '../../hooks/useWorkflowNavigation';
 
 const STEPS = [
   { label: '신고서 확인', segment: null },
@@ -23,17 +24,24 @@ const CaseProgressStepper = ({ historyView = false }) => {
   const { caseId } = useParams();
   const navigate = useNavigate();
   const activeStep = getActiveStep(pathname);
+  const { maxUnlockedStage, canAccessStage } = useWorkflowNavigation(caseId);
 
   return <nav className="case-progress" aria-label="신고 처리 단계">
     <strong className="case-progress-title">업무 진행</strong>
     <ol>
       {STEPS.map((step, index) => {
-        const state = index < activeStep ? 'completed' : index === activeStep ? 'active' : 'pending';
-        const historyDisabled = activeStep === 4 ? index !== 5 : true;
-        const reportLocked = activeStep === 5;
+        const stageNumber = index + 1;
+        const unlocked = canAccessStage(stageNumber);
+        const wasPassed = stageNumber < maxUnlockedStage;
+        const state = index === activeStep ? 'active' : wasPassed ? 'completed' : 'pending';
         const target = step.segment ? `/cases/${caseId}/${step.segment}` : `/cases/${caseId}`;
         return <li key={step.label} className={state} aria-current={state === 'active' ? 'step' : undefined}>
-          <button type="button" disabled={reportLocked || (historyView ? historyDisabled : state === 'pending')} onClick={() => navigate(`${target}${historyView ? '?view=history' : ''}`)}>
+          <button
+            type="button"
+            disabled={!unlocked}
+            title={unlocked ? undefined : '이전 단계를 완료하면 이동할 수 있습니다.'}
+            onClick={() => navigate(`${target}${historyView ? '?view=history' : ''}`)}
+          >
             <span className="case-progress-marker" aria-hidden="true">{state === 'completed' ? '✓' : index + 1}</span>
             <span className="case-progress-label">{step.label}</span>
           </button>

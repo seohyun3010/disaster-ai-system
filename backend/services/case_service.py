@@ -93,12 +93,19 @@ def create_case(db: Session, data: CaseCreate) -> Case:
             raw_payload=data.raw_payload or data.model_dump(mode="json"),
             status="RECEIVED",
             duplicate_suspected=False,
+            duplicate_status="NOT_CHECKED",
             priority="NORMAL",
             created_at=now,
             updated_at=now,
         )
         db.add(case)
         db.commit()
+        db.refresh(case)
+        # 신고 접수 직후 중복 후보를 자동 검사합니다. 담당자는 이후
+        # duplicate-decision API에서 중복 여부를 최종 확정합니다.
+        from services.duplicate_service import check_case_duplicates
+
+        check_case_duplicates(db, case)
         db.refresh(case)
         return case
     except IntegrityError as error:
@@ -115,9 +122,16 @@ def create_case(db: Session, data: CaseCreate) -> Case:
 
 
 def list_cases(
-    db: Session, *, status: str | None, limit: int, offset: int
+    db: Session,
+    *,
+    status: str | None,
+    duplicate_status: str | None,
+    limit: int,
+    offset: int,
 ) -> tuple[list[Case], int]:
     filters = [Case.status == status] if status else []
+    if duplicate_status:
+        filters.append(Case.duplicate_status == duplicate_status)
     total = int(db.scalar(select(func.count(Case.case_id)).where(*filters)) or 0)
     items = list(
         db.scalars(

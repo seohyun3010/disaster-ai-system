@@ -37,12 +37,17 @@ def register_case(body: CaseCreate, db: Session = Depends(get_db)):
 @router.get("", response_model=CaseListResponse)
 def read_cases(
     case_status: str | None = Query(default=None, alias="status"),
+    duplicate_status: str | None = Query(default=None),
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
 ):
     items, total = list_cases(
-        db, status=case_status, limit=limit, offset=offset
+        db,
+        status=case_status,
+        duplicate_status=duplicate_status,
+        limit=limit,
+        offset=offset,
     )
     return {"items": items, "total": total, "limit": limit, "offset": offset}
 
