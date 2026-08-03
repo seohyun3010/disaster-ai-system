@@ -1,4 +1,5 @@
 import CaseProgressStepper from './CaseProgressStepper';
+import { formatDisasterType } from '../../utils/disasterTypeLabels';
 
 const CaseStageHeader = ({ item, breadcrumb, title, description, action, progressHistoryView = false }) => <>
   <header className="case-page-head"><div><p>{breadcrumb}</p><h1>{title}</h1>{description && <span>{description}</span>}</div>{action}</header>
@@ -6,7 +7,7 @@ const CaseStageHeader = ({ item, breadcrumb, title, description, action, progres
   <section className="case-card analysis-case-summary">
     <div><span>사건번호</span><strong>{item.id}</strong></div>
     <div><span>피해 위치</span><strong>{item.location}</strong></div>
-    <div><span>재난 유형</span><strong>{item.type}</strong></div>
+    <div><span>재난 유형</span><strong>{formatDisasterType(item.type)}</strong></div>
   </section>
 </>;
 

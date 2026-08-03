@@ -25,18 +25,18 @@ export const formatOfficerFull = (user = MOCK_CURRENT_USER) =>
 */
 
 export const MOCK_CURRENT_USER = Object.freeze({
-  id: null,
-  name: '',
-  title: '',
-  department: '',
-  organization: '',
-  role: '',
+  id: 'officer-park-jongmin',
+  name: '박종민',
+  title: '주무관',
+  department: '복구지원과',
+  organization: '재난복구지원국',
+  role: 'OFFICER',
 });
 export const getCurrentUser = () => MOCK_CURRENT_USER;
-export const formatOfficerName = (user = MOCK_CURRENT_USER) =>
-  [user.name, user.title].filter(Boolean).join(' ');
-export const formatOfficerAffiliation = (user = MOCK_CURRENT_USER) =>
-  [user.organization, user.department].filter(Boolean).join(' ');
-export const formatOfficerFull = (user = MOCK_CURRENT_USER) =>
-  [formatOfficerName(user), formatOfficerAffiliation(user)].filter(Boolean).join(' · ');
+export const formatOfficerName = () =>
+  `${MOCK_CURRENT_USER.name} ${MOCK_CURRENT_USER.title}`;
+export const formatOfficerAffiliation = () =>
+  `${MOCK_CURRENT_USER.organization} ${MOCK_CURRENT_USER.department}`;
+export const formatOfficerFull = () =>
+  `${formatOfficerName()} · ${formatOfficerAffiliation()}`;
 

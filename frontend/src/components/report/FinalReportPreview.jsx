@@ -1,3 +1,5 @@
+import { formatOfficerName, getCurrentUser } from '../../mocks/currentUser';
+import { formatDisasterType } from '../../utils/disasterTypeLabels';
 import './final-report-preview.css';
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('ko-KR')}원`;
@@ -30,7 +32,7 @@ const FinalReportPreview = ({
       <dl className="final-report-meta">
         {/* 기존 mock 필드(item.reporter/type/facility/location/reportedAt)는 백엔드 snake_case로 교체 */}
         <div><dt>신고자</dt><dd>{display(item.reporter_name)}</dd></div>
-        <div><dt>재난 유형</dt><dd>{display(item.disaster_type)}</dd></div>
+        <div><dt>재난 유형</dt><dd>{formatDisasterType(item.disaster_type)}</dd></div>
         <div><dt>시설 유형</dt><dd>{display(item.facility_type)}</dd></div>
         <div><dt>피해 위치</dt><dd>{display(item.address)}</dd></div>
         <div><dt>신고 일시</dt><dd>{display(item.reported_at)}</dd></div>
@@ -47,7 +49,7 @@ const FinalReportPreview = ({
         <h4>피해 및 처리 결과</h4>
         <p>{display(report.summary || item.description)}</p>
         <div><span>최종 처리 결과</span><strong>{approvalStatus}</strong></div>
-        <div><span>보고서 작성자</span><strong>{report.creator.name}</strong></div>
+        <div><span>보고서 작성자</span><strong>{formatOfficerName(getCurrentUser())}</strong></div>
       </div>
     </section>
 

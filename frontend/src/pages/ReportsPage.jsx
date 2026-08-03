@@ -89,6 +89,7 @@ const ReportsPage = () => {
           data = await getReportByCase(caseId);
         } catch (requestError) {
           if (requestError.response?.status !== 404) throw requestError;
+          if (historyView) throw new Error('저장된 최종 보고서를 찾을 수 없습니다.', { cause: requestError });
           data = await generateReport(caseId);
         }
         if (active) setReport(data);
@@ -100,7 +101,7 @@ const ReportsPage = () => {
     };
     load();
     return () => { active = false; };
-  }, [caseId]);
+  }, [caseId, historyView]);
 
   const viewReport = useMemo(() => report ? {
     ...report,

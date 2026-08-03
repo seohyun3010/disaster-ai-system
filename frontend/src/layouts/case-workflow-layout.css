@@ -95,6 +95,22 @@
   font-size: 12px;
 }
 
+.workflow-gallery-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workflow-gallery-meta em {
+  border-radius: 999px;
+  background: var(--krds-gray-100);
+  padding: 4px 7px;
+  color: var(--krds-gray-700);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+}
+
 .case-workflow-gallery ol {
   display: grid;
   gap: 20px;
@@ -205,6 +221,44 @@
 
 .case-workflow-stage {
   min-width: 0;
+}
+
+.history-readonly-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  border: 1px solid var(--krds-primary-200);
+  border-radius: 8px;
+  background: var(--krds-primary-50);
+  padding: 11px 14px;
+  color: var(--krds-gray-700);
+  font-size: 11px;
+}
+
+.history-readonly-notice strong {
+  color: var(--krds-primary-800);
+  white-space: nowrap;
+}
+
+.history-readonly-stage {
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.history-readonly-stage:disabled :is(button, input, select, textarea) {
+  cursor: not-allowed;
+}
+
+.history-readonly-stage:disabled button {
+  opacity: .55;
+}
+
+.history-readonly-stage:disabled :is(input, select, textarea) {
+  background: var(--krds-gray-50);
+  color: var(--krds-gray-700);
 }
 
 .case-workflow-stage > .case-page,

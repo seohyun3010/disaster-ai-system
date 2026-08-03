@@ -112,6 +112,36 @@
   padding: 12px 8px;
 }
 
+.filter-only-list-controls {
+  justify-content: flex-end;
+}
+
+.approval-history-table-wrap {
+  margin-top: 0;
+}
+
+.approval-history-page .approval-log-table {
+  min-width: 1180px;
+  table-layout: fixed;
+}
+
+.approval-history-page .approval-log-table th,
+.approval-history-page .approval-log-table td {
+  padding: 17px 12px;
+  line-height: 1.5;
+}
+
+.approval-history-page .approval-log-table th:nth-child(1) { width: 9%; }
+.approval-history-page .approval-log-table th:nth-child(2) { width: 6%; }
+.approval-history-page .approval-log-table th:nth-child(3) { width: 13%; }
+.approval-history-page .approval-log-table th:nth-child(4) { width: 18%; }
+.approval-history-page .approval-log-table th:nth-child(5) { width: 8%; }
+.approval-history-page .approval-log-table th:nth-child(6) { width: 12%; }
+.approval-history-page .approval-log-table th:nth-child(7) { width: 10%; }
+.approval-history-page .approval-log-table th:nth-child(8) { width: 8%; }
+.approval-history-page .approval-log-table th:nth-child(9) { width: 11%; }
+.approval-history-page .approval-log-table th:nth-child(10) { width: 5%; }
+
 .report-selection-controls,
 .report-sort-controls,
 .report-sort-controls label,
@@ -240,7 +270,7 @@
 
 .report-structured-table {
   width: 100%;
-  min-width: 1020px;
+  min-width: 1180px;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -274,28 +304,40 @@
 
 .report-structured-table thead th:first-child,
 .report-structured-table tbody th {
-  width: 58px;
+  width: 5%;
   text-align: center;
 }
 
 .report-structured-table thead th:nth-child(2) {
-  width: 180px;
+  width: 14%;
 }
 
 .report-structured-table thead th:nth-child(3) {
-  width: 155px;
+  width: 9%;
 }
 
 .report-structured-table thead th:nth-child(4) {
-  width: 240px;
+  width: 11%;
 }
 
 .report-structured-table thead th:nth-child(5) {
-  width: 80px;
+  width: 23%;
 }
 
 .report-structured-table thead th:nth-child(6) {
-  width: 210px;
+  width: 7%;
+}
+
+.report-structured-table thead th:nth-child(7) {
+  width: 11%;
+}
+
+.report-structured-table thead th:nth-child(8) {
+  width: 12%;
+}
+
+.report-structured-table thead th:nth-child(9) {
+  width: 8%;
 }
 
 .report-structured-table tbody tr:hover {
@@ -315,6 +357,10 @@
   margin-top: 4px;
   color: var(--krds-gray-500);
   font-size: 10px;
+}
+
+.report-structured-table td:nth-child(5) {
+  overflow-wrap: anywhere;
 }
 
 .report-row-download {

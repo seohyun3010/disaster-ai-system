@@ -8,11 +8,7 @@ const MODE_LABELS = { approve: '승인', hold: '보류' };
 const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit, onReviewApproved, onReviewHeld }) => {
   const officer = getCurrentUser();
   const gradeCode = String(recommendedGrade || '').match(/DS[0-4]/i)?.[0]?.toUpperCase();
-  // 기존 코드 (2026-08-03 이전): DS1도 승인 버튼을 숨기고 보류만 가능하게 막아뒀음
-  // const isHoldOnlyGrade = ['DS1', 'DS2'].includes(gradeCode);
-  // DS2만 지원금 산정 기준이 미확정 상태이므로, DS2만 승인 버튼을 숨기고
-  // DS1은 승인 가능하도록 변경 (백엔드 subsidy_service.py에서 DS1을 0원으로 정상 처리하도록 수정됨)
-  const isHoldOnlyGrade = ['DS2'].includes(gradeCode);
+  const isHoldOnlyGrade = ['DS0', 'DS1', 'DS2'].includes(gradeCode);
   const [mode, setMode] = useState(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');

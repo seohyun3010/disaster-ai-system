@@ -26,6 +26,14 @@ const maskAccountNumber = (value) => {
   }).join('');
 };
 
+const getCaseListPath = (item) => {
+  const reportedDate = new Date(item.reported_at || item.received_at);
+  const disasterType = item.disaster_type || 'OTHER';
+  if (Number.isNaN(reportedDate.getTime())) return '/cases';
+  const eventId = `${reportedDate.getFullYear()}-${disasterType}`;
+  return `/cases?event=${encodeURIComponent(eventId)}`;
+};
+
 const createReportView = (item) => {
   const external = item.raw_payload || {};
   return {
@@ -129,7 +137,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
 
   if (!item || !report) return null;
   const visiblePhotoIndex = report.photos.length > 0 ? activePhotoIndex % report.photos.length : 0;
-  const caseListPath = '/cases';
+  const caseListPath = getCaseListPath(item);
   const isRunning = ['queued', 'processing'].includes(analysis.status);
 
   const startAnalysis = async () => {
