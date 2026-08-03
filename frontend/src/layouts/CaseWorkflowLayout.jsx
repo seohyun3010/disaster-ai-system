@@ -421,12 +421,6 @@ const CaseWorkflowLayout = () => {
                       <small>{description}</small>
                     </span>
 
-                    <span
-                      className="workflow-step-arrow"
-                      aria-hidden="true"
-                    >
-                      →
-                    </span>
                   </button>
                 </li>
               );

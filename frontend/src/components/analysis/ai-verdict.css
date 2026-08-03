@@ -134,7 +134,7 @@
 
 .verdict-images {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 260px));
+  grid-template-columns: minmax(0, 540px);
   gap: 12px;
   justify-content: start;
 }
@@ -150,10 +150,14 @@
   object-fit: cover;
 }
 
+.verdict-images:not(.view-both) img {
+  aspect-ratio: 2 / 1;
+}
+
 .verdict-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1px;
+  gap: 0;
 }
 
 .verdict-images figcaption {
@@ -283,5 +287,4 @@
 
 @media (max-width: 900px) {
   .verdict-grid { grid-template-columns: 1fr; }
-  .verdict-pair { grid-template-columns: 1fr; }
 }

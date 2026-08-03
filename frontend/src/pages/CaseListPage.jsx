@@ -11,11 +11,6 @@ import './report-management.css';
 const PAGE_SIZE = 5;
 const EVENT_PAGE_SIZE_OPTIONS = [5, 10, 20];
 
-const COMPLETED_CASE_STATUSES = [
-  '처리 완료',
-  '최종 승인',
-];
-
 const FINAL_APPROVAL_STATUSES = [
   '최종 승인',
   '금액 수정 후 승인',
@@ -26,6 +21,7 @@ const STATUS_FILTERS = [
   '완료',
   '미완료',
   '보류',
+  '반려',
 ];
 
 const DAMAGE_GRADE_OPTIONS = [
@@ -37,21 +33,19 @@ const DAMAGE_GRADE_OPTIONS = [
 ];
 
 const getSimpleStatus = (
-  status,
   reviewStatus,
   approvalStatus,
-  disasterStatus,
 ) => {
-  if (
-    disasterStatus === '완료'
-    || FINAL_APPROVAL_STATUSES.includes(approvalStatus)
-    || COMPLETED_CASE_STATUSES.includes(status)
-  ) {
-    return '완료';
+  if (reviewStatus === '반려' || approvalStatus === '반려') {
+    return '반려';
   }
 
-  if (reviewStatus === '보류') {
+  if (reviewStatus === '보류' || approvalStatus === '보류') {
     return '보류';
+  }
+
+  if (FINAL_APPROVAL_STATUSES.includes(approvalStatus)) {
+    return '완료';
   }
 
   return '미완료';
@@ -785,9 +779,6 @@ const CaseListPage = () => {
    * selectedEvent가 아직 없을 때도
    * status를 읽다가 화면이 중단되지 않도록 처리합니다.
    */
-  const disasterStatus =
-    selectedEvent?.status ?? '';
-
   const eventCases = useMemo(() => {
     if (!selectedEvent) {
       return [];
@@ -826,10 +817,8 @@ const CaseListPage = () => {
         workflows[itemCaseId]?.approvalStatus;
 
       const simpleStatus = getSimpleStatus(
-        item.status,
         reviewStatus,
         approvalStatus,
-        disasterStatus,
       );
 
       const matchesStatus =
@@ -856,7 +845,6 @@ const CaseListPage = () => {
     }),
     [
       analyses,
-      disasterStatus,
       eventCases,
       facility,
       search,
@@ -1110,10 +1098,8 @@ const CaseListPage = () => {
 
                 const simpleStatus =
                   getSimpleStatus(
-                    item.status,
                     reviewStatus,
                     approvalStatus,
-                    disasterStatus,
                   );
 
                 return (

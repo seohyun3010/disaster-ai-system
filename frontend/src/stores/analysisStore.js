@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { getAnalysisResult, getAnalysisStatus, requestAnalysis } from '../api/analysisApi';
-import { getCurrentUser } from '../mocks/currentUser';
+import { formatOfficerName, getCurrentUser } from '../mocks/currentUser';
 import { DELETED_DEMO_CASE_IDS } from '../mocks/cases';
 
 const DELETED_DEMO_CASE_ID_SET = new Set(DELETED_DEMO_CASE_IDS);
@@ -25,12 +25,29 @@ const initialAnalysis = {
   fieldVisitReason: '',
   fieldVisitedAt: null,
   holdResolvedAt: null,
+  reviewHistory: [],
 };
 const formatReviewedAt = () => {
   const date = new Date();
   const pad = (value) => String(value).padStart(2, '0');
   return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 };
+
+const appendReviewHistory = (history = [], event) => (
+  history.some((entry) => entry.dedupeKey === event.dedupeKey)
+    ? history
+    : [...history, event]
+);
+
+const createReviewHistoryEvent = ({ type, title, description, dedupeKey }) => ({
+  id: `${type}-${Date.now()}`,
+  type,
+  title,
+  description,
+  actor: formatOfficerName(getCurrentUser()),
+  occurred_at: new Date().toISOString(),
+  dedupeKey,
+});
 
 const restorePersistedAnalyses = (analyses = {}) => Object.fromEntries(
   Object.entries(analyses)
@@ -60,7 +77,7 @@ export const useAnalysisStore = create(
       requestAnalysis: async (caseId) => {
         const current = get().analyses[caseId];
         if (current && ['queued', 'processing'].includes(current.status)) return;
-        set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...initialAnalysis, status: 'queued' } } }));
+        set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...initialAnalysis, reviewHistory: current?.reviewHistory || [], status: 'queued' } } }));
         try {
           const job = await requestAnalysis(caseId);
           set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], jobId: job.jobId, requestedAt: job.requestedAt } } }));
@@ -84,7 +101,33 @@ export const useAnalysisStore = create(
         const reviewedAt = formatReviewedAt();
         const reason = review.reason?.trim() || '';
         const isHold = review.status === '보류';
-        const resolvesHold = current.reviewStatus === '보류' && ['승인', '수정 승인'].includes(review.status);
+        if (isHold && !reason) return state;
+        const resolvesHold = current.reviewStatus === '보류' && ['승인', '수정 승인', '반려'].includes(review.status);
+        const previousGrade = current.reviewedGrade
+          || current.result?.recommendedGrade
+          || review.previousGrade
+          || review.grade
+          || '-';
+        let reviewHistory = current.reviewHistory || [];
+
+        if (isHold) {
+          reviewHistory = appendReviewHistory(reviewHistory, createReviewHistoryEvent({
+            type: 'review_held',
+            title: '피해등급 검토 보류',
+            description: `기존 등급: ${previousGrade} · 보류 사유: ${reason}`,
+            dedupeKey: `review_held:${reviewedAt}:${previousGrade}:${reason}`,
+          }));
+        }
+
+        if (resolvesHold) {
+          const isRejected = review.status === '반려';
+          reviewHistory = appendReviewHistory(reviewHistory, createReviewHistoryEvent({
+            type: isRejected ? 'review_rejected' : 'review_approved',
+            title: isRejected ? '피해등급 검토 반려' : '피해등급 검토 승인',
+            description: `${isRejected ? '반려' : '승인'} 등급: ${review.grade || previousGrade}${isRejected ? ` · 반려 사유: ${reason || '사유 미입력'}` : ''}`,
+            dedupeKey: `review_resolved:${reviewedAt}:${review.status}:${review.grade || previousGrade}`,
+          }));
+        }
         const nextAnalysis = {
           ...current,
           reviewStatus: review.status,
@@ -92,6 +135,7 @@ export const useAnalysisStore = create(
           reviewedGrade: review.grade || null,
           reviewedBy: { ...getCurrentUser() },
           reviewedAt,
+          reviewHistory,
         };
 
         if (isHold) {
@@ -121,10 +165,57 @@ export const useAnalysisStore = create(
           },
         };
       }),
+      startReview: (caseId, grade) => set((state) => {
+        const current = state.analyses[caseId];
+        if (!current || !['보류', '수정 승인'].includes(current.reviewStatus)) return state;
+        const currentGrade = grade || current.reviewedGrade || current.result?.recommendedGrade || '-';
+        const reviewHistory = appendReviewHistory(
+          current.reviewHistory,
+          createReviewHistoryEvent({
+            type: 'review_restarted',
+            title: '피해등급 재검토',
+            description: `현재 수정 등급: ${currentGrade}`,
+            dedupeKey: `review_restarted:${current.reviewedAt || current.heldAt}:${currentGrade}`,
+          }),
+        );
+        if (reviewHistory === current.reviewHistory) return state;
+        return {
+          analyses: {
+            ...state.analyses,
+            [caseId]: { ...current, reviewHistory },
+          },
+        };
+      }),
       confirmHeldReview: (caseId, review) => set((state) => {
         const current = state.analyses[caseId] || initialAnalysis;
         const reviewedAt = formatReviewedAt();
         const reason = review.reason?.trim() || '';
+        if (!reason) return state;
+        const previousGrade = current.reviewedGrade || current.result?.recommendedGrade || '-';
+        const nextGrade = review.grade || previousGrade;
+        let reviewHistory = current.reviewHistory || [];
+
+        if (nextGrade !== previousGrade) {
+          reviewHistory = appendReviewHistory(reviewHistory, createReviewHistoryEvent({
+            type: 'grade_changed',
+            title: '피해등급 수정',
+            description: `기존 등급: ${previousGrade} · 수정 등급: ${nextGrade} · 수정 사유: ${reason}`,
+            dedupeKey: `grade_changed:${reviewedAt}:${previousGrade}:${nextGrade}:${reason}`,
+          }));
+        }
+
+        reviewHistory = appendReviewHistory(reviewHistory, createReviewHistoryEvent({
+          type: 'review_restarted',
+          title: '피해등급 재검토',
+          description: `현재 수정 등급: ${nextGrade}`,
+          dedupeKey: `review_restarted:${reviewedAt}:${nextGrade}`,
+        }));
+        reviewHistory = appendReviewHistory(reviewHistory, createReviewHistoryEvent({
+          type: 'review_approved',
+          title: '피해등급 검토 승인',
+          description: `승인 등급: ${nextGrade}`,
+          dedupeKey: `review_approved:${reviewedAt}:${nextGrade}`,
+        }));
         return {
           analyses: {
             ...state.analyses,
@@ -132,13 +223,14 @@ export const useAnalysisStore = create(
               ...current,
               reviewStatus: '수정 승인',
               reviewReason: reason,
-              reviewedGrade: review.grade || current.reviewedGrade,
+              reviewedGrade: nextGrade,
               reviewedBy: { ...getCurrentUser() },
               reviewedAt,
               holdFieldVerified: true,
               fieldVisitReason: reason,
               fieldVisitedAt: reviewedAt,
               holdResolvedAt: reviewedAt,
+              reviewHistory,
             },
           },
         };
