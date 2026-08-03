@@ -4,6 +4,7 @@ import CaseStageHeader from '../components/case/CaseStageHeader';
 import StageNavigation from '../components/case/StageNavigation';
 import SupportCalculationCard from '../components/support/SupportCalculationCard';
 import { ReviewGuidance } from '../components/persona/ReviewGuidance';
+import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { calculateSubsidy, confirmSubsidy, getSubsidy } from '../api/subsidyApi';
@@ -13,7 +14,17 @@ const SupportPage = () => {
   const { search } = useLocation();
   const historyView = new URLSearchParams(search).get('view') === 'history';
   const item = useCaseStore((state) => state.cases.find((entry) => entry.id === caseId));
+  const analysis = useAnalysisStore((state) => state.analyses[caseId]);
+  const workflow = useWorkflowStore((state) => state.workflows[caseId]);
   const saveSupport = useWorkflowStore((state) => state.saveSupport);
+
+  const reviewedDamageGrade = analysis?.reviewedGrade
+    || workflow?.reviewedGrade
+    || workflow?.confirmedGrade
+    || workflow?.damageGrade
+    || analysis?.result?.recommendedGrade;
+  const reviewedGradeCode = String(reviewedDamageGrade || '').match(/DS[0-4]/i)?.[0]?.toUpperCase();
+  const isRejectedGrade = ['DS0', 'DS1', 'DS2'].includes(reviewedGradeCode);
 
   const [subsidy, setSubsidy] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,6 +36,7 @@ const SupportPage = () => {
   const [message, setMessage] = useState('');
 
   const runCalculate = useCallback(async () => {
+    if (isRejectedGrade) return;
     setCalculating(true);
     setError('');
     setMessage('');
@@ -37,10 +49,11 @@ const SupportPage = () => {
     } finally {
       setCalculating(false);
     }
-  }, [caseId]);
+  }, [caseId, isRejectedGrade]);
 
   useEffect(() => {
     if (!caseId) return;
+    if (isRejectedGrade) return;
     let ignore = false;
 
     const load = async () => {
@@ -64,7 +77,7 @@ const SupportPage = () => {
 
     load();
     return () => { ignore = true; };
-  }, [caseId, historyView, runCalculate]);
+  }, [caseId, historyView, isRejectedGrade, runCalculate]);
 
   // 예상 지원금과 최종 검토 금액이 다른 경우에만 "수정"으로 간주
   const isAmountChanged = () => {
@@ -118,8 +131,9 @@ const SupportPage = () => {
       <section className="stage-two-column support-grid support-single">
         <SupportCalculationCard
           item={item}
-          subsidy={subsidy}
-          loading={loading || calculating}
+          damageGrade={reviewedDamageGrade}
+          subsidy={isRejectedGrade ? null : subsidy}
+          loading={isRejectedGrade ? false : loading || calculating}
           calculating={calculating}
           confirming={confirming}
           confirmAmount={confirmAmount}

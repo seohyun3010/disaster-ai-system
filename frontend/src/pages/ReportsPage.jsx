@@ -56,6 +56,8 @@ import FinalReportPreview from '../components/report/FinalReportPreview';
 import ProcessTimeline from '../components/report/ProcessTimeline';
 import { ReviewGuidance } from '../components/persona/ReviewGuidance';
 import { downloadReport, generateReport, getReportByCase } from '../api/reportApi';
+import { useAnalysisStore } from '../stores/analysisStore';
+import { useWorkflowStore } from '../stores/workflowStore';
 
 const formatDateTime = (value) => {
   if (!value) return '-';
@@ -73,6 +75,8 @@ const ReportsPage = () => {
   const { caseId } = useParams();
   const { search } = useLocation();
   const historyView = new URLSearchParams(search).get('view') === 'history';
+  const analysis = useAnalysisStore((state) => state.analyses[caseId]);
+  const workflow = useWorkflowStore((state) => state.workflows[caseId]);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -103,19 +107,27 @@ const ReportsPage = () => {
     return () => { active = false; };
   }, [caseId, historyView]);
 
-  const viewReport = useMemo(() => report ? {
-    ...report,
-    approved_at: formatDateTime(report.approved_at),
-    created_at: formatDateTime(report.created_at),
-    timeline: report.timeline.map((event) => ({
-      ...event,
-      occurred_at: formatDateTime(event.occurred_at),
-    })),
-    case: {
-      ...report.case,
-      reported_at: formatDateTime(report.case.reported_at),
-    },
-  } : null, [report]);
+  const viewReport = useMemo(() => {
+    if (!report) return null;
+    const timeline = [...(report.timeline || []), ...(analysis?.reviewHistory || [])]
+      .filter((event, index, events) => events.findIndex((entry) => (
+        entry.id ? entry.id === event.id : entry.title === event.title && entry.occurred_at === event.occurred_at
+      )) === index)
+      .sort((a, b) => new Date(a.occurred_at) - new Date(b.occurred_at));
+    return {
+      ...report,
+      approved_at: formatDateTime(report.approved_at),
+      created_at: formatDateTime(report.created_at),
+      timeline: timeline.map((event) => ({
+        ...event,
+        occurred_at: formatDateTime(event.occurred_at),
+      })),
+      case: {
+        ...report.case,
+        reported_at: formatDateTime(report.case.reported_at),
+      },
+    };
+  }, [analysis?.reviewHistory, report]);
 
   if (loading) return <div className="case-page"><section className="case-card missing-case"><h1>보고서를 불러오는 중입니다.</h1></section></div>;
   if (error || !viewReport) return <div className="case-page"><section className="case-card missing-case"><h1>{error || '보고서를 찾을 수 없습니다.'}</h1></section></div>;
@@ -128,6 +140,12 @@ const ReportsPage = () => {
   const supportAmount = viewReport.subsidy.confirmed_amount
     ?? viewReport.subsidy.estimated_amount
     ?? 0;
+  const damageGrade = analysis?.reviewedGrade
+    || workflow?.reviewedGrade
+    || workflow?.confirmedGrade
+    || workflow?.damageGrade
+    || viewReport.analysis.damage_grade
+    || '-';
 
   const download = async () => {
     setMessage('');
@@ -150,7 +168,7 @@ const ReportsPage = () => {
       <FinalReportPreview
         item={viewReport.case}
         report={viewReport}
-        damageGrade={viewReport.analysis.damage_grade || '-'}
+        damageGrade={damageGrade}
         urgencyScore={viewReport.severity.urgency_score}
         supportAmount={supportAmount}
         approvalStatus={viewReport.approval_result}

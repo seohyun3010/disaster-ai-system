@@ -37,6 +37,9 @@ export const buildFinalReportRecords = ({
         description: item.description,
         title: `${item.facility || item.type || '재해'} 피해조사 결과보고서`,
         damageGrade: analysis?.reviewedGrade
+          || workflow?.reviewedGrade
+          || workflow?.confirmedGrade
+          || workflow?.damageGrade
           || analysis?.result?.recommendedGrade
           || item.damage,
         urgencyScore: calculateSeverityTotal(

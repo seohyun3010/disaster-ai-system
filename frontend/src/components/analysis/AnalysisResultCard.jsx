@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import './ai-verdict.css';
 
 /* 부위 표시 순서 및 라벨 */
@@ -17,8 +16,6 @@ const STATUS_LABEL = {
 };
 
 const AnalysisResultCard = ({ result, analysis }) => {
-  const [view, setView] = useState('cam');
-
   if (!result) return null;
 
   const observation = result.observation || {};
@@ -95,48 +92,18 @@ const AnalysisResultCard = ({ result, analysis }) => {
         <section className="verdict-section">
           <div className="verdict-section-head">
             <h3>판독 근거 영역</h3>
-            <div className="verdict-tabs">
-              <button
-                type="button"
-                className={view === 'cam' ? 'active' : ''}
-                onClick={() => setView('cam')}
-              >
-                주목 영역
-              </button>
-              {sourceUrls.length > 0 && (
-                <>
-                  <button
-                    type="button"
-                    className={view === 'source' ? 'active' : ''}
-                    onClick={() => setView('source')}
-                  >
-                    원본
-                  </button>
-                  <button
-                    type="button"
-                    className={view === 'both' ? 'active' : ''}
-                    onClick={() => setView('both')}
-                  >
-                    나란히
-                  </button>
-                </>
-              )}
-            </div>
           </div>
 
-          <div className={`verdict-images view-${view}`}>
+          <div className="verdict-images view-both">
             {camUrls.map((url, i) => (
               <figure key={url}>
-                {view === 'both' && sourceUrls[i] ? (
+                {sourceUrls[i] ? (
                   <div className="verdict-pair">
                     <img src={sourceUrls[i]} alt={`뷰 ${i + 1} 원본`} />
                     <img src={url} alt={`뷰 ${i + 1} 주목 영역`} />
                   </div>
                 ) : (
-                  <img
-                    src={view === 'source' && sourceUrls[i] ? sourceUrls[i] : url}
-                    alt={`뷰 ${i + 1}`}
-                  />
+                  <img src={url} alt={`뷰 ${i + 1}`} />
                 )}
                 <figcaption>
                   뷰 {i + 1}

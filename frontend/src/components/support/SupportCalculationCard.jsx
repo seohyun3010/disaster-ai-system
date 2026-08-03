@@ -18,6 +18,7 @@ const parseNumberInput = (value) => value.replace(/[^0-9]/g, '');
 
 const SupportCalculationCard = ({
   item,
+  damageGrade,
   subsidy,
   loading,
   calculating,
@@ -61,7 +62,7 @@ const SupportCalculationCard = ({
         </div>
 
         <dl className="stage-summary-list support-details">
-          <div><dt>피해등급</dt><dd>{subsidy.damage_grade ?? item.damage}</dd></div>
+          <div><dt>피해등급</dt><dd>{damageGrade || subsidy.damage_grade || item.damage}</dd></div>
           <div><dt>시설 유형</dt><dd>{item.facility}</dd></div>
           <div><dt>산정 기준</dt><dd>{subsidy.calculation_standard ?? '-'}</dd></div>
           <div><dt>단가</dt><dd>{formatCurrency(subsidy.unit_price)} <small>(전파 등급 기준액)</small></dd></div>

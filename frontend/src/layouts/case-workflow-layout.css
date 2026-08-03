@@ -140,7 +140,7 @@
   display: grid;
   width: 100%;
   min-height: 64px;
-  grid-template-columns: 32px 1fr 12px;
+  grid-template-columns: 32px 1fr;
   align-items: center;
   gap: 10px;
   border: 1px solid var(--krds-gray-300);
@@ -212,11 +212,6 @@
   font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.workflow-step-arrow {
-  color: var(--krds-gray-500);
-  font-size: 22px;
 }
 
 .case-workflow-stage {

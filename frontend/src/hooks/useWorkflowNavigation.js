@@ -142,6 +142,14 @@ export const useWorkflowNavigation = (caseId, options = {}) => {
     derivedStage,
   );
 
+  const reviewedGrade = analysis?.reviewedGrade
+    || workflow?.reviewedGrade
+    || workflow?.confirmedGrade
+    || workflow?.damageGrade
+    || analysis?.result?.recommendedGrade;
+  const reviewedGradeCode = String(reviewedGrade || '').match(/DS[0-4]/i)?.[0]?.toUpperCase();
+  const skipsSeverityAndSupport = ['DS0', 'DS1', 'DS2'].includes(reviewedGradeCode);
+
   useEffect(() => {
     if (!caseId) return;
 
@@ -169,6 +177,7 @@ export const useWorkflowNavigation = (caseId, options = {}) => {
 
     canAccessStage: (stage) => (
       clampStage(stage) <= maxUnlockedStage
+      && !(skipsSeverityAndSupport && [3, 4].includes(clampStage(stage)))
     ),
   };
 };

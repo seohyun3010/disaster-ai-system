@@ -95,6 +95,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const requestAnalysis = useAnalysisStore((state) => state.requestAnalysis);
   const refreshAnalysis = useAnalysisStore((state) => state.refreshAnalysis);
   const submitReview = useAnalysisStore((state) => state.submitReview);
+  const startReview = useAnalysisStore((state) => state.startReview);
   const unlockStage = useWorkflowStore((state) => state.unlockStage);
   const screen = initialScreen;
   const report = useMemo(() => item ? createReportView(item) : null, [item]);
@@ -123,6 +124,11 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
     const intervalId = window.setInterval(() => refreshAnalysis(caseId), ANALYSIS_POLLING_INTERVAL);
     return () => window.clearInterval(intervalId);
   }, [analysis.jobId, analysis.status, caseId, refreshAnalysis]);
+
+  useEffect(() => {
+    if (screen !== 'analysis' || !['보류', '수정 승인'].includes(analysis.reviewStatus)) return;
+    startReview(caseId, analysis.reviewedGrade);
+  }, [analysis.reviewStatus, analysis.reviewedAt, analysis.reviewedGrade, caseId, screen, startReview]);
 
   // 결과가 아직 없으면 폴링으로 확인한다 (백그라운드 판독 완료 대기).
   useEffect(() => {
@@ -252,6 +258,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
         <AnalysisResultCard result={serverResult} analysis={{ completedAt: serverResult.completedAt }} />
         <AnalysisDecisionPanel
           recommendedGrade={serverResult.recommendedGrade}
+          reviewedGrade={analysis.reviewedGrade}
           reviewStatus={analysis.reviewStatus}
           onSubmit={(review) => submitReview(caseId, review)}
           onReviewApproved={() => {

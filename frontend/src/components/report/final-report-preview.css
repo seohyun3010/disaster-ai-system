@@ -11,6 +11,13 @@
 
 .final-report-heading h2 {
   margin: 0;
+  color: #1f3448;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.final-report-heading .report-status-badge {
+  font-size: 14px;
 }
 
 .final-report-paper {
@@ -29,22 +36,24 @@
 }
 
 .final-report-paper > header span {
-  color: #6f8192;
-  font-size: 10px;
-  font-weight: 750;
+  color: #465d72;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: .08em;
 }
 
 .final-report-paper > header h3 {
   margin: 7px 0 4px;
   color: #193a69;
-  font-size: 20px;
+  font-size: 24px;
+  font-weight: 700;
 }
 
 .final-report-paper > header p {
   margin: 0;
-  color: #738497;
-  font-size: 11px;
+  color: #52677b;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .final-report-meta {
@@ -64,15 +73,16 @@
 .final-report-meta dt,
 .final-report-result span,
 .final-report-summary span {
-  color: #7b8c9c;
-  font-size: 10px;
+  color: #465d72;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .final-report-meta dd {
   margin: 0;
-  color: #2e4358;
-  font-size: 11px;
-  font-weight: 750;
+  color: #1f3448;
+  font-size: 15px;
+  font-weight: 600;
   text-align: right;
 }
 
@@ -94,7 +104,8 @@
   display: block;
   margin-top: 5px;
   color: #1758ba;
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 .final-report-summary {
@@ -108,13 +119,15 @@
 .final-report-summary h4 {
   margin: 0 0 8px;
   color: #334a60;
-  font-size: 12px;
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .final-report-summary p {
   margin: 0 0 12px;
-  color: #5f7283;
-  font-size: 10px;
+  color: #40566a;
+  font-size: 14px;
+  font-weight: 500;
   line-height: 1.65;
 }
 
@@ -128,8 +141,9 @@
 }
 
 .final-report-summary strong {
-  color: #2e4358;
-  font-size: 10px;
+  color: #1f3448;
+  font-size: 15px;
+  font-weight: 600;
   text-align: right;
 }
 
@@ -137,6 +151,58 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
+}
+
+.final-report-actions .primary-action,
+.final-report-card .decision-success {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.reports-layout .process-timeline .section-heading h2 {
+  color: #1f3448;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.reports-layout .process-timeline time {
+  color: #52677b;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.reports-layout .process-timeline strong {
+  color: #1f3448;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.reports-layout .process-timeline p {
+  color: #40566a;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.reports-layout .process-timeline .timeline-actor {
+  color: #344b5e;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.case-page:has(> .reports-layout) .persona-guidance span,
+.case-page:has(> .reports-layout) .persona-guidance p,
+.case-page:has(> .reports-layout) .persona-guidance p b {
+  color: #465d72;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.case-page:has(> .reports-layout) .persona-guidance strong {
+  color: #1f3448;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 @media (max-width: 620px) {
@@ -155,5 +221,11 @@
 
   .final-report-actions .primary-action {
     width: 100%;
+  }
+
+  .reports-layout .process-timeline .timeline-actor {
+    display: block;
+    width: fit-content;
+    margin: 5px 0 0;
   }
 }
