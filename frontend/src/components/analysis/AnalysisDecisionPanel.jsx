@@ -2,26 +2,30 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { formatOfficerAffiliation, formatOfficerName, getCurrentUser } from '../../mocks/currentUser';
 import '../approval/officer.css';
-
+ 
 const MODE_LABELS = { approve: '승인', hold: '보류' };
-
+ 
 const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit, onReviewApproved, onReviewHeld }) => {
   const officer = getCurrentUser();
   const gradeCode = String(recommendedGrade || '').match(/DS[0-4]/i)?.[0]?.toUpperCase();
-  const isHoldOnlyGrade = ['DS1', 'DS2'].includes(gradeCode);
+  // 기존 코드 (2026-08-03 이전): DS1도 승인 버튼을 숨기고 보류만 가능하게 막아뒀음
+  // const isHoldOnlyGrade = ['DS1', 'DS2'].includes(gradeCode);
+  // DS2만 지원금 산정 기준이 미확정 상태이므로, DS2만 승인 버튼을 숨기고
+  // DS1은 승인 가능하도록 변경 (백엔드 subsidy_service.py에서 DS1을 0원으로 정상 처리하도록 수정됨)
+  const isHoldOnlyGrade = ['DS2'].includes(gradeCode);
   const [mode, setMode] = useState(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
-
+ 
   const closeModal = () => {
     if (isSubmitting) return;
     setMode(null);
     setReason('');
     setError('');
   };
-
+ 
   const submit = async () => {
     if (mode === 'approve' && isHoldOnlyGrade) {
       setMode(null);
@@ -42,7 +46,7 @@ const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit, onRev
     if (mode === 'hold') onReviewHeld?.();
     if (mode === 'approve') onReviewApproved?.();
   };
-
+ 
   return <section className="case-card decision-panel">
     <div className="section-heading"><div><h2>피해등급 검토</h2></div><span className={`review-status-badge ${reviewStatus.replaceAll(' ', '-')}`}>{reviewStatus}</span></div>
     {message && <p className="decision-success" role="status">{message}</p>}
@@ -56,5 +60,6 @@ const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit, onRev
     </section></div>, document.body)}
   </section>;
 };
-
+ 
 export default AnalysisDecisionPanel;
+ 

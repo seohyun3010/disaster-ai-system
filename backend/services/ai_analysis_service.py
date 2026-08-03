@@ -61,7 +61,10 @@ def execute_ai_job(db: Session, job_id: int) -> None:
             response = httpx.post(
                 f"{AI_SERVER_URL}/classify",
                 files=files,
-                timeout=60.0,
+                # 기존 코드 (2026-08-03 이전): 60초 타임아웃
+                # CPU 환경에서 실제 ConvNeXt V2 추론이 60~200초 걸려 타임아웃으로 인한 실패가 다수 발생함 (ai_jobs 로그로 확인)
+                # timeout=60.0,
+                timeout=300.0,  # 5분으로 상향 (CPU 추론 시간 여유 확보)
             )
             response.raise_for_status()
             output = response.json()
