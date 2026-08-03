@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { formatOfficerAffiliation, formatOfficerName, getCurrentUser } from '../../mocks/currentUser';
 import '../approval/officer.css';
-
+ 
 const MODE_LABELS = { approve: '승인', hold: '보류' };
-
+ 
 const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit, onReviewApproved, onReviewHeld }) => {
   const officer = getCurrentUser();
   const gradeCode = String(recommendedGrade || '').match(/DS[0-4]/i)?.[0]?.toUpperCase();
@@ -14,14 +14,14 @@ const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit, onRev
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
-
+ 
   const closeModal = () => {
     if (isSubmitting) return;
     setMode(null);
     setReason('');
     setError('');
   };
-
+ 
   const submit = async () => {
     if (mode === 'approve' && isHoldOnlyGrade) {
       setMode(null);
@@ -42,7 +42,7 @@ const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit, onRev
     if (mode === 'hold') onReviewHeld?.();
     if (mode === 'approve') onReviewApproved?.();
   };
-
+ 
   return <section className="case-card decision-panel">
     <div className="section-heading"><div><h2>피해등급 검토</h2></div><span className={`review-status-badge ${reviewStatus.replaceAll(' ', '-')}`}>{reviewStatus}</span></div>
     {message && <p className="decision-success" role="status">{message}</p>}
@@ -56,5 +56,6 @@ const AnalysisDecisionPanel = ({ recommendedGrade, reviewStatus, onSubmit, onRev
     </section></div>, document.body)}
   </section>;
 };
-
+ 
 export default AnalysisDecisionPanel;
+ 

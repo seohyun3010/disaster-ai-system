@@ -191,6 +191,66 @@ REPORTS = [
             }
         ],
     },
+    # 신규 추가 (2026-08-03): 경주 지진 - DS2(준파) 등급 테스트용 케이스
+    {
+        "external_report_id": "SAFE24-MOCK-2026-0010",
+        "title": "지진으로 인한 주택 외벽 균열 신고",
+        "description": "지진 발생 후 주택 외벽에 다수의 균열이 발생하고 지붕 기와 일부가 파손되었습니다.",
+        "disaster_type": "EARTHQUAKE",
+        "facility_type": "HOUSE",
+        "address": "경상북도 경주시 황성동 538-6",
+        "sido": "경상북도",
+        "sigungu": "경주시",
+        "latitude": 35.8687865,
+        "longitude": 129.2118908,
+        "reported_at": datetime(2026, 8, 3, 14, 35),
+        "reporter_name": "김민준",
+        "resident_registration_number": "930215-1456789",
+        "contact_number": "010-7734-2091",
+        "household_members": 3,
+        "bank_name": "신한은행",
+        "account_number": "110-762-459081",
+        "account_holder": "김민준",
+        "damage_occurred_at": datetime(2026, 8, 3, 13, 52),
+        "damage_details": [
+            {
+                "category": "주택",
+                "quantity": "1동",
+                "details": "외벽 다수 균열 및 지붕 기와 일부 파손",
+            }
+        ],
+        "image": "house-earthquake-crack-2.jpg",
+    },
+    # 신규 추가 (2026-08-03): 포항 지진 - 추가 검증용 케이스
+    {
+        "external_report_id": "SAFE24-MOCK-2026-0011",
+        "title": "지진으로 인한 주택 외벽 균열 및 파손 신고",
+        "description": "지진 발생 후 주택 외벽에 균열이 발생하고 창호 주변 마감재 일부가 탈락했습니다.",
+        "disaster_type": "EARTHQUAKE",
+        "facility_type": "HOUSE",
+        "address": "경상북도 포항시 북구 흥해읍 남성리 587-1",
+        "sido": "경상북도",
+        "sigungu": "포항시 북구",
+        "latitude": 36.1015776,
+        "longitude": 129.3439027,
+        "reported_at": datetime(2026, 8, 3, 16, 10),
+        "reporter_name": "박서준",
+        "resident_registration_number": "870423-1567890",
+        "contact_number": "010-8823-4576",
+        "household_members": 4,
+        "bank_name": "우리은행",
+        "account_number": "1002-847-215369",
+        "account_holder": "박서준",
+        "damage_occurred_at": datetime(2026, 8, 3, 15, 20),
+        "damage_details": [
+            {
+                "category": "주택",
+                "quantity": "1동",
+                "details": "외벽 균열 및 창호 주변 마감재 일부 탈락",
+            }
+        ],
+        "image": "house-earthquake-crack-3.png",
+    },
 ]
 
 
