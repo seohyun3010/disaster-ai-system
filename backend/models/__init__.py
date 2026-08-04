@@ -5,6 +5,7 @@ from models.benefit_checks import BenefitCheck
 from models.case import Case
 from models.case_image import CaseImage
 from models.duplicate_result import DuplicateResult
+from models.policy_document import PolicyDocument
 from models.reports import Report
 from models.reviews import Review
 from models.severity_result import SeverityResult
@@ -20,6 +21,7 @@ __all__ = [
     "Case",
     "CaseImage",
     "DuplicateResult",
+    "PolicyDocument",
     "Report",
     "Review",
     "SeverityResult",
