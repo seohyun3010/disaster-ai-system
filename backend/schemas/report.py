@@ -51,6 +51,7 @@ class ReportCaseResponse(BaseModel):
 
 class ReportAnalysisResponse(BaseModel):
     damage_grade: str | None = None
+    damage_grade_source: str | None = None
     confidence: float | None = None
     explanation: str | None = None
     inspection_required: bool | None = None
@@ -73,6 +74,7 @@ class ReportSubsidyResponse(BaseModel):
     estimated_amount: Decimal | None = None
     confirmed_amount: Decimal | None = None
     status: str | None = None
+    damage_grade: str | None = None
 
 
 class ReportVerificationResponse(BaseModel):

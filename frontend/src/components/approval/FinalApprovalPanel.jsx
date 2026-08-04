@@ -15,10 +15,15 @@ const FinalApprovalPanel = ({ amount, status, onSubmit }) => {
   const submit = async () => {
     setIsSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 400));
-    onSubmit({ status: APPROVAL_ACTION.status, amount, reason: '' });
-    setMessage(`${formatOfficerName(officer)}의 ${APPROVAL_ACTION.label} 처리가 완료되었습니다.`);
-    setIsSubmitting(false);
-    setIsOpen(false);
+    try {
+      await onSubmit({ status: APPROVAL_ACTION.status, amount, reason: '' });
+      setMessage(`${formatOfficerName(officer)}의 ${APPROVAL_ACTION.label} 처리가 완료되었습니다.`);
+      setIsOpen(false);
+    } catch (error) {
+      setMessage(error.message || '최종 승인 저장에 실패했습니다.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return <article className="case-card final-approval-panel">

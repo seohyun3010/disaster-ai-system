@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.database import Base
@@ -38,6 +38,10 @@ class Review(Base):
     )
     comment: Mapped[str | None] = mapped_column(
         Text,
+        nullable=True,
+    )
+    confirmed_damage_grade: Mapped[str | None] = mapped_column(
+        String(10),
         nullable=True,
     )
     reviewed_at: Mapped[datetime | None] = mapped_column(

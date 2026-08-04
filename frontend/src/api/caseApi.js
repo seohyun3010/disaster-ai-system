@@ -14,6 +14,7 @@ const DISASTER_LABELS = {
   LANDSLIDE: '산사태',
   EARTHQUAKE: '지진',
   HEAVY_SNOW: '대설',
+  WILDFIRE: '산불',
 };
 
 const FACILITY_LABELS = {
@@ -22,6 +23,7 @@ const FACILITY_LABELS = {
   RETAINING_WALL: '옹벽',
   STORE: '상가',
   FARMLAND: '농경지',
+  LIVESTOCK_FACILITY: '축사',
 };
 
 const PRIORITY_LABELS = {

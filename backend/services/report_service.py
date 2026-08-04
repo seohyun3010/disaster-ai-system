@@ -29,6 +29,7 @@ from schemas.report import (
     ReportUpsertRequest,
     ReportVerificationResponse,
 )
+from services.damage_grade_service import resolve_damage_grade
 
 
 # 기존 최소 저장 로직은 연동 전 동작을 확인할 수 있도록 주석으로 보존합니다.
@@ -203,8 +204,15 @@ def _timeline(
         events.append(
             ReportTimelineResponse(
                 occurred_at=review.reviewed_at,
-                title="최종 승인" if review.hitl_result else "검토 반려",
-                description=review.comment or "담당자 검토 결과가 반영되었습니다.",
+                title="피해등급 재판정" if review.confirmed_damage_grade else (
+                    "검토 승인" if review.hitl_result else "검토 반려"
+                ),
+                description=(
+                    f"최종 피해등급을 {review.confirmed_damage_grade}로 확정했습니다. "
+                    f"{review.comment or ''}"
+                ).strip() if review.confirmed_damage_grade else (
+                    review.comment or "담당자 검토 결과가 반영되었습니다."
+                ),
                 actor=review.reviewer.name if review.reviewer else creator,
             )
         )
@@ -236,6 +244,7 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
         raise ValueError("보고서에 연결된 사건이 없습니다.")
 
     ai_result = _latest(db, AIResult, case.case_id, AIResult.created_at, AIResult.result_id)
+    resolved_grade = resolve_damage_grade(db, case.case_id)
     severity = _latest(
         db,
         SeverityResult,
@@ -253,7 +262,10 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
     review = db.scalar(
         select(Review)
         .options(selectinload(Review.reviewer))
-        .where(Review.case_id == case.case_id)
+        .where(
+            Review.case_id == case.case_id,
+            Review.confirmed_damage_grade.is_not(None),
+        )
         .order_by(Review.reviewed_at.desc(), Review.review_id.desc())
         .limit(1)
     )
@@ -287,7 +299,8 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
             description=case.description,
         ),
         analysis=ReportAnalysisResponse(
-            damage_grade=ai_result.damage_grade if ai_result else None,
+            damage_grade=resolved_grade.grade,
+            damage_grade_source=resolved_grade.source,
             confidence=ai_result.confidence if ai_result else None,
             explanation=ai_result.ai_explanation if ai_result else None,
             inspection_required=ai_result.inspection_required if ai_result else None,
@@ -301,6 +314,7 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
             estimated_amount=subsidy.estimated_amount if subsidy else None,
             confirmed_amount=subsidy.confirmed_amount if subsidy else None,
             status=subsidy.status if subsidy else None,
+            damage_grade=subsidy.damage_grade if subsidy else None,
         ),
         verification=ReportVerificationResponse(
             duplicate_report_result=(

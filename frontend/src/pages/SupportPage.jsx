@@ -10,17 +10,6 @@ import { useWorkflowStore } from '../stores/workflowStore';
 import { calculateSubsidy, confirmSubsidy, getSubsidy } from '../api/subsidyApi';
 import { isDs2Grade, isZeroSupportGrade } from '../utils/reviewRules';
 
-const createZeroSubsidy = (damageGrade, confirmed = false) => ({
-  status: confirmed ? 'CONFIRMED' : 'CALCULATED',
-  estimated_amount: 0,
-  confirmed_amount: confirmed ? 0 : null,
-  unit_price: 0,
-  damage_ratio_percent: 0,
-  damage_grade: damageGrade,
-  calculation_standard: 'DS0·DS1 지원금 0원 적용',
-  calculation_basis: '피해등급이 DS0 또는 DS1이므로 지원금은 0원으로 적용됩니다.',
-});
-
 const SupportPage = () => {
   const { caseId } = useParams();
   const { search } = useLocation();
@@ -30,14 +19,11 @@ const SupportPage = () => {
   const workflow = useWorkflowStore((state) => state.workflows[caseId]);
   const saveSupport = useWorkflowStore((state) => state.saveSupport);
 
-  const reviewedDamageGrade = analysis?.reviewedGrade
+  const localDamageGrade = analysis?.reviewedGrade
     || workflow?.reviewedGrade
     || workflow?.confirmedGrade
     || workflow?.damageGrade
     || analysis?.result?.recommendedGrade;
-  const isHeldGrade = isDs2Grade(reviewedDamageGrade);
-  const hasZeroSupport = isZeroSupportGrade(reviewedDamageGrade);
-
   const [subsidy, setSubsidy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [calculating, setCalculating] = useState(false);
@@ -46,9 +32,11 @@ const SupportPage = () => {
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const reviewedDamageGrade = subsidy?.damage_grade || localDamageGrade;
+  const isHeldGrade = isDs2Grade(reviewedDamageGrade);
+  const hasZeroSupport = isZeroSupportGrade(reviewedDamageGrade);
 
   const runCalculate = useCallback(async () => {
-    if (isHeldGrade || hasZeroSupport) return;
     setCalculating(true);
     setError('');
     setMessage('');
@@ -61,17 +49,18 @@ const SupportPage = () => {
     } finally {
       setCalculating(false);
     }
-  }, [caseId, hasZeroSupport, isHeldGrade]);
+  }, [caseId]);
 
   useEffect(() => {
     if (!caseId) return;
-    if (isHeldGrade || hasZeroSupport) return;
     let ignore = false;
 
     const load = async () => {
       setLoading(true);
       try {
-        const data = await getSubsidy(caseId);
+        const data = historyView
+          ? await getSubsidy(caseId)
+          : await calculateSubsidy(caseId);
         if (ignore) return;
         setSubsidy(data);
         setConfirmAmount(data.confirmed_amount ?? data.estimated_amount ?? '');
@@ -89,7 +78,7 @@ const SupportPage = () => {
 
     load();
     return () => { ignore = true; };
-  }, [caseId, hasZeroSupport, historyView, isHeldGrade, runCalculate]);
+  }, [caseId, historyView, runCalculate]);
 
   // 예상 지원금과 최종 검토 금액이 다른 경우에만 "수정"으로 간주
   const isAmountChanged = () => {
@@ -100,14 +89,6 @@ const SupportPage = () => {
 
   const handleConfirm = async () => {
     if (isHeldGrade) return;
-    if (hasZeroSupport) {
-      setConfirming(true);
-      setError('');
-      saveSupport(caseId, 0, reason.trim());
-      setMessage('지원금 0원이 확정되었습니다. 최종 확인 단계로 이동할 수 있습니다.');
-      setConfirming(false);
-      return;
-    }
     if (isAmountChanged() && !reason.trim()) {
       setError('예상 지원금과 다른 금액으로 확정하려면 수정 사유를 입력해 주세요.');
       return;
@@ -117,7 +98,7 @@ const SupportPage = () => {
     try {
       const payload = {
         estimated_amount: subsidy?.estimated_amount ?? null,
-        confirmed_amount: Number(confirmAmount),
+        confirmed_amount: hasZeroSupport ? 0 : Number(confirmAmount),
         status: 'CONFIRMED',
       };
       const data = await confirmSubsidy(caseId, payload);
@@ -139,12 +120,8 @@ const SupportPage = () => {
     );
   }
 
-  const displayedSubsidy = hasZeroSupport
-    ? createZeroSubsidy(reviewedDamageGrade, workflow?.supportConfirmed)
-    : isHeldGrade ? null : subsidy;
-  const canProceed = !isHeldGrade && (hasZeroSupport
-    ? Boolean(workflow?.supportConfirmed)
-    : subsidy?.status === 'CONFIRMED');
+  const displayedSubsidy = subsidy;
+  const canProceed = !isHeldGrade && subsidy?.status === 'CONFIRMED';
 
   return (
     <div className="case-page">
@@ -159,7 +136,7 @@ const SupportPage = () => {
           item={item}
           damageGrade={reviewedDamageGrade}
           subsidy={displayedSubsidy}
-          loading={isHeldGrade || hasZeroSupport ? false : loading || calculating}
+          loading={loading || calculating}
           calculating={calculating}
           confirming={confirming}
           confirmAmount={confirmAmount}

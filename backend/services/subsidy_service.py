@@ -191,8 +191,8 @@ from sqlalchemy.orm import Session
 
 from models.case import Case
 from models.subsidy import Subsidy
-from models.ai_results import AIResult
 from schemas.subsidy import SubsidyUpsertRequest
+from services.damage_grade_service import resolve_damage_grade
 
 # 출처 및 검증 상태 (2026-07-30 기준):
 # - 계산 구조(지원기준지수, 반파율, 별표3 매핑)는 1차 출처 확인됨
@@ -320,13 +320,7 @@ def calculate_subsidy(db: Session, case_id: int) -> Subsidy:
     if case is None:
         raise ValueError("사건을 찾을 수 없습니다.")
 
-    latest_ai = db.scalar(
-        select(AIResult)
-        .where(AIResult.case_id == case_id)
-        .order_by(AIResult.created_at.desc(), AIResult.result_id.desc())
-        .limit(1)
-    )
-    damage_grade = latest_ai.damage_grade if latest_ai else None
+    damage_grade = resolve_damage_grade(db, case_id).grade
 
     subsidy = db.scalar(
         select(Subsidy)
@@ -342,6 +336,7 @@ def calculate_subsidy(db: Session, case_id: int) -> Subsidy:
     # (기존 로직: DS2도 SUBSIDY_RATE_TABLE에 없어 아래 ValueError로 409 반환 -> 프론트에서 보류 UI로 대응했음)
     if damage_grade == "DS2":
         subsidy.estimated_amount = None
+        subsidy.confirmed_amount = None
         subsidy.status = "HOLD"
         subsidy.damage_grade = damage_grade
         subsidy.calculation_basis = build_hold_note(damage_grade)
@@ -364,6 +359,7 @@ def calculate_subsidy(db: Session, case_id: int) -> Subsidy:
     estimated_amount = SUBSIDY_RATE_TABLE[damage_grade]
 
     subsidy.estimated_amount = estimated_amount
+    subsidy.confirmed_amount = None
     subsidy.status = "PENDING"
     subsidy.damage_grade = damage_grade
     subsidy.calculation_basis = build_calculation_note(damage_grade, estimated_amount)

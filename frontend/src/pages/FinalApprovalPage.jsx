@@ -3,11 +3,12 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import FinalApprovalPanel from '../components/approval/FinalApprovalPanel';
 import CaseStageHeader from '../components/case/CaseStageHeader';
 import StageNavigation from '../components/case/StageNavigation';
-import { calculateSeverityTotal, DEFAULT_WORKFLOW, SUPPORT_STANDARD } from '../mocks/workflow';
+import { DEFAULT_WORKFLOW, SUPPORT_STANDARD } from '../mocks/workflow';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
-import { getSubsidy } from '../api/subsidyApi';
+import { confirmSubsidy, getSubsidy } from '../api/subsidyApi';
+import { getSeverity } from '../api/severityApi';
 import { isDs2Grade, isZeroSupportGrade } from '../utils/reviewRules';
 
 const FinalApprovalPage = () => {
@@ -20,30 +21,53 @@ const FinalApprovalPage = () => {
   const finalizeHeldReview = useAnalysisStore((state) => state.finalizeHeldReview);
   const workflow = useWorkflowStore((state) => state.workflows[caseId] || DEFAULT_WORKFLOW);
   const submitApproval = useWorkflowStore((state) => state.submitApproval);
-  const savedDamageGrade = analysis?.reviewedGrade
+  const localDamageGrade = analysis?.reviewedGrade
     || workflow?.reviewedGrade
     || workflow?.confirmedGrade
     || workflow?.damageGrade
     || analysis?.result?.recommendedGrade;
-  const isHeldGrade = isDs2Grade(savedDamageGrade);
-  const hasZeroSupport = isZeroSupportGrade(savedDamageGrade);
-  const urgencyScore = hasZeroSupport
-    ? null
-    : isHeldGrade ? 0 : calculateSeverityTotal(workflow.severityScores);
-
   const [subsidy, setSubsidy] = useState(null);
+  const [severity, setSeverity] = useState(null);
+  const [loadError, setLoadError] = useState('');
+  const damageGrade = subsidy?.damage_grade
+    || severity?.applied_damage_grade
+    || localDamageGrade
+    || item?.damage;
+  const isHeldGrade = isDs2Grade(damageGrade);
+  const hasZeroSupport = isZeroSupportGrade(damageGrade);
+  const urgencyScore = severity?.recovery_urgency_score ?? null;
+
   useEffect(() => {
-    if (!caseId || hasZeroSupport || isHeldGrade) return;
+    if (!caseId) return;
     let ignore = false;
-    getSubsidy(caseId).then((data) => { if (!ignore) setSubsidy(data); }).catch(() => {});
+    Promise.all([getSubsidy(caseId), getSeverity(caseId)])
+      .then(([subsidyData, severityData]) => {
+        if (ignore) return;
+        setSubsidy(subsidyData);
+        setSeverity(severityData);
+        setLoadError('');
+      })
+      .catch((error) => {
+        if (!ignore) setLoadError(error.message || '최종 검토 정보를 불러오지 못했습니다.');
+      });
     return () => { ignore = true; };
-  }, [caseId, hasZeroSupport, isHeldGrade]);
-  const damageGrade = savedDamageGrade || subsidy?.damage_grade || item?.damage;
+  }, [caseId]);
   const finalSupportAmount = hasZeroSupport || isHeldGrade
     ? 0
     : Math.round(Number(subsidy?.confirmed_amount ?? subsidy?.estimated_amount ?? 0));
+  const approvalStatus = subsidy?.status === 'APPROVED'
+    ? '최종 승인'
+    : subsidy?.status === 'HOLD'
+      ? '보류'
+      : '승인 대기';
 
-  const handleApproval = (approval) => {
+  const handleApproval = async (approval) => {
+    const approvedSubsidy = await confirmSubsidy(caseId, {
+      estimated_amount: subsidy?.estimated_amount ?? null,
+      confirmed_amount: finalSupportAmount,
+      status: 'APPROVED',
+    });
+    setSubsidy(approvedSubsidy);
     submitApproval(caseId, approval);
     if (['최종 승인', '금액 수정 후 승인'].includes(approval.status)) finalizeHeldReview(caseId);
     navigate(`/cases/${caseId}/reports${historyView ? '?view=history' : ''}`);
@@ -51,7 +75,7 @@ const FinalApprovalPage = () => {
 
   if (!item) return <div className="case-page"><section className="case-card missing-case"><h1>신고 정보를 찾을 수 없습니다</h1></section></div>;
 
-  return <div className="case-page"><CaseStageHeader item={item} breadcrumb="복구 심사 / 최종 승인" title="최종 승인" progressHistoryView={historyView} /><section className="case-card final-summary-card"><div className="section-heading"><div><h2>최종 검토 요약</h2></div></div><dl className="final-summary-grid"><div><dt>사건번호</dt><dd>{item.id}</dd></div><div><dt>AI 분석 결과</dt><dd>{analysis?.result ? `${analysis.result.recommendedGrade} · 신뢰도 ${analysis.result.confidence}%` : 'Mock 결과 · 반파'}</dd></div><div><dt>피해등급</dt><dd>{damageGrade}</dd></div><div><dt>복구 긴급도</dt><dd>{hasZeroSupport ? '미산출' : `${urgencyScore}점`}</dd></div><div><dt>최종 지원금</dt><dd>{finalSupportAmount.toLocaleString('ko-KR')}원</dd></div><div><dt>중복 수혜 검증</dt><dd><span className={item.duplicate ? 'duplicate-badge' : 'analysis-state-badge completed'}>{item.duplicate ? '추가 확인 필요' : SUPPORT_STANDARD.duplicateResult}</span></dd></div></dl><div className="reason-summary"><h3>이전 단계 수정 사유</h3><p><b>피해등급:</b> {analysis?.reviewReason || '수정 없음'}</p><p><b>긴급도:</b> {workflow.severityReason || (hasZeroSupport ? '산출 없음' : '수정 없음')}</p><p><b>지원금:</b> {workflow.supportReason || '수정 없음'}</p></div></section><FinalApprovalPanel amount={finalSupportAmount} status={workflow.approvalStatus} onSubmit={handleApproval} />{!historyView && <StageNavigation previousPath={`/cases/${caseId}/support`} previousLabel="지원금 심사" />}</div>;
+  return <div className="case-page"><CaseStageHeader item={item} breadcrumb="복구 심사 / 최종 승인" title="최종 승인" progressHistoryView={historyView} />{loadError && <p className="form-error" role="alert">{loadError}</p>}<section className="case-card final-summary-card"><div className="section-heading"><div><h2>최종 검토 요약</h2></div></div><dl className="final-summary-grid"><div><dt>사건번호</dt><dd>{item.id}</dd></div><div><dt>AI 분석 결과</dt><dd>{analysis?.result ? `${analysis.result.recommendedGrade} · 신뢰도 ${analysis.result.confidence}%` : 'AI 원본 결과 확인 필요'}</dd></div><div><dt>최종 피해등급</dt><dd>{damageGrade || '-'}</dd></div><div><dt>복구 긴급도</dt><dd>{urgencyScore == null ? '미산출' : `${urgencyScore}점`}</dd></div><div><dt>최종 지원금</dt><dd>{finalSupportAmount.toLocaleString('ko-KR')}원</dd></div><div><dt>중복 수혜 검증</dt><dd><span className={item.duplicate ? 'duplicate-badge' : 'analysis-state-badge completed'}>{item.duplicate ? '추가 확인 필요' : SUPPORT_STANDARD.duplicateResult}</span></dd></div></dl><div className="reason-summary"><h3>이전 단계 수정 사유</h3><p><b>피해등급:</b> {analysis?.reviewReason || '수정 없음'}</p><p><b>긴급도:</b> {workflow.severityReason || '서버 자동 재산정'}</p><p><b>지원금:</b> {workflow.supportReason || '확정 피해등급 기준 자동 재산정'}</p></div></section><FinalApprovalPanel amount={finalSupportAmount} status={approvalStatus} onSubmit={handleApproval} />{!historyView && <StageNavigation previousPath={`/cases/${caseId}/support`} previousLabel="지원금 심사" />}</div>;
 };
 
 export default FinalApprovalPage;

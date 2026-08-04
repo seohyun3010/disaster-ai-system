@@ -57,7 +57,6 @@ import ProcessTimeline from '../components/report/ProcessTimeline';
 import { ReviewGuidance } from '../components/persona/ReviewGuidance';
 import { downloadReport, generateReport, getReportByCase } from '../api/reportApi';
 import { useAnalysisStore } from '../stores/analysisStore';
-import { useWorkflowStore } from '../stores/workflowStore';
 import { isZeroSupportGrade } from '../utils/reviewRules';
 
 const formatDateTime = (value) => {
@@ -77,7 +76,6 @@ const ReportsPage = () => {
   const { search } = useLocation();
   const historyView = new URLSearchParams(search).get('view') === 'history';
   const analysis = useAnalysisStore((state) => state.analyses[caseId]);
-  const workflow = useWorkflowStore((state) => state.workflows[caseId]);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -138,12 +136,7 @@ const ReportsPage = () => {
     location: viewReport.case.address,
     type: viewReport.case.disaster_type,
   };
-  const damageGrade = analysis?.reviewedGrade
-    || workflow?.reviewedGrade
-    || workflow?.confirmedGrade
-    || workflow?.damageGrade
-    || viewReport.analysis.damage_grade
-    || '-';
+  const damageGrade = viewReport.analysis.damage_grade || '-';
   const hasZeroSupport = isZeroSupportGrade(damageGrade);
   const supportAmount = hasZeroSupport
     ? 0

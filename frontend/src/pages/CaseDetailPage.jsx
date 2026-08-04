@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ANALYSIS_POLLING_INTERVAL, getCaseAnalysisResult } from '../api/analysisApi';
+import { submitDamageGradeReview } from '../api/reviewApi';
 import AnalysisDecisionPanel from '../components/analysis/AnalysisDecisionPanel';
 import AnalysisResultCard from '../components/analysis/AnalysisResultCard';
 import RagEvidenceCard from '../components/analysis/RagEvidenceCard';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
+import { useAuthStore } from '../stores/authStore';
 import { isZeroSupportGrade } from '../utils/reviewRules';
 import './case-workspace.css';
 
@@ -100,6 +102,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const confirmHeldReview = useAnalysisStore((state) => state.confirmHeldReview);
   const startReview = useAnalysisStore((state) => state.startReview);
   const unlockStage = useWorkflowStore((state) => state.unlockStage);
+  const currentUser = useAuthStore((state) => state.user);
   const screen = initialScreen;
   const report = useMemo(() => item ? createReportView(item) : null, [item]);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
@@ -266,7 +269,14 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
           reviewedGrade={analysis.reviewedGrade}
           reviewStatus={analysis.reviewStatus}
           onSubmit={(review) => submitReview(caseId, review)}
-          onReReviewSubmit={(review) => confirmHeldReview(caseId, review)}
+          onReReviewSubmit={async (review) => {
+            const reviewerId = currentUser?.id ?? currentUser?.user_id;
+            if (!reviewerId) {
+              throw new Error('로그인한 담당자 정보를 확인할 수 없습니다.');
+            }
+            await submitDamageGradeReview(caseId, review, reviewerId);
+            confirmHeldReview(caseId, review);
+          }}
           onReviewApproved={(grade) => {
             const skipsSeverity = isZeroSupportGrade(grade);
             unlockStage(caseId, skipsSeverity ? 4 : 3);

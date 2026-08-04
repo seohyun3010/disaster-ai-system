@@ -6,6 +6,8 @@ import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { buildDisasterEvents } from '../utils/disasterEvents';
 import { isZeroSupportGrade } from '../utils/reviewRules';
+import { submitDamageGradeReview } from '../api/reviewApi';
+import { useAuthStore } from '../stores/authStore';
 import './case-list.css';
 import './report-management.css';
 
@@ -172,6 +174,8 @@ const HeldReviewModal = ({
   record,
   onClose,
   onConfirm,
+  submitting = false,
+  submitError = '',
 }) => {
   const { item, analysis } = record;
 
@@ -359,12 +363,12 @@ const HeldReviewModal = ({
           </div>
         </div>
 
-        {formError && (
+        {(formError || submitError) && (
           <p
             className="form-error"
             role="alert"
           >
-            {formError}
+            {formError || submitError}
           </p>
         )}
 
@@ -373,6 +377,7 @@ const HeldReviewModal = ({
             type="button"
             className="secondary-action"
             onClick={onClose}
+            disabled={submitting}
           >
             취소
           </button>
@@ -381,8 +386,9 @@ const HeldReviewModal = ({
             type="button"
             className="primary-action"
             onClick={submit}
+            disabled={submitting}
           >
-            확인
+            {submitting ? '저장 중...' : '확인'}
           </button>
         </footer>
       </section>
@@ -743,6 +749,8 @@ const CaseListPage = () => {
     (state) => state.confirmHeldReview,
   );
 
+  const currentUser = useAuthStore((state) => state.user);
+
   const unlockStage = useWorkflowStore(
     (state) => state.unlockStage,
   );
@@ -756,6 +764,8 @@ const CaseListPage = () => {
     heldReviewRecord,
     setHeldReviewRecord,
   ] = useState(null);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewSubmitError, setReviewSubmitError] = useState('');
 
   useEffect(() => {
     fetchCases({
@@ -894,7 +904,7 @@ const CaseListPage = () => {
     navigate(`/cases/${itemCaseId}`);
   };
 
-  const completeHeldReview = (review) => {
+  const completeHeldReview = async (review) => {
     if (!heldReviewRecord?.item) {
       return;
     }
@@ -907,21 +917,40 @@ const CaseListPage = () => {
     const destination =
       getHeldReviewDestination(review.grade);
 
-    confirmHeldReview(
-      heldCaseId,
-      review,
-    );
+    const reviewerId = currentUser?.id ?? currentUser?.user_id;
+    if (!reviewerId) {
+      setReviewSubmitError('로그인한 담당자 정보를 확인할 수 없습니다.');
+      return;
+    }
 
-    unlockStage(
-      heldCaseId,
-      destination.stage,
-    );
+    setReviewSubmitting(true);
+    setReviewSubmitError('');
 
-    setHeldReviewRecord(null);
+    try {
+      await submitDamageGradeReview(heldCaseId, review, reviewerId);
 
-    navigate(
-      `/cases/${heldCaseId}/${destination.path}`,
-    );
+      confirmHeldReview(
+        heldCaseId,
+        review,
+      );
+
+      unlockStage(
+        heldCaseId,
+        destination.stage,
+      );
+
+      setHeldReviewRecord(null);
+
+      navigate(
+        `/cases/${heldCaseId}/${destination.path}`,
+      );
+    } catch (requestError) {
+      setReviewSubmitError(
+        requestError.message || '피해등급 재판정 저장에 실패했습니다.',
+      );
+    } finally {
+      setReviewSubmitting(false);
+    }
   };
 
   if (!selectedEvent) {
@@ -1185,9 +1214,13 @@ const CaseListPage = () => {
         <HeldReviewModal
           record={heldReviewRecord}
           onClose={() => {
+            if (reviewSubmitting) return;
             setHeldReviewRecord(null);
+            setReviewSubmitError('');
           }}
           onConfirm={completeHeldReview}
+          submitting={reviewSubmitting}
+          submitError={reviewSubmitError}
         />
       )}
     </div>

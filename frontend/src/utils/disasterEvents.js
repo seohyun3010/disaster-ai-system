@@ -14,6 +14,16 @@ const DISASTER_SCHEDULES = {
     occurredFrom: '2026-06-12',
     occurredTo: '2026-06-13',
   },
+  WILDFIRE: {
+    name: '산불',
+    occurredFrom: '2026-04-06',
+    occurredTo: '2026-04-08',
+  },
+  HEAVY_SNOW: {
+    name: '대설',
+    occurredFrom: '2026-02-07',
+    occurredTo: '2026-02-09',
+  },
 };
 
 const toDate = (item) => new Date(item.reported_at || item.received_at);

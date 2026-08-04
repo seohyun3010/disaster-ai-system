@@ -20,10 +20,21 @@ def create_review(db: Session, case_id: int, data: ReviewCreate) -> Review | Non
         reviewer_id=data.reviewer_id,
         hitl_result=data.hitl_result,
         comment=data.comment,
+        confirmed_damage_grade=data.confirmed_damage_grade,
         reviewed_at=datetime.now(),
     )
     db.add(review)
-    db.commit()
+    db.flush()
+
+    if data.confirmed_damage_grade is not None:
+        # Recalculate all downstream decisions from the official grade.
+        from services.severity_service import calculate_and_save
+        from services.subsidy_service import calculate_subsidy
+
+        calculate_and_save(db, case_id)
+        calculate_subsidy(db, case_id)
+    else:
+        db.commit()
     db.refresh(review)
     return review
 

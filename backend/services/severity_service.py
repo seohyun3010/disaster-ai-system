@@ -4,7 +4,6 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from models.ai_results import AIResult
 from models.case import Case
 from models.severity_result import SeverityResult
 from models.severities import Severity
@@ -17,26 +16,23 @@ from services.recovery_urgency_rules import (
     facility_livelihood_score,
     household_score,
 )
+from services.damage_grade_service import resolve_damage_grade
 
 
 def derive_urgency_components(db: Session, case: Case) -> UrgencyComponents:
-    latest_ai = db.scalar(
-        select(AIResult)
-        .where(AIResult.case_id == case.case_id)
-        .order_by(AIResult.created_at.desc(), AIResult.result_id.desc())
-        .limit(1)
-    )
-    if latest_ai is None or not latest_ai.damage_grade:
+    resolved_grade = resolve_damage_grade(db, case.case_id)
+    raw_damage_grade = resolved_grade.grade
+    if not raw_damage_grade:
         raise HTTPException(
             status_code=409,
             detail="AI 피해등급이 없어 복구 긴급도를 계산할 수 없습니다.",
         )
 
-    damage_grade = latest_ai.damage_grade.strip().upper()
+    damage_grade = raw_damage_grade.strip().upper()
     if damage_grade not in AI_GRADE_SCORES:
         raise HTTPException(
             status_code=409,
-            detail=f"지원하지 않는 AI 피해등급입니다: {latest_ai.damage_grade}",
+            detail=f"지원하지 않는 피해등급입니다: {raw_damage_grade}",
         )
 
     facility_type = (case.facility_type or "").strip().upper()
@@ -69,6 +65,7 @@ def calculate_and_save(db: Session, case_id: int) -> SeverityResult:
 
     components = derive_urgency_components(db, case)
     scores = calculate_scores(components)
+    resolved_grade = resolve_damage_grade(db, case_id)
     result = SeverityResult(
         case_id=case_id,
         damage_score=components.ai_grade_score,
@@ -81,6 +78,8 @@ def calculate_and_save(db: Session, case_id: int) -> SeverityResult:
         recovery_urgency_score=scores.recovery_urgency_score,
         recovery_priority=scores.recovery_priority,
         urgency_level=scores.urgency_level,
+        applied_damage_grade=components.damage_grade,
+        damage_grade_source=resolved_grade.source,
         rule_version=URGENCY_RULE_VERSION,
     )
     db.add(result)
