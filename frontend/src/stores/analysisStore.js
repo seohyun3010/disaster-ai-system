@@ -3,7 +3,6 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { getAnalysisResult, getAnalysisStatus, requestAnalysis } from '../api/analysisApi';
 import { formatOfficerName, getCurrentUser } from '../mocks/currentUser';
 import { DELETED_DEMO_CASE_IDS } from '../mocks/cases';
-import { isDs2Grade } from '../utils/reviewRules';
 
 const DELETED_DEMO_CASE_ID_SET = new Set(DELETED_DEMO_CASE_IDS);
 
@@ -194,7 +193,6 @@ export const useAnalysisStore = create(
         if (!reason) return state;
         const previousGrade = current.reviewedGrade || current.result?.recommendedGrade || '-';
         const nextGrade = review.grade || previousGrade;
-        const remainsHeld = isDs2Grade(nextGrade);
         let reviewHistory = current.reviewHistory || [];
 
         if (nextGrade !== previousGrade) {
@@ -212,12 +210,7 @@ export const useAnalysisStore = create(
           description: `현재 수정 등급: ${nextGrade}`,
           dedupeKey: `review_restarted:${reviewedAt}:${nextGrade}`,
         }));
-        reviewHistory = appendReviewHistory(reviewHistory, createReviewHistoryEvent(remainsHeld ? {
-          type: 'review_held',
-          title: '피해등급 재판정 보류',
-          description: `재판정 등급: ${nextGrade} · 보류 사유: ${reason}`,
-          dedupeKey: `review_reheld:${reviewedAt}:${nextGrade}:${reason}`,
-        } : {
+        reviewHistory = appendReviewHistory(reviewHistory, createReviewHistoryEvent({
           type: 'review_approved',
           title: '피해등급 검토 승인',
           description: `승인 등급: ${nextGrade}`,
@@ -228,17 +221,17 @@ export const useAnalysisStore = create(
             ...state.analyses,
             [caseId]: {
               ...current,
-              reviewStatus: remainsHeld ? '보류' : '수정 승인',
+              reviewStatus: '수정 승인',
               reviewReason: reason,
               reviewedGrade: nextGrade,
               reviewedBy: { ...getCurrentUser() },
               reviewedAt,
-              holdReason: remainsHeld ? reason : current.holdReason,
-              heldAt: remainsHeld ? reviewedAt : current.heldAt,
-              holdFieldVerified: !remainsHeld,
+              holdReason: current.holdReason,
+              heldAt: current.heldAt,
+              holdFieldVerified: true,
               fieldVisitReason: reason,
               fieldVisitedAt: reviewedAt,
-              holdResolvedAt: remainsHeld ? null : reviewedAt,
+              holdResolvedAt: reviewedAt,
               reviewHistory,
             },
           },

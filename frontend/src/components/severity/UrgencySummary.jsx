@@ -1,10 +1,10 @@
 const UrgencySummary = ({ total }) => <article className="case-card urgency-summary-card">
   <div className="section-heading"><div><h2>복구 긴급도 결과</h2></div></div>
-  <div className="urgency-total"><span>총점</span><strong>{total}<small> / 100점</small></strong></div>
+  <div className="urgency-total"><span>총점</span><strong>{total ?? '-'}<small> / 100점</small></strong></div>
   <dl className="stage-summary-list urgency-formula-list">
     <div>
       <dt>점수 산식</dt>
-      <dd>피해 규모 + 시설 중요도 + 접근성 + 취약계층 영향 + 2차 피해 가능성</dd>
+      <dd>AI 피해등급 점수 + 가구원 수 점수 + 시설·이재민 긴급도 점수</dd>
     </div>
   </dl>
 </article>;

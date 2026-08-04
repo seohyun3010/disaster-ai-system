@@ -19,10 +19,7 @@ export const isZeroSupportGrade = (grade) => (
 
 export const getMandatoryHoldReason = ({
   confidence,
-  recommendedGrade,
-  reviewedGrade,
 }) => {
   if (isLowConfidence(confidence)) return 'LOW_CONFIDENCE';
-  if (isDs2Grade(recommendedGrade) || isDs2Grade(reviewedGrade)) return 'DS2';
   return null;
 };
