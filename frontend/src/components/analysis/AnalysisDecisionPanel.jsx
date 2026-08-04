@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { formatOfficerAffiliation, formatOfficerName, getCurrentUser } from '../../mocks/currentUser';
-import { getMandatoryHoldReason, isDs2Grade } from '../../utils/reviewRules';
+import { getMandatoryHoldReason } from '../../utils/reviewRules';
 import '../approval/officer.css';
  
 const MODE_LABELS = { approve: '승인', hold: '보류 처리', reReview: '재판정 완료' };
@@ -31,10 +31,8 @@ const AnalysisDecisionPanel = ({ confidence, recommendedGrade, reviewedGrade, re
   const isAutomaticHoldView = Boolean(automaticHoldReason)
     && !isReReview
     && !hasCompletedReReview;
-  const isHoldOnly = Boolean(automaticHoldReason) || isDs2Grade(selectedGrade);
-  const automaticHoldMessage = automaticHoldReason === 'LOW_CONFIDENCE'
-    ? 'AI 판독 신뢰도가 낮아 재검토가 필요합니다.'
-    : 'DS2 등급은 지원 기준이 명확하지 않아 재검토가 필요합니다.';
+  const isHoldOnly = Boolean(automaticHoldReason);
+  const automaticHoldMessage = 'AI 판독 신뢰도가 낮아 재검토가 필요합니다.';
   const [mode, setMode] = useState(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
@@ -75,10 +73,7 @@ const AnalysisDecisionPanel = ({ confidence, recommendedGrade, reviewedGrade, re
     setReason('');
     if (mode === 'hold') onReviewHeld?.();
     if (mode === 'approve') onReviewApproved?.(selectedGrade);
-    if (mode === 'reReview') {
-      if (isDs2Grade(selectedGrade)) onReviewHeld?.();
-      else onReviewApproved?.(selectedGrade);
-    }
+    if (mode === 'reReview') onReviewApproved?.(selectedGrade);
   };
  
   return <section className="case-card decision-panel">

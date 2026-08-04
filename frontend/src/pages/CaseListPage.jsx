@@ -92,14 +92,6 @@ const getHeldReviewDestination = (grade) => {
     .match(/DS[0-4]/i)?.[0]
     ?.toUpperCase();
 
-  if (gradeCode === 'DS2') {
-    return {
-      stage: 2,
-      path: 'analysis',
-      label: '피해등급 재검토',
-    };
-  }
-
   if (isZeroSupportGrade(gradeCode)) {
     return {
       stage: 4,

@@ -19,9 +19,10 @@ export const API_PATHS = {
   },
   RAG: {
     DOCUMENTS: '/api/rag/documents/search',
-    CALCULATE: '/api/severity/calculate',
-    SEVERITY: (caseId) => `/api/severity/${caseId}`,
-    POLICY_VERSIONS: '/api/rag/policies/versions',
+  },
+  SEVERITY: {
+    CALCULATE: (caseId) => `/cases/${caseId}/severity/calculate`,
+    DETAIL: (caseId) => `/cases/${caseId}/severity`,
   },
   // SUBSIDY: {
   //   CALCULATE: '/api/subsidy/calculate',
