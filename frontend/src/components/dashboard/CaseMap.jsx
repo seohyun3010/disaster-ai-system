@@ -157,8 +157,8 @@
 //                     color: count > 0 ? "#fff" : "#999",
 //                     border: "1px solid",
 //                     borderColor: count > 0 ? "#2563eb" : "#ddd",
-//                     fontSize: "var(--font-size-body)",
-//                     fontWeight: "var(--font-weight-bold)",
+//                     fontSize: "12px",
+//                     fontWeight: 600,
 //                     whiteSpace: "nowrap",
 //                     cursor: "pointer",
 //                     boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
@@ -203,7 +203,7 @@
 //               padding: "12px 14px",
 //               minWidth: "220px",
 //               boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-//               fontSize: "var(--font-size-body)",
+//               fontSize: "13px",
 //               position: "relative",
 //             }}
 //           >
@@ -216,14 +216,14 @@
 //                 border: "none",
 //                 background: "none",
 //                 cursor: "pointer",
-//                 fontSize: "var(--icon-font-size-14)",
+//                 fontSize: "14px",
 //                 color: "#888",
 //               }}
 //               aria-label="닫기"
 //             >
 //               ✕
 //             </button>
-//             <div style={{ fontWeight: "var(--font-weight-bold)", marginBottom: "4px" }}>
+//             <div style={{ fontWeight: 600, marginBottom: "4px" }}>
 //               {selectedCase.case_number}
 //             </div>
 //             <div style={{ marginBottom: "6px", color: "#333" }}>
@@ -329,6 +329,19 @@ const CaseMap = forwardRef((_, ref) => {
   const [level, setLevel] = useState(DEFAULT_LEVEL);
   const [center, setCenter] = useState(DEFAULT_CENTER);
 
+  // ===== 신규 추가 (1차: setBounds 도입) =====
+  // setBounds 호출을 위해 카카오맵 네이티브 인스턴스를 저장
+  const mapRef = useRef(null);
+  // ===== 신규 추가 끝 =====
+
+  // ===== 신규 추가 (3차: 지역 드릴다운 상태) =====
+  // 2차(레벨 강제 보정)는 setBounds가 계산한 적정 레벨을 무시하고 임의로
+  // 더 확대시켜서 좌표가 다시 화면 밖으로 밀려나는 문제가 있어 제거함.
+  // 대신 "이 지역을 선택해서 들어왔다"는 상태를 따로 두고, 이 상태가 있으면
+  // 줌 레벨과 상관없이 핀 뷰를 강제로 보여주는 방식으로 대체.
+  const [drilldownRegion, setDrilldownRegion] = useState(null);
+  // ===== 신규 추가 끝 =====
+
   useEffect(() => {
     let ignore = false;
     axiosInstance
@@ -376,14 +389,30 @@ const CaseMap = forwardRef((_, ref) => {
     );
   }
 
-  const showRegionView = level >= REGION_VIEW_LEVEL_THRESHOLD;
+  // ===== 신규 추가 (3차): drilldownRegion이 설정되어 있으면 레벨과 무관하게 핀 뷰 강제 =====
+  const showRegionView = level >= REGION_VIEW_LEVEL_THRESHOLD && !drilldownRegion;
+  // ===== 신규 추가 끝 (3차) =====
 
   return (
     <KakaoMap
       center={center}
       level={level}
       style={{ width: '100%', height: '100%' }}
-      onZoomChanged={(map) => setLevel(map.getLevel())}
+      // ===== 신규 추가 (1차: setBounds 도입) =====
+      // 지도가 생성되면 네이티브 인스턴스를 mapRef에 저장
+      onCreate={(map) => { mapRef.current = map; }}
+      // ===== 신규 추가 끝 =====
+      onZoomChanged={(map) => {
+        const newLevel = map.getLevel();
+        setLevel(newLevel);
+        // ===== 신규 추가 (3차: 지역 드릴다운 상태) =====
+        // 사용자가 다시 축소해서 지역뷰 기준(threshold) 이상으로 돌아가면
+        // 드릴다운 상태를 해제해 배지 뷰로 복귀
+        if (newLevel >= REGION_VIEW_LEVEL_THRESHOLD) {
+          setDrilldownRegion(null);
+        }
+        // ===== 신규 추가 끝 =====
+      }}
       onCenterChanged={(map) => {
         const c = map.getCenter();
         setCenter({ lat: c.getLat(), lng: c.getLng() });
@@ -400,7 +429,42 @@ const CaseMap = forwardRef((_, ref) => {
             <CustomOverlayMap key={region.name} position={position}>
               <span
                 className={`light-map-marker ${getTone(count)}`}
-                onClick={() => { setCenter(position); setLevel(REGION_VIEW_LEVEL_THRESHOLD - 3); }}
+                onClick={() => {
+                  // 기존 코드(고정 레벨 확대 - 거리 먼 케이스가 화면 밖으로 벗어나는 버그 있음): 주석 보존
+                  // setCenter(position); setLevel(REGION_VIEW_LEVEL_THRESHOLD - 3);
+
+                  // ===== 신규 추가 (1차: setBounds 도입) =====
+                  // 해당 지역 케이스 좌표를 모두 포함하도록 setBounds로 자동 맞춤 확대
+                  const regionCases = validCases.filter(
+                    (c) => resolveRegion(c.sido || '')?.name === region.name
+                  );
+                  if (regionCases.length > 0 && mapRef.current && window.kakao) {
+                    const bounds = new window.kakao.maps.LatLngBounds();
+                    regionCases.forEach((c) => {
+                      bounds.extend(
+                        new window.kakao.maps.LatLng(Number(c.latitude), Number(c.longitude))
+                      );
+                    });
+                    mapRef.current.setBounds(bounds);
+                    // ===== 신규 추가 끝 (1차) =====
+
+                    // ===== 신규 추가 (2차, 이후 제거됨): 레벨 강제 보정 =====
+                    // if (mapRef.current.getLevel() >= REGION_VIEW_LEVEL_THRESHOLD) {
+                    //   mapRef.current.setLevel(REGION_VIEW_LEVEL_THRESHOLD - 1);
+                    // }
+                    // -> 문제: setBounds가 계산한 적정 레벨(예: 10)보다 더 확대(예: 8)시켜버려서
+                    //    좌표가 다시 화면 밖으로 밀려나는 버그 재발. 그래서 제거하고 3차로 대체.
+
+                    // ===== 신규 추가 (3차: 지역 드릴다운 상태로 대체) =====
+                    // 레벨을 건드리지 않고, "이 지역을 선택했다"는 상태만 켜서
+                    // 레벨과 무관하게 핀 뷰가 보이도록 함 (setBounds가 잡아준 화면 그대로 사용)
+                    setDrilldownRegion(region.name);
+                    // ===== 신규 추가 끝 (3차) =====
+                  } else {
+                    setCenter(position);
+                    setLevel(REGION_VIEW_LEVEL_THRESHOLD - 3);
+                  }
+                }}
                 role="button"
                 tabIndex={0}
               >
@@ -430,10 +494,7 @@ const CaseMap = forwardRef((_, ref) => {
               padding: '12px 14px',
               minWidth: '220px',
               boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              fontFamily: 'var(--font-family-base)',
-              fontSize: 'var(--font-size-body)',
-              lineHeight: 'var(--line-height-default)',
-              letterSpacing: 'var(--letter-spacing-default)',
+              fontSize: '13px',
               position: 'relative',
             }}
           >
@@ -446,15 +507,14 @@ const CaseMap = forwardRef((_, ref) => {
                 border: 'none',
                 background: 'none',
                 cursor: 'pointer',
-                fontSize: 'var(--icon-font-size-14)',
-                lineHeight: 'var(--line-height-icon)',
+                fontSize: '14px',
                 color: '#888',
               }}
               aria-label="닫기"
             >
               ×
             </button>
-            <div style={{ fontWeight: 'var(--font-weight-bold)', marginBottom: '4px' }}>
+            <div style={{ fontWeight: 600, marginBottom: '4px' }}>
               {selectedCase.case_number}
             </div>
             <div style={{ marginBottom: '6px', color: '#333' }}>
