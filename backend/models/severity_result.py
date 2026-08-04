@@ -1,16 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
-
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.database import Base
 
-if TYPE_CHECKING:
-    from models.case import Case
-    from models.policy_reference import PolicyReference
+from models.case import Case
 
 
 class SeverityResult(Base):
@@ -28,12 +24,9 @@ class SeverityResult(Base):
     recovery_urgency_score: Mapped[float] = mapped_column(Float, nullable=False)
     recovery_priority: Mapped[int] = mapped_column(Integer, nullable=False)
     urgency_level: Mapped[str] = mapped_column(String(20), nullable=False)
-    policy_version: Mapped[str] = mapped_column(String(100), nullable=False)
+    rule_version: Mapped[str] = mapped_column(String(100), nullable=False)
     calculated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.utcnow
     )
 
     case: Mapped["Case"] = relationship()
-    document_references: Mapped[list["PolicyReference"]] = relationship(
-        back_populates="severity_result", cascade="all, delete-orphan"
-    )

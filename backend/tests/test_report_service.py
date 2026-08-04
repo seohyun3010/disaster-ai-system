@@ -84,7 +84,7 @@ class ReportServiceTest(unittest.TestCase):
                     recovery_urgency_score=70,
                     recovery_priority=2,
                     urgency_level="HIGH",
-                    policy_version="2026.1",
+                    rule_version="2026.1",
                     calculated_at=now,
                 ),
                 Subsidy(

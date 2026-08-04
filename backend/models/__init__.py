@@ -7,8 +7,6 @@ from models.case_image import CaseImage
 from models.duplicate_result import DuplicateResult
 from models.reports import Report
 from models.reviews import Review
-from models.policy_document import PolicyDocument
-from models.policy_reference import PolicyReference
 from models.severity_result import SeverityResult
 from models.severities import Severity
 from models.subsidy import Subsidy
@@ -24,8 +22,6 @@ __all__ = [
     "DuplicateResult",
     "Report",
     "Review",
-    "PolicyDocument",
-    "PolicyReference",
     "SeverityResult",
     "Severity",
     "Subsidy",
