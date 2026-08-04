@@ -28,12 +28,12 @@
   gap: 6px;
   border-radius: 6px;
   padding: 7px 8px;
-  font-size: 11px;
+  font-size: var(--font-size-body);
 }
 
 .region-count span,
 .region-count b {
-  font-weight: 800;
+  font-weight: var(--font-weight-bold);
 }
 
 .region-count b {
@@ -42,7 +42,7 @@
 
 .region-count small {
   margin-left: 2px;
-  font-size: 9px;
+  font-size: var(--font-size-caption);
 }
 
 .region-count.blue {
@@ -124,8 +124,8 @@
 
 .map-count-marker text {
   fill: #fff;
-  font-size: 10px;
-  font-weight: 900;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
   pointer-events: none;
 }
 

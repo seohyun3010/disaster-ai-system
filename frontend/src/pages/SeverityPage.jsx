@@ -6,20 +6,32 @@ import SeverityScoreTable from '../components/severity/SeverityScoreTable';
 import UrgencySummary from '../components/severity/UrgencySummary';
 import { ReviewGuidance } from '../components/persona/ReviewGuidance';
 import { calculateSeverityTotal, DEFAULT_WORKFLOW, getUrgencyGrade } from '../mocks/workflow';
+import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
+import { isZeroSupportGrade } from '../utils/reviewRules';
 
 const SeverityPage = () => {
   const { caseId } = useParams();
   const item = useCaseStore((state) => state.cases.find((entry) => entry.id === caseId));
+  const analysis = useAnalysisStore((state) => state.analyses[caseId]);
   const saved = useWorkflowStore((state) => state.workflows[caseId] || DEFAULT_WORKFLOW);
   const saveSeverity = useWorkflowStore((state) => state.saveSeverity);
   const [scores, setScores] = useState(saved.severityScores);
   const [reason, setReason] = useState(saved.severityReason);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
-  const total = useMemo(() => calculateSeverityTotal(scores), [scores]);
-  const urgency = getUrgencyGrade(total);
+  const reviewedDamageGrade = analysis?.reviewedGrade
+    || saved.reviewedGrade
+    || saved.confirmedGrade
+    || saved.damageGrade
+    || analysis?.result?.recommendedGrade;
+  const hasZeroSupport = isZeroSupportGrade(reviewedDamageGrade);
+  const calculatedTotal = useMemo(() => calculateSeverityTotal(scores), [scores]);
+  const total = hasZeroSupport ? 0 : calculatedTotal;
+  const urgency = hasZeroSupport
+    ? { grade: '낮음', rank: '4순위' }
+    : getUrgencyGrade(total);
   const hasUnappliedChanges = JSON.stringify(scores) !== JSON.stringify(saved.severityScores)
     || reason !== saved.severityReason;
   const canProceed = Boolean(saved.severityConfirmed) && !hasUnappliedChanges;

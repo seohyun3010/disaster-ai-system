@@ -31,13 +31,22 @@ const SupportCalculationCard = ({
   onConfirm,
   error,
   message,
+  hold = false,
+  fixedZeroAmount = false,
 }) => (
   <article className="case-card stage-card">
     <div className="section-heading"><div><h2>예상 지원금 산정</h2></div></div>
 
     {loading && <p>불러오는 중...</p>}
 
-    {!loading && !subsidy && (
+    {!loading && hold && (
+      <div className="support-empty">
+        <span className="review-status-badge 보류">보류</span>
+        <p>DS2 피해등급은 지원금을 계산하지 않으며 현장조사 재판정 흐름을 유지합니다.</p>
+      </div>
+    )}
+
+    {!loading && !hold && !subsidy && (
       <div className="support-empty">
         <p>아직 산정된 지원금이 없습니다.</p>
         <button type="button" className="primary-action" onClick={onCalculate} disabled={calculating}>
@@ -46,7 +55,7 @@ const SupportCalculationCard = ({
       </div>
     )}
 
-    {subsidy && (
+    {!hold && subsidy && (
       <>
         <div className="support-amount">
           <span>예상 지원금</span>
@@ -86,8 +95,9 @@ const SupportCalculationCard = ({
             <input
               type="text"
               inputMode="numeric"
-              value={formatNumberInput(confirmAmount)}
+              value={fixedZeroAmount ? '0' : formatNumberInput(confirmAmount)}
               onChange={(event) => onConfirmAmountChange(parseNumberInput(event.target.value))}
+              readOnly={fixedZeroAmount}
             />
           </label>
           <label>
@@ -106,9 +116,9 @@ const SupportCalculationCard = ({
         {message && <p className="decision-success" role="status">{message}</p>}
 
         <div className="stage-card-actions">
-          <button type="button" className="secondary-action" onClick={onCalculate} disabled={calculating}>
+          {!fixedZeroAmount && <button type="button" className="secondary-action" onClick={onCalculate} disabled={calculating}>
             {calculating ? '재계산 중...' : '다시 계산'}
-          </button>
+          </button>}
           <button type="button" className="primary-action" onClick={onConfirm} disabled={confirming}>
             {confirming ? '반영 중...' : '금액 반영'}
           </button>

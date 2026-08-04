@@ -35,8 +35,8 @@ body,
 .brand {
   margin-left: 0;
   color: #fff;
-  font-size: 19px;
-  letter-spacing: -.4px;
+  font-size: var(--font-size-card);
+  letter-spacing: var(--letter-spacing-default);
 }
 
 .brand-sub {
@@ -306,16 +306,16 @@ body,
 
 .case-detail-page .ai-request-card h2 {
   margin: 4px 0 7px;
-  font-size: 21px;
+  font-size: var(--font-size-card);
 }
 
 .case-detail-page .ai-request-card > div > p:not(.request-kicker) {
-  line-height: 1.55;
+  line-height: var(--line-height-default);
 }
 
 .case-detail-page .ai-request-card ul {
   margin-top: 10px;
-  line-height: 1.65;
+  line-height: var(--line-height-default);
 }
 
 .case-detail-page .ai-request-card small {
@@ -460,7 +460,7 @@ body .term-help-trigger:focus-visible + .term-help-content {
 
 .case-page:has(> .analysis-review-grid) .analysis-score-grid strong {
   margin-top: 4px;
-  font-size: 18px;
+  font-size: var(--font-size-kpi-compact);
 }
 
 .case-page:has(> .analysis-review-grid) .confidence-guide {
@@ -542,7 +542,7 @@ body .term-help-trigger:focus-visible + .term-help-content {
 
 .case-page:has(> .stage-two-column) .urgency-total strong {
   margin-top: 3px;
-  font-size: 29px;
+  font-size: var(--font-size-kpi-compact);
 }
 
 .case-page:has(> .stage-two-column) .stage-summary-list > div {
@@ -561,7 +561,7 @@ body .term-help-trigger:focus-visible + .term-help-content {
 
 .case-page:has(> .support-grid) .support-amount strong {
   margin-top: 3px;
-  font-size: 23px;
+  font-size: var(--font-size-kpi-compact);
 }
 
 .case-page:has(> .support-grid) .calculation-flow {
@@ -738,7 +738,7 @@ body .term-help-trigger:focus-visible + .term-help-content {
 .notification-badge {
   position: absolute; top: 4px; right: 3px; display: grid; min-width: 17px; height: 17px;
   padding: 0 4px; place-items: center; border: 2px solid #fff; border-radius: 999px;
-  background: #ef4444; color: #fff; font-size: 9px; font-weight: 800; line-height: 1;
+  background: #ef4444; color: #fff; font-size: var(--font-size-caption); font-weight: var(--font-weight-bold); line-height: var(--line-height-default);
 }
 .notification-panel {
   position: absolute; z-index: 60; top: calc(100% + 12px); right: -72px;
@@ -755,10 +755,10 @@ body .term-help-trigger:focus-visible + .term-help-content {
   border-bottom: 1px solid #e7ebf2;
 }
 .notification-panel > header div { display: flex; align-items: center; gap: 8px; min-width: 0; text-align: left; }
-.notification-panel > header strong { color: #172033; font-size: 16px; }
-.notification-panel > header span { color: var(--trust-blue-700); font-size: 11px; font-weight: 700; }
+.notification-panel > header strong { color: #172033; font-size: var(--font-size-subtitle); }
+.notification-panel > header span { color: var(--trust-blue-700); font-size: var(--font-size-body); font-weight: var(--font-weight-bold); }
 .user-menu .notification-panel > header button {
-  padding: 5px; border: 0; background: transparent; color: var(--trust-blue-700); font-size: 11px;
+  padding: 5px; border: 0; background: transparent; color: var(--trust-blue-700); font-size: var(--font-size-button);
 }
 .notification-list { display: grid; max-height: 330px; overflow-y: auto; }
 .user-menu .notification-list > button {
@@ -773,16 +773,16 @@ body .term-help-trigger:focus-visible + .term-help-content {
 .unread .notification-status { background: var(--trust-blue-600); box-shadow: 0 0 0 4px #dbeafe; }
 .notification-copy { display: grid; flex: 1; gap: 4px; min-width: 0; }
 .notification-copy strong {
-  overflow: hidden; color: #263248; font-size: 12px; text-overflow: ellipsis; white-space: nowrap;
+  overflow: hidden; color: #263248; font-size: var(--font-size-small); text-overflow: ellipsis; white-space: nowrap;
 }
 .notification-copy > span {
-  overflow: hidden; color: #667085; font-size: 11px; line-height: 1.45;
+  overflow: hidden; color: #667085; font-size: var(--font-size-small); line-height: var(--line-height-default);
   text-overflow: ellipsis; white-space: nowrap;
 }
-.notification-copy time { color: #98a2b3; font-size: 10px; }
+.notification-copy time { color: #98a2b3; font-size: var(--font-size-caption); }
 .user-menu .notification-footer {
   width: 100%; padding: 12px; border: 0; border-radius: 0; background: #fff;
-  color: var(--trust-blue-700); font-size: 11px;
+  color: var(--trust-blue-700); font-size: var(--font-size-button);
 }
 .user-menu .notification-footer:hover { background: #f5f8ff; }
 @media (max-width: 620px) {
@@ -804,16 +804,16 @@ body .term-help-trigger:focus-visible + .term-help-content {
 
 .case-page-head p {
   margin-bottom: 5px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
 }
 
 .case-page-head h1 {
-  font-size: 27px;
+  font-size: var(--font-size-page);
 }
 
 .case-page-head span {
   margin-top: 6px;
-  font-size: 12px;
+  font-size: var(--font-size-small);
 }
 
 .case-page-head-actions {
@@ -825,7 +825,7 @@ body .term-help-trigger:focus-visible + .term-help-content {
 .primary-action,
 .secondary-action {
   padding: 10px 15px;
-  font-size: 12px;
+  font-size: var(--font-size-button);
 }
 
 .case-metric-grid,
@@ -840,7 +840,7 @@ body .term-help-trigger:focus-visible + .term-help-content {
 
 .case-metric strong {
   margin: 6px 0 4px;
-  font-size: 25px;
+  font-size: var(--font-size-kpi-compact);
 }
 
 .case-card {
@@ -849,12 +849,12 @@ body .term-help-trigger:focus-visible + .term-help-content {
 
 .section-heading h2,
 .list-title h2 {
-  font-size: 16px;
+  font-size: var(--font-size-section);
 }
 
 .section-heading p {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: var(--font-size-small);
 }
 
 .priority-stat {
@@ -868,7 +868,7 @@ body .term-help-trigger:focus-visible + .term-help-content {
 
 .priority-stat b {
   margin-top: 5px;
-  font-size: 17px;
+  font-size: var(--font-size-kpi-compact);
 }
 
 .region-bars {
@@ -944,7 +944,7 @@ body .term-help-trigger:focus-visible + .term-help-content {
   .brand {
     display: block;
     margin: 0;
-    font-size: 11px;
+    font-size: var(--font-size-card);
     text-align: center;
   }
 
@@ -988,15 +988,15 @@ body .term-help-trigger:focus-visible + .term-help-content {
 .notification-page-summary span {
   display: block;
   color: var(--trust-muted);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
 }
 
 .notification-page-summary strong {
   display: block;
   margin-top: 7px;
   color: var(--trust-text);
-  font-size: 25px;
+  font-size: var(--font-size-subtitle);
 }
 
 .notification-page-summary article:last-child strong {
@@ -1005,7 +1005,7 @@ body .term-help-trigger:focus-visible + .term-help-content {
 
 .notification-page-summary small {
   margin-left: 3px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
 }
 
 .notification-page-card {
@@ -1034,8 +1034,8 @@ body .term-help-trigger:focus-visible + .term-help-content {
   background: #fff;
   padding: 8px 12px;
   color: #526079;
-  font-size: 11px;
-  font-weight: 750;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
@@ -1111,23 +1111,23 @@ body .term-help-trigger:focus-visible + .term-help-content {
   background: #e7efff;
   padding: 4px 8px;
   color: var(--trust-blue-700);
-  font-size: 9px;
+  font-size: var(--font-size-caption);
 }
 
 .notification-page-meta time {
   color: #98a2b3;
-  font-size: 10px;
+  font-size: var(--font-size-caption);
 }
 
 .notification-page-list article strong {
   color: #253047;
-  font-size: 13px;
+  font-size: var(--font-size-subtitle);
 }
 
 .notification-page-description {
   overflow: hidden;
   color: #667085;
-  font-size: 11px;
+  font-size: var(--font-size-small);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1138,8 +1138,8 @@ body .term-help-trigger:focus-visible + .term-help-content {
   background: #fff;
   padding: 8px 11px;
   color: var(--trust-blue-700);
-  font-size: 10px;
-  font-weight: 800;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
@@ -1162,13 +1162,13 @@ body .term-help-trigger:focus-visible + .term-help-content {
 .notification-page-empty strong {
   display: block;
   color: #344054;
-  font-size: 14px;
+  font-size: var(--font-size-subtitle);
 }
 
 .notification-page-empty p {
   margin: 7px 0 0;
   color: #8490a4;
-  font-size: 11px;
+  font-size: var(--font-size-body);
 }
 
 @media (max-width: 620px) {

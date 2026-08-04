@@ -24,6 +24,36 @@
   --krds-focus: 0 0 0 3px rgba(36, 107, 235, .2);
 }
 
+/* Shared semantic typography roles that span multiple feature stylesheets. */
+.dashboard-kpi strong,
+.annual-donut-center strong,
+.report-summary-list strong,
+.disaster-chart-total strong,
+.disaster-pie strong,
+.dashboard-donut strong,
+.shelter-stats strong,
+.case-metric strong,
+.priority-stat b,
+.metric,
+.score,
+.verdict-value,
+.report-management-metrics strong,
+.analysis-score-grid strong,
+.approval-metrics strong,
+.review-metrics strong,
+.urgency-total strong,
+.support-amount strong,
+.notification-page-summary strong {
+  line-height: var(--line-height-metric);
+  font-variant-numeric: tabular-nums;
+}
+
+.paper div b {
+  font-size: var(--font-size-subtitle);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-default);
+}
+
 html {
   background: var(--krds-canvas);
 }
@@ -37,7 +67,7 @@ body,
 
 body {
   min-width: 320px;
-  font-family: Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+  font-family: var(--font-family-base);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -114,7 +144,7 @@ textarea:focus-visible {
   gap: 7px;
   margin: 0;
   color: var(--krds-gray-700);
-  font-size: 11px;
+  font-size: var(--font-size-body);
 }
 
 .krds-flag {
@@ -127,7 +157,7 @@ textarea:focus-visible {
   border: 1px solid #d7dce0;
   background: #fff;
   color: #cd2e3a;
-  font-size: 8px;
+  font-size: var(--icon-font-size-8);
 }
 
 .krds-flag::after {
@@ -155,7 +185,7 @@ textarea:focus-visible {
   background: transparent;
   padding: 4px 0;
   color: var(--krds-gray-700);
-  font-size: 11px;
+  font-size: var(--font-size-button);
   cursor: pointer;
 }
 
@@ -210,15 +240,15 @@ textarea:focus-visible {
 
 .krds-brand-copy strong {
   color: var(--krds-gray-950);
-  font-size: 22px;
-  font-weight: 850;
-  letter-spacing: -.7px;
+  font-size: var(--font-size-card);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-default);
 }
 
 .krds-brand-copy small {
   color: var(--krds-gray-600);
-  font-size: 11px;
-  font-weight: 650;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
 }
 
 .krds-header-actions {
@@ -281,15 +311,15 @@ textarea:focus-visible {
 
 .login-page-centered .login-brand-copy strong {
   color: var(--krds-gray-950);
-  font-size: 25px;
-  line-height: 1;
-  letter-spacing: -0.5px;
+  font-size: var(--font-size-card);
+  line-height: var(--line-height-default);
+  letter-spacing: var(--letter-spacing-default);
 }
 
 .login-page-centered .login-brand-copy small {
   color: var(--krds-gray-600);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
 }
 
 .login-page-centered .login-heading {
@@ -299,23 +329,23 @@ textarea:focus-visible {
 .login-page-centered .login-heading .login-kicker {
   margin: 0 0 10px;
   color: var(--krds-primary-700);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.05em;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-default);
 }
 
 .login-page-centered .login-heading h1 {
   margin: 0;
   color: var(--krds-gray-950);
-  font-size: 31px;
-  line-height: 1.25;
-  letter-spacing: -1.2px;
+  font-size: var(--font-size-page);
+  line-height: var(--line-height-default);
+  letter-spacing: var(--letter-spacing-display);
 }
 
 .login-page-centered .login-heading > p:last-child {
   margin: 10px 0 26px;
   color: var(--krds-gray-600);
-  font-size: 14px;
+  font-size: var(--font-size-subtitle);
 }
 
 .login-page-centered .login-form label {
@@ -355,7 +385,7 @@ textarea:focus-visible {
   }
 
   .login-page-centered .login-heading h1 {
-    font-size: 27px;
+    font-size: var(--font-size-page);
   }
 }
 
@@ -418,16 +448,16 @@ textarea:focus-visible {
 
 .krds-refresh-summary small {
   color: var(--krds-gray-500);
-  font-size: 11px;
-  line-height: 1.3;
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-default);
 }
 
 .krds-refresh-summary time {
   color: var(--krds-gray-700);
-  font-size: 11px;
+  font-size: var(--body-xsmall);
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
-  line-height: 1.3;
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-default);
   white-space: nowrap;
 }
 
@@ -482,7 +512,7 @@ textarea:focus-visible {
   background: transparent;
   color: var(--krds-gray-900);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--font-size-body);
   outline: 0;
 }
 
@@ -493,8 +523,8 @@ textarea:focus-visible {
   background: var(--krds-primary-700);
   color: #fff;
   font: inherit;
-  font-size: 13px;
-  font-weight: 750;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
@@ -510,7 +540,7 @@ textarea:focus-visible {
   background: transparent;
   color: var(--krds-gray-600);
   font: inherit;
-  font-size: 24px;
+  font-size: var(--icon-font-size-24);
   cursor: pointer;
 }
 
@@ -568,8 +598,8 @@ textarea:focus-visible {
 }
 
 .krds-icon-action span {
-  font-size: 10px;
-  font-weight: 750;
+  font-size: var(--icon-font-size-10);
+  font-weight: var(--font-weight-bold);
 }
 
 .notification-menu {
@@ -594,8 +624,8 @@ textarea:focus-visible {
   background: var(--krds-danger);
   padding: 0 4px;
   color: #fff;
-  font-size: 9px;
-  font-weight: 800;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
 }
 
 .krds-user-summary {
@@ -615,8 +645,8 @@ textarea:focus-visible {
   border-radius: 50%;
   background: var(--krds-primary-50);
   color: var(--krds-primary-800);
-  font-size: 14px;
-  font-weight: 850;
+  font-size: var(--icon-font-size-14);
+  font-weight: var(--font-weight-bold);
 }
 
 .krds-user-summary > span:last-child {
@@ -628,12 +658,14 @@ textarea:focus-visible {
 
 .krds-user-summary strong {
   color: var(--krds-gray-950);
-  font-size: 12px;
+  font-size: var(--body-small);
+  font-weight: var(--font-weight-bold);
 }
 
 .krds-user-summary small {
   color: var(--krds-gray-500);
-  font-size: 10px;
+  font-size: var(--body-xsmall);
+  font-weight: var(--font-weight-regular);
 }
 
 .krds-logout {
@@ -643,8 +675,8 @@ textarea:focus-visible {
   background: #fff;
   padding: 0 13px;
   color: var(--krds-gray-800);
-  font-size: 11px;
-  font-weight: 750;
+  font-size: var(--label-small);
+  font-weight: var(--font-weight-regular);
   cursor: pointer;
 }
 
@@ -673,10 +705,12 @@ textarea:focus-visible {
 
 .krds-main-navigation {
   display: flex;
+  height: 64px;
   min-width: 0;
-  align-self: stretch;
-  align-items: stretch;
-  gap: 6px;
+  margin-left: 64px;
+  align-self: center;
+  align-items: center;
+  gap: 0;
   background: #fff;
 }
 
@@ -684,16 +718,18 @@ textarea:focus-visible {
 .krds-gnb-group > button {
   position: relative;
   display: flex;
+  height: 64px;
   min-width: 112px;
   align-items: center;
   justify-content: center;
   gap: 8px;
   border: 0;
   background: transparent;
-  padding: 0 18px;
-  color: var(--krds-gray-800);
-  font-size: 16px;
-  font-weight: 800;
+  padding-inline: 24px;
+  color: #1d2733;
+  font-size: var(--navigation-depth-medium);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-label);
   text-decoration: none;
   cursor: pointer;
 }
@@ -701,9 +737,9 @@ textarea:focus-visible {
 .krds-gnb-link::after,
 .krds-gnb-group > button::after {
   position: absolute;
-  right: 18px;
-  bottom: -1px;
-  left: 18px;
+  right: 22px;
+  bottom: 0;
+  left: 22px;
   height: 3px;
   background: transparent;
   content: "";
@@ -714,12 +750,36 @@ textarea:focus-visible {
 .krds-gnb-group > button:hover,
 .krds-gnb-group.active > button,
 .krds-gnb-group.open > button {
-  color: var(--krds-primary-800);
+  color: #003675;
+}
+
+.krds-gnb-link.active,
+.krds-gnb-group.active > button,
+.krds-gnb-group.open > button {
+  font-weight: var(--font-weight-bold);
 }
 
 .krds-gnb-link.active::after,
 .krds-gnb-group.active > button::after {
-  background: var(--krds-primary-700);
+  background: #003675;
+}
+
+@media (max-width: 1400px) {
+  .krds-main-navigation {
+    margin-left: 32px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .krds-main-navigation {
+    margin-left: 24px;
+  }
+
+  .krds-gnb-link,
+  .krds-gnb-group > button {
+    padding-inline: 16px;
+    font-size: var(--navigation-depth-small);
+  }
 }
 
 .krds-gnb-group {
@@ -772,22 +832,22 @@ textarea:focus-visible {
 .krds-mega-eyebrow {
   margin: 0 0 8px;
   color: var(--krds-primary-700);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: 1px;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-default);
 }
 
 .krds-mega-menu h2 {
   margin: 0 0 9px;
   color: var(--krds-gray-950);
-  font-size: 21px;
+  font-size: var(--font-size-section);
 }
 
 .krds-mega-menu > div > p:last-child {
   margin: 0;
   color: var(--krds-gray-600);
-  font-size: 11px;
-  line-height: 1.6;
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-default);
 }
 
 .krds-mega-menu ul {
@@ -816,12 +876,12 @@ textarea:focus-visible {
 
 .krds-mega-menu strong {
   color: var(--krds-gray-900);
-  font-size: 12px;
+  font-size: var(--font-size-subtitle);
 }
 
 .krds-mega-menu span {
   color: var(--krds-gray-500);
-  font-size: 9px;
+  font-size: var(--font-size-body);
 }
 
 .krds-global-search {
@@ -846,8 +906,8 @@ textarea:focus-visible {
 
 .krds-global-search label {
   color: var(--krds-gray-950);
-  font-size: 17px;
-  font-weight: 850;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
 }
 
 .krds-global-search form > div {
@@ -875,7 +935,7 @@ textarea:focus-visible {
   border-radius: 0 8px 8px 0;
   background: var(--krds-primary-700);
   color: #fff;
-  font-weight: 800;
+  font-weight: var(--font-weight-medium);
 }
 
 .krds-global-search svg {
@@ -889,7 +949,7 @@ textarea:focus-visible {
   border: 0;
   background: transparent;
   color: var(--krds-gray-600);
-  font-size: 12px;
+  font-size: var(--icon-font-size-12);
   text-decoration: underline;
 }
 
@@ -923,14 +983,14 @@ textarea:focus-visible {
 
 .notification-panel > header strong {
   color: var(--krds-gray-950);
-  font-size: 16px;
+  font-size: var(--font-size-subtitle);
 }
 
 .notification-panel > header span,
 .notification-panel > header button,
 .notification-footer {
   color: var(--krds-primary-700);
-  font-size: 10px;
+  font-size: var(--font-size-button);
 }
 
 .notification-panel button {
@@ -987,23 +1047,23 @@ textarea:focus-visible {
 
 .notification-copy strong {
   color: var(--krds-gray-800);
-  font-size: 12px;
+  font-size: var(--font-size-small);
 }
 
 .notification-copy > span {
   color: var(--krds-gray-600);
-  font-size: 10px;
+  font-size: var(--font-size-small);
 }
 
 .notification-copy time {
   color: var(--krds-gray-500);
-  font-size: 9px;
+  font-size: var(--font-size-caption);
 }
 
 .notification-footer {
   width: 100%;
   padding: 12px;
-  font-weight: 750;
+  font-weight: var(--font-weight-medium);
 }
 
 /* Page hierarchy */
@@ -1028,8 +1088,8 @@ textarea:focus-visible {
 .breadcrumb {
   margin: 0 0 8px;
   color: var(--krds-primary-700);
-  font-size: 11px;
-  font-weight: 750;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
 }
 
 .case-page-head h1,
@@ -1037,9 +1097,9 @@ textarea:focus-visible {
   margin: 0;
   background: none;
   color: var(--krds-gray-950);
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: -1.2px;
+  font-size: var(--font-size-page);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-display);
   -webkit-text-fill-color: currentColor;
 }
 
@@ -1048,7 +1108,7 @@ textarea:focus-visible {
   display: block;
   margin-top: 9px;
   color: var(--krds-gray-600);
-  font-size: 12px;
+  font-size: var(--font-size-small);
 }
 
 .case-page-head-actions {
@@ -1105,8 +1165,8 @@ textarea:focus-visible {
 .case-metric > span,
 .case-metric p {
   color: var(--krds-gray-600);
-  font-size: 12px;
-  font-weight: 750;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
 }
 
 .case-metric strong,
@@ -1116,25 +1176,32 @@ textarea:focus-visible {
   display: block;
   margin: 12px 0 0;
   color: var(--krds-gray-950);
-  font-size: 31px;
+  font-size: var(--font-size-kpi);
 }
 
 .case-metric strong small {
   margin-left: 3px;
   color: var(--krds-gray-700);
-  font-size: 13px;
+  font-size: var(--font-size-caption);
 }
 
 .section-heading h2,
 .list-title h2,
+.priority-report-heading h2 {
+  margin: 0;
+  color: var(--krds-gray-950);
+  font-size: var(--heading-small);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-default);
+}
+
 .dashboard-card-title h2,
-.priority-report-heading h2,
 .card h2 {
   margin: 0;
   color: var(--krds-gray-950);
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: -.4px;
+  font-size: var(--heading-xsmall);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-default);
 }
 
 .section-heading p,
@@ -1144,6 +1211,16 @@ textarea:focus-visible {
 .priority-report-heading p,
 .card-sub {
   color: var(--krds-gray-600);
+}
+
+/* Reading-oriented copy keeps KRDS Body medium; data UI uses Body small/xsmall. */
+.report-description p,
+.paper > p,
+.evidence-details p,
+.review-stage-locked p {
+  font-size: var(--body-medium);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
 }
 
 /* Forms and actions */
@@ -1160,8 +1237,8 @@ textarea:focus-visible {
   min-height: 40px;
   border-radius: 7px;
   padding: 9px 15px;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: var(--label-small);
+  font-weight: var(--font-weight-medium);
   box-shadow: none;
   cursor: pointer;
 }
@@ -1173,6 +1250,7 @@ textarea:focus-visible {
   border: 1px solid var(--krds-primary-700);
   background: var(--krds-primary-700);
   color: #fff;
+  font-weight: var(--font-weight-bold);
 }
 
 .primary-action:hover,
@@ -1214,6 +1292,8 @@ textarea:focus-visible {
   border-radius: 7px;
   background: #fff;
   color: var(--krds-gray-950);
+  font-size: var(--label-small);
+  font-weight: var(--font-weight-regular);
 }
 
 .filter-grid input:focus,
@@ -1259,8 +1339,9 @@ textarea:focus-visible {
   border-bottom: 1px solid var(--krds-gray-300);
   background: var(--krds-gray-50);
   color: var(--krds-gray-700);
-  font-size: 11px;
-  font-weight: 800;
+  font-size: var(--body-small);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-body);
 }
 
 .case-table td,
@@ -1268,13 +1349,16 @@ textarea:focus-visible {
 .stage-table td {
   border-bottom: 1px solid var(--krds-gray-100);
   color: var(--krds-gray-700);
-  font-size: 11px;
+  font-size: var(--body-small);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
 }
 
 .case-table td strong,
 .priority-report-table td > strong,
 .stage-table td strong {
   color: var(--krds-gray-950);
+  font-weight: var(--font-weight-bold);
 }
 
 .clickable-row:hover {
@@ -1297,6 +1381,8 @@ textarea:focus-visible {
   border-radius: 5px;
   background: #fff;
   color: var(--krds-gray-700);
+  font-size: var(--label-xsmall);
+  font-weight: var(--font-weight-medium);
 }
 
 .pagination button.current {
@@ -1322,7 +1408,9 @@ textarea:focus-visible {
   border-radius: 999px;
   background: var(--krds-gray-50);
   color: var(--krds-gray-700);
-  font-weight: 800;
+  font-size: var(--label-xsmall);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-label);
   box-shadow: none;
 }
 
@@ -1602,16 +1690,16 @@ textarea:focus-visible {
 .notification-page-summary span {
   display: block;
   color: var(--krds-gray-700);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
 }
 
 .notification-page-summary strong {
   display: block;
   margin-top: 12px;
   color: var(--krds-gray-950);
-  font-size: 30px;
-  line-height: 1;
+  font-size: var(--font-size-kpi);
+  line-height: var(--line-height-metric);
 }
 
 .notification-page-summary article:last-child strong {
@@ -1621,7 +1709,7 @@ textarea:focus-visible {
 .notification-page-summary small {
   margin-left: 3px;
   color: var(--krds-gray-700);
-  font-size: 12px;
+  font-size: var(--font-size-caption);
 }
 
 .notification-page-card {
@@ -1655,8 +1743,8 @@ textarea:focus-visible {
   padding: 8px 14px;
   color: var(--krds-gray-700);
   font: inherit;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
@@ -1742,7 +1830,7 @@ textarea:focus-visible {
   background: var(--krds-gray-100);
   padding: 4px 8px;
   color: var(--krds-gray-700);
-  font-size: 10px;
+  font-size: var(--font-size-caption);
 }
 
 .notification-page-list .unread .notification-page-meta b {
@@ -1752,20 +1840,20 @@ textarea:focus-visible {
 
 .notification-page-meta time {
   color: var(--krds-gray-500);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
 }
 
 .notification-page-list article strong {
   color: var(--krds-gray-900);
-  font-size: 15px;
-  line-height: 1.45;
+  font-size: var(--font-size-subtitle);
+  line-height: var(--line-height-default);
 }
 
 .notification-page-description {
   overflow: hidden;
   color: var(--krds-gray-600);
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-default);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1778,8 +1866,8 @@ textarea:focus-visible {
   padding: 8px 13px;
   color: var(--krds-primary-700);
   font: inherit;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
@@ -1814,13 +1902,13 @@ textarea:focus-visible {
 .notification-page-empty strong {
   display: block;
   color: var(--krds-gray-900);
-  font-size: 15px;
+  font-size: var(--font-size-subtitle);
 }
 
 .notification-page-empty p {
   margin: 8px 0 0;
   color: var(--krds-gray-600);
-  font-size: 12px;
+  font-size: var(--font-size-body);
 }
 
 @media (max-width: 620px) {
@@ -1888,18 +1976,18 @@ textarea:focus-visible {
 .case-modal header p {
   margin: 0 0 7px;
   color: var(--krds-primary-700);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -.1px;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-default);
 }
 
 .case-modal h2 {
   margin: 0;
   color: var(--krds-gray-900);
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -.5px;
-  line-height: 1.4;
+  font-size: var(--font-size-section);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-default);
+  line-height: var(--line-height-default);
 }
 
 .modal-close {
@@ -1914,9 +2002,9 @@ textarea:focus-visible {
   border-radius: 6px;
   background: transparent;
   color: var(--krds-gray-700);
-  font-size: 30px;
-  font-weight: 300;
-  line-height: 1;
+  font-size: var(--icon-font-size-30);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-icon);
   cursor: pointer;
 }
 
@@ -1934,8 +2022,8 @@ textarea:focus-visible {
   margin: 0;
   padding: 28px 24px;
   color: var(--krds-gray-700);
-  font-size: 15px;
-  line-height: 1.7;
+  font-size: var(--font-size-subtitle);
+  line-height: var(--line-height-default);
 }
 
 .decision-modal > .modal-approver {
@@ -1948,12 +2036,12 @@ textarea:focus-visible {
   background: var(--krds-gray-50);
   padding: 14px 16px;
   color: var(--krds-gray-700);
-  font-size: 13px;
+  font-size: var(--font-size-small);
 }
 
 .decision-modal > .modal-approver strong {
   color: var(--krds-gray-900);
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 
 .decision-modal > .decision-form {
@@ -1972,8 +2060,8 @@ textarea:focus-visible {
 .decision-form .decision-guide {
   margin: 0;
   color: var(--krds-gray-700);
-  font-size: 15px;
-  line-height: 1.7;
+  font-size: var(--font-size-subtitle);
+  line-height: var(--line-height-default);
 }
 
 .decision-guide strong {
@@ -1983,8 +2071,8 @@ textarea:focus-visible {
 .decision-form label,
 .case-form label {
   color: var(--krds-gray-800);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
 }
 
 .decision-form select,
@@ -2021,8 +2109,8 @@ textarea:focus-visible {
   margin: 0;
   padding: 20px 24px 0;
   color: var(--krds-gray-700);
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-default);
 }
 
 .case-edit-modal > .case-form {
@@ -2048,22 +2136,22 @@ textarea:focus-visible {
 .krds-file-upload .file-head h3 {
   margin: 0;
   color: var(--krds-gray-900);
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--font-size-subtitle);
+  font-weight: var(--font-weight-bold);
 }
 
 .krds-file-upload .file-head span {
   display: block;
   margin-top: 5px;
   color: var(--krds-gray-600);
-  font-size: 12px;
-  font-weight: 400;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
 }
 
 .krds-file-upload .file-head strong {
   flex: 0 0 auto;
   color: var(--krds-gray-700);
-  font-size: 12px;
+  font-size: var(--font-size-subtitle);
 }
 
 .file-upload-drop {
@@ -2096,15 +2184,15 @@ textarea:focus-visible {
   border-radius: 50%;
   background: #fff;
   color: var(--krds-primary-700);
-  font-size: 20px;
-  font-weight: 700;
+  font-size: var(--icon-font-size-20);
+  font-weight: var(--font-weight-bold);
 }
 
 .file-upload-drop p {
   margin: 0;
   color: var(--krds-gray-700);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-default);
 }
 
 .case-form .file-select-button {
@@ -2117,8 +2205,8 @@ textarea:focus-visible {
   background: #fff;
   padding: 8px 14px;
   color: var(--krds-primary-700);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
@@ -2167,15 +2255,15 @@ textarea:focus-visible {
   border-radius: 50%;
   background: var(--krds-primary-50);
   color: var(--krds-primary-700);
-  font-size: 12px;
-  font-weight: 800;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
 }
 
 .krds-file-upload .file-name {
   overflow: hidden;
   color: var(--krds-gray-800);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2183,7 +2271,7 @@ textarea:focus-visible {
 .krds-file-upload .file-list small {
   flex: 0 0 auto;
   color: var(--krds-gray-600);
-  font-size: 11px;
+  font-size: var(--font-size-caption);
 }
 
 .krds-file-upload .file-list button {
@@ -2194,8 +2282,8 @@ textarea:focus-visible {
   padding: 6px 8px;
   color: var(--krds-danger);
   font: inherit;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
@@ -2232,7 +2320,7 @@ textarea:focus-visible {
   min-height: 42px;
   border-radius: 6px;
   padding: 10px 18px;
-  font-size: 14px;
+  font-size: var(--font-size-button);
 }
 
 .case-modal .secondary-action {
@@ -2294,7 +2382,7 @@ textarea:focus-visible {
   }
 
   .case-modal h2 {
-    font-size: 20px;
+    font-size: var(--font-size-section);
   }
 
   .modal-close {
@@ -2392,8 +2480,8 @@ textarea:focus-visible {
   border-right: 1px solid var(--krds-gray-200);
   padding: 0 20px;
   color: var(--krds-gray-800);
-  font-size: 12px;
-  font-weight: 750;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
 }
 
@@ -2408,8 +2496,8 @@ textarea:focus-visible {
 
 .krds-quick-plus {
   color: var(--krds-gray-600);
-  font-size: 18px;
-  font-weight: 400;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
   transition: transform .18s ease;
 }
 
@@ -2434,14 +2522,14 @@ textarea:focus-visible {
 
 .krds-footer-brand strong {
   color: var(--krds-gray-950);
-  font-size: 18px;
-  font-weight: 850;
-  letter-spacing: -.5px;
+  font-size: var(--font-size-subtitle);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-default);
 }
 
 .krds-footer-brand small {
   color: var(--krds-gray-600);
-  font-size: 10px;
+  font-size: var(--font-size-caption);
 }
 
 .krds-footer-mark,
@@ -2499,8 +2587,8 @@ textarea:focus-visible {
 .krds-footer-contact p {
   margin: 0 0 16px;
   color: var(--krds-gray-800);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
 }
 
 .krds-footer-contact ul {
@@ -2519,12 +2607,12 @@ textarea:focus-visible {
 
 .krds-footer-contact strong {
   color: var(--krds-gray-950);
-  font-size: 12px;
+  font-size: var(--font-size-subtitle);
 }
 
 .krds-footer-contact span {
   color: var(--krds-gray-600);
-  font-size: 10px;
+  font-size: var(--font-size-body);
 }
 
 .krds-footer-utility {
@@ -2541,8 +2629,8 @@ textarea:focus-visible {
   align-items: center;
   justify-content: space-between;
   color: var(--krds-gray-800);
-  font-size: 11px;
-  font-weight: 750;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
   text-decoration: none;
 }
 
@@ -2578,7 +2666,7 @@ textarea:focus-visible {
 .krds-policy-links span {
   position: relative;
   color: var(--krds-gray-700);
-  font-size: 10px;
+  font-size: var(--font-size-body);
 }
 
 .krds-policy-links span:not(:last-child)::after {
@@ -2593,13 +2681,13 @@ textarea:focus-visible {
 
 .krds-policy-links .point {
   color: var(--krds-primary-700);
-  font-weight: 850;
+  font-weight: var(--font-weight-bold);
 }
 
 .krds-footer-bottom p {
   margin: 8px 0 0;
   color: var(--krds-gray-500);
-  font-size: 9px;
+  font-size: var(--font-size-body);
 }
 
 .krds-government-identifier {
@@ -2607,7 +2695,7 @@ textarea:focus-visible {
   align-items: center;
   gap: 9px;
   color: var(--krds-gray-600);
-  font-size: 10px;
+  font-size: var(--font-size-body);
 }
 
 .krds-mini-mark {
@@ -2655,6 +2743,10 @@ textarea:focus-visible {
     padding-inline: 20px;
   }
 
+  .krds-main-navigation {
+    margin-left: 56px;
+  }
+
   .krds-brand-row .krds-header-inner {
     min-height: 76px;
   }
@@ -2667,7 +2759,7 @@ textarea:focus-visible {
   .krds-gnb-group > button {
     min-width: 120px;
     padding-inline: 16px;
-    font-size: 14px;
+    font-size: var(--font-size-button);
   }
 
   .app-content .workspace,
@@ -2723,7 +2815,7 @@ textarea:focus-visible {
   }
 
   .krds-brand-copy strong {
-    font-size: 18px;
+    font-size: var(--font-size-card);
   }
 
   .krds-mobile-menu-button {
@@ -2734,6 +2826,8 @@ textarea:focus-visible {
   .krds-main-navigation {
     display: none;
     position: fixed;
+    height: auto;
+    margin-left: 0;
     top: 68px;
     right: 0;
     bottom: 0;
@@ -2766,7 +2860,7 @@ textarea:focus-visible {
     justify-content: space-between;
     border-bottom: 1px solid var(--krds-gray-100);
     padding: 0 10px;
-    font-size: 16px;
+    font-size: var(--font-size-button);
   }
 
   .krds-gnb-link::after,
@@ -2837,7 +2931,7 @@ textarea:focus-visible {
 
   .case-page-head h1,
   .page-head h1 {
-    font-size: 28px;
+    font-size: var(--font-size-page);
   }
 
   .case-page-head-actions {

@@ -93,15 +93,15 @@
 
 .detail-info-tiles dt {
   color: #77869b;
-  font-size: 10px;
+  font-size: var(--font-size-small);
 }
 
 .detail-info-tiles dd {
   margin: 5px 0 0;
   overflow-wrap: anywhere;
   color: #24334b;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
 }
 
 .case-detail-redesign .detail-info-card .report-description {
@@ -146,16 +146,16 @@
 .detail-ai-top h2 {
   margin: 5px 0 8px;
   color: #142c5c;
-  font-size: 25px;
-  letter-spacing: -.7px;
+  font-size: var(--font-size-section);
+  letter-spacing: var(--letter-spacing-default);
 }
 
 .detail-ai-top > div > p:not(.request-kicker) {
   max-width: 430px;
   margin: 0;
   color: #62728a;
-  font-size: 12px;
-  line-height: 1.65;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-default);
 }
 
 .detail-ai-card .request-kicker {
@@ -172,11 +172,11 @@
   width: 100%;
   margin-top: 18px;
   padding-block: 13px;
-  font-size: 14px;
+  font-size: var(--font-size-button);
 }
 
 .detail-ai-button span {
-  font-size: 17px;
+  font-size: var(--font-size-button);
 }
 
 .detail-ai-visual {
@@ -209,8 +209,8 @@
   background: linear-gradient(145deg, #60a5fa, #2563eb);
   color: #fff;
   box-shadow: 0 18px 38px rgba(37, 99, 235, .24);
-  font-size: 22px;
-  font-weight: 900;
+  font-size: var(--icon-font-size-22);
+  font-weight: var(--font-weight-bold);
   transform: rotate(-6deg);
 }
 
@@ -247,7 +247,7 @@
 .detail-ai-ready h3 {
   margin: 0 0 6px;
   color: #293d5f;
-  font-size: 13px;
+  font-size: var(--font-size-subtitle);
 }
 
 .detail-ai-ready ul {
@@ -263,7 +263,7 @@
   padding: 9px 0;
   border-bottom: 1px solid #e8edf5;
   color: #69788d;
-  font-size: 11px;
+  font-size: var(--font-size-body);
 }
 
 .detail-ai-ready li:last-child {
@@ -272,7 +272,7 @@
 
 .detail-ai-ready b {
   color: #2563eb;
-  font-size: 11px;
+  font-size: var(--font-size-subtitle);
 }
 
 .detail-ai-result-guide {
@@ -281,12 +281,12 @@
   margin-top: auto;
   padding-top: 16px;
   color: #67768b;
-  font-size: 10px;
+  font-size: var(--font-size-small);
 }
 
 .detail-ai-result-guide strong {
   color: #294064;
-  font-size: 11px;
+  font-size: var(--font-size-small);
 }
 
 @media (max-width: 1100px) {

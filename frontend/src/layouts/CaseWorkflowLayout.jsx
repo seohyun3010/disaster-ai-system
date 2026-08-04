@@ -139,6 +139,7 @@ const CaseWorkflowLayout = () => {
 
   const {
     maxUnlockedStage,
+    skipsSeverity,
     canAccessStage,
   } = useWorkflowNavigation(caseId, {
     subsidyConfirmed,
@@ -349,9 +350,11 @@ const CaseWorkflowLayout = () => {
             {STEPS.map((step, index) => {
               const stageNumber = index + 1;
               const unlocked = historyView || canAccessStage(stageNumber);
+              const skipped = skipsSeverity && stageNumber === 3;
 
               const wasPassed = (
                 stageNumber < maxUnlockedStage
+                && !skipped
               );
 
               let stepState = 'pending';
@@ -377,6 +380,8 @@ const CaseWorkflowLayout = () => {
 
               if (index === activeIndex) {
                 description = historyView ? '현재 단계 · 읽기 전용' : '현재 단계';
+              } else if (skipped) {
+                description = '미산출 · 건너뜀';
               } else if (
                 historyView
               ) {
@@ -407,11 +412,15 @@ const CaseWorkflowLayout = () => {
                     title={
                       unlocked
                         ? undefined
-                        : '이전 단계를 완료하면 이동할 수 있습니다.'
+                        : skipped
+                          ? 'DS0·DS1 피해등급은 복구 긴급도를 산출하지 않습니다.'
+                          : '이전 단계를 완료하면 이동할 수 있습니다.'
                     }
                   >
                     <span className="workflow-step-number">
-                      {completed[index] || wasPassed
+                      {skipped
+                        ? '—'
+                        : completed[index] || wasPassed
                         ? '✓'
                         : stageNumber}
                     </span>

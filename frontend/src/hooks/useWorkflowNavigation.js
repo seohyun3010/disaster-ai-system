@@ -47,6 +47,7 @@
 import { useEffect } from 'react';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useWorkflowStore } from '../stores/workflowStore';
+import { isDs2Grade, isZeroSupportGrade } from '../utils/reviewRules';
 
 const REVIEW_COMPLETED_STATUSES = ['승인', '수정 승인'];
 
@@ -137,18 +138,18 @@ export const useWorkflowNavigation = (caseId, options = {}) => {
     subsidyConfirmed,
   );
 
-  const maxUnlockedStage = Math.max(
-    storedStage,
-    derivedStage,
-  );
-
   const reviewedGrade = analysis?.reviewedGrade
     || workflow?.reviewedGrade
     || workflow?.confirmedGrade
     || workflow?.damageGrade
     || analysis?.result?.recommendedGrade;
-  const reviewedGradeCode = String(reviewedGrade || '').match(/DS[0-4]/i)?.[0]?.toUpperCase();
-  const skipsSeverityAndSupport = ['DS0', 'DS1', 'DS2'].includes(reviewedGradeCode);
+  const isPendingHold = analysis?.reviewStatus === '보류'
+    && !analysis?.holdFieldVerified;
+  const locksGeneralReviewStages = isPendingHold || isDs2Grade(reviewedGrade);
+  const skipsSeverity = isZeroSupportGrade(reviewedGrade);
+  const maxUnlockedStage = locksGeneralReviewStages
+    ? Math.min(2, Math.max(storedStage, derivedStage))
+    : Math.max(storedStage, derivedStage);
 
   useEffect(() => {
     if (!caseId) return;
@@ -165,6 +166,7 @@ export const useWorkflowNavigation = (caseId, options = {}) => {
 
   return {
     maxUnlockedStage,
+    skipsSeverity,
 
     unlockStage: (stage) => {
       if (!caseId) return;
@@ -177,7 +179,7 @@ export const useWorkflowNavigation = (caseId, options = {}) => {
 
     canAccessStage: (stage) => (
       clampStage(stage) <= maxUnlockedStage
-      && !(skipsSeverityAndSupport && [3, 4].includes(clampStage(stage)))
+      && !(skipsSeverity && clampStage(stage) === 3)
     ),
   };
 };

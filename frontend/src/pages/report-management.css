@@ -17,20 +17,20 @@
 .report-management-metrics span {
   display: block;
   color: #667085;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
 }
 
 .report-management-metrics strong {
   display: block;
   margin-top: 9px;
   color: #1d2939;
-  font-size: 28px;
+  font-size: var(--font-size-kpi-compact);
 }
 
 .report-management-metrics small {
   margin-left: 3px;
-  font-size: 11px;
+  font-size: var(--font-size-caption);
 }
 
 .report-management-card {
@@ -50,7 +50,7 @@
 .report-management-card .history-section-head p {
   margin: 7px 0 0;
   color: var(--krds-gray-600);
-  font-size: 11px;
+  font-size: var(--font-size-body);
 }
 
 .report-management-card .history-section-head p strong {
@@ -71,8 +71,8 @@
   max-width: 520px;
   gap: 7px;
   color: #596e72;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-medium);
 }
 
 .report-management-toolbar input {
@@ -83,13 +83,13 @@
   padding: 11px 12px;
   color: #304145;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--font-size-body);
 }
 
 .report-management-count {
   margin: 0;
   color: var(--krds-gray-600);
-  font-size: 12px;
+  font-size: var(--font-size-body);
   white-space: nowrap;
 }
 
@@ -128,7 +128,7 @@
 .approval-history-page .approval-log-table th,
 .approval-history-page .approval-log-table td {
   padding: 17px 12px;
-  line-height: 1.5;
+  line-height: var(--line-height-default);
 }
 
 .approval-history-page .approval-log-table th:nth-child(1) { width: 9%; }
@@ -159,8 +159,8 @@
   align-items: center;
   gap: 8px;
   color: var(--krds-gray-800);
-  font-size: 11px;
-  font-weight: 750;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
 }
 
@@ -191,8 +191,8 @@
   background: transparent;
   padding: 7px 4px;
   color: var(--krds-primary-700);
-  font-size: 11px;
-  font-weight: 800;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
@@ -206,8 +206,8 @@
   background: var(--krds-primary-50);
   padding: 5px 8px;
   color: var(--krds-primary-800);
-  font-size: 10px;
-  font-weight: 800;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
 }
 
 .report-sort-controls {
@@ -218,8 +218,8 @@
 .report-sort-buttons {
   gap: 8px;
   color: var(--krds-gray-700);
-  font-size: 10px;
-  font-weight: 750;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
 }
 
 .report-sort-controls select {
@@ -230,7 +230,9 @@
   background: #fff;
   padding: 0 28px 0 10px;
   color: var(--krds-gray-800);
-  font-size: 10px;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-label);
 }
 
 .report-sort-buttons button {
@@ -239,8 +241,8 @@
   background: transparent;
   padding: 6px 3px;
   color: var(--krds-gray-500);
-  font-size: 10px;
-  font-weight: 750;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
@@ -289,8 +291,8 @@
   border-bottom: 1px solid var(--krds-gray-200);
   padding: 17px 12px;
   color: var(--krds-gray-700);
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: var(--body-small);
+  line-height: var(--line-height-default);
   text-align: left;
   vertical-align: middle;
 }
@@ -298,7 +300,7 @@
 .report-structured-table thead th {
   background: var(--krds-gray-50);
   color: var(--krds-gray-800);
-  font-weight: 800;
+  font-weight: var(--font-weight-bold);
   white-space: nowrap;
 }
 
@@ -348,15 +350,15 @@
 .report-structured-table td b {
   display: block;
   color: var(--krds-gray-950);
-  font-size: 12px;
-  font-weight: 800;
+  font-size: var(--body-small);
+  font-weight: var(--font-weight-bold);
 }
 
 .report-structured-table td small {
   display: block;
   margin-top: 4px;
   color: var(--krds-gray-500);
-  font-size: 10px;
+  font-size: var(--font-size-caption);
 }
 
 .report-structured-table td:nth-child(5) {
@@ -394,8 +396,8 @@
   border-radius: 6px;
   background: transparent;
   color: var(--krds-gray-700);
-  font-size: 11px;
-  font-weight: 750;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
@@ -423,7 +425,7 @@
   display: block;
   margin-top: 4px;
   color: #8793a6;
-  font-size: 10px;
+  font-size: var(--font-size-caption);
 }
 
 .report-management-table td b {
@@ -524,8 +526,8 @@
   .report-structured-table td::before {
     color: var(--krds-gray-600);
     content: attr(data-label);
-    font-size: 10px;
-    font-weight: 750;
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-bold);
   }
 
   .report-structured-table .krds-report-check {

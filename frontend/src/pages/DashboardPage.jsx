@@ -153,9 +153,12 @@
 // export default DashboardPage;
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ArcElement, Chart as ChartJS, Tooltip } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import { getReports } from '../api/reportApi';
 import CaseMap from '../components/dashboard/CaseMap';
+import { ROUTES } from '../routes/routeConfig';
 import { useCaseStore } from '../stores/caseStore';
 import { buildDisasterEvents } from '../utils/disasterEvents';
 import '../components/dashboard/dashboard.css';
@@ -254,10 +257,13 @@ const formatDeadlineDate = (timestamp) => {
 const DashboardPage = () => {
   const fetchCases = useCaseStore((state) => state.fetchCases);
   const cases = useCaseStore((state) => state.cases);
+  const totalCases = useCaseStore((state) => state.total);
   const mapRef = useRef(null);
   const noticeIntervalRef = useRef(null);
   const [noticeIndex, setNoticeIndex] = useState(0);
   const [noticeCycleKey, setNoticeCycleKey] = useState(0);
+  const [generatedReportCount, setGeneratedReportCount] = useState(0);
+  const pendingReportCount = Math.max(totalCases - generatedReportCount, 0);
   const deadlineNotices = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -298,6 +304,18 @@ const DashboardPage = () => {
   useEffect(() => {
     fetchCases({ limit: 100, offset: 0 }).catch(() => {});
   }, [fetchCases]);
+
+  useEffect(() => {
+    let active = true;
+    getReports({ limit: 1, offset: 0 })
+      .then((result) => {
+        if (active) setGeneratedReportCount(Number(result.total) || 0);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (dashboardNotices.length <= 1) return undefined;
@@ -362,7 +380,7 @@ const DashboardPage = () => {
           </section>
 
           <article className="dashboard-card recent-card">
-            <CardTitle title="최근 접수" action="더보기 ›" />
+            <CardTitle title="최근 접수" action="더보기 ›" actionTo={ROUTES.CASES} />
             <ul className="recent-report-list">
               {REPORTS.slice(0, 6).map((row) => (
                 <li key={row[0]}>
@@ -375,11 +393,10 @@ const DashboardPage = () => {
           </article>
 
           <article className="dashboard-card report-summary-card">
-            <CardTitle title="보고서" action="전체 보기 ›" />
+            <CardTitle title="보고서" action="전체 보기 ›" actionTo={ROUTES.REPORT_MANAGEMENT} />
             <div className="report-summary-list">
-              <div><span>작성 대기</span><strong>12<small>건</small></strong></div>
-              <div><span>검토 중</span><strong>8<small>건</small></strong></div>
-              <div><span>작성 완료</span><strong>34<small>건</small></strong></div>
+              <div><span>생성 대기</span><strong>{pendingReportCount}<small>건</small></strong></div>
+              <div><span>생성 완료</span><strong>{generatedReportCount}<small>건</small></strong></div>
             </div>
           </article>
         </aside>
@@ -451,6 +468,6 @@ const DashboardPage = () => {
   );
 };
 
-const CardTitle = ({ title, action, meta }) => <header className="dashboard-card-title"><strong>{title}</strong><span>{action || meta || 'ⓘ'}</span></header>;
+const CardTitle = ({ title, action, meta, actionTo }) => <header className="dashboard-card-title"><strong>{title}</strong><span>{action && actionTo ? <Link to={actionTo} style={{ color: 'inherit', textDecoration: 'none' }}>{action}</Link> : action || meta || 'ⓘ'}</span></header>;
 
 export default DashboardPage;
