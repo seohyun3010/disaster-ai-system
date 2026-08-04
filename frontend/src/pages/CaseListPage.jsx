@@ -5,6 +5,7 @@ import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { buildDisasterEvents } from '../utils/disasterEvents';
+import { isZeroSupportGrade } from '../utils/reviewRules';
 import './case-list.css';
 import './report-management.css';
 
@@ -91,11 +92,19 @@ const getHeldReviewDestination = (grade) => {
     .match(/DS[0-4]/i)?.[0]
     ?.toUpperCase();
 
-  if (['DS0', 'DS1', 'DS2'].includes(gradeCode)) {
+  if (gradeCode === 'DS2') {
     return {
-      stage: 5,
-      path: 'final-approval',
-      label: '최종 승인',
+      stage: 2,
+      path: 'analysis',
+      label: '피해등급 재검토',
+    };
+  }
+
+  if (isZeroSupportGrade(gradeCode)) {
+    return {
+      stage: 4,
+      path: 'support',
+      label: '지원금 심사',
     };
   }
 

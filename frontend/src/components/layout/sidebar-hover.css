@@ -18,8 +18,8 @@
   padding: 12px 14px;
   color: #ccd7ee;
   font: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   text-align: left;
   cursor: pointer;
 }
@@ -41,7 +41,7 @@
 
 .sidebar-chevron {
   color: #8ea6d4;
-  font-size: 12px;
+  font-size: var(--icon-font-size-12);
   transition: transform .2s ease;
 }
 
@@ -73,7 +73,7 @@
   margin-left: 12px;
   padding: 9px 13px;
   color: #aebfe0;
-  font-size: 12px;
+  font-size: var(--font-size-small);
 }
 
 .sidebar nav .sidebar-submenu a:hover {
@@ -117,7 +117,7 @@
     display: flex;
     justify-content: center;
     padding: 13px 6px;
-    font-size: 0;
+    font-size: var(--font-size-button);
   }
 
   .sidebar-chevron,

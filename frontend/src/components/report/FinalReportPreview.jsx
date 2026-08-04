@@ -41,7 +41,7 @@ const FinalReportPreview = ({
 
       <div className="final-report-result">
         <article><span>최종 피해등급</span><strong>{damageGrade}</strong></article>
-        <article><span>긴급도 점수</span><strong>{urgencyScore}점</strong></article>
+        <article><span>복구 긴급도</span><strong>{urgencyScore === null ? '미산출' : `${urgencyScore}점`}</strong></article>
         <article><span>최종 지원금</span><strong>{formatCurrency(supportAmount)}</strong></article>
       </div>
 

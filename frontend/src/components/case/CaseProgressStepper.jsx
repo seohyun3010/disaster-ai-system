@@ -24,7 +24,7 @@ const CaseProgressStepper = ({ historyView = false }) => {
   const { caseId } = useParams();
   const navigate = useNavigate();
   const activeStep = getActiveStep(pathname);
-  const { maxUnlockedStage, canAccessStage } = useWorkflowNavigation(caseId);
+  const { maxUnlockedStage, skipsSeverity, canAccessStage } = useWorkflowNavigation(caseId);
 
   return <nav className="case-progress" aria-label="신고 처리 단계">
     <strong className="case-progress-title">업무 진행</strong>
@@ -32,7 +32,8 @@ const CaseProgressStepper = ({ historyView = false }) => {
       {STEPS.map((step, index) => {
         const stageNumber = index + 1;
         const unlocked = canAccessStage(stageNumber);
-        const wasPassed = stageNumber < maxUnlockedStage;
+        const skipped = skipsSeverity && stageNumber === 3;
+        const wasPassed = stageNumber < maxUnlockedStage && !skipped;
         const state = index === activeStep ? 'active' : wasPassed ? 'completed' : 'pending';
         const target = step.segment ? `/cases/${caseId}/${step.segment}` : `/cases/${caseId}`;
         return <li key={step.label} className={state} aria-current={state === 'active' ? 'step' : undefined}>
@@ -42,8 +43,8 @@ const CaseProgressStepper = ({ historyView = false }) => {
             title={unlocked ? undefined : '이전 단계를 완료하면 이동할 수 있습니다.'}
             onClick={() => navigate(`${target}${historyView ? '?view=history' : ''}`)}
           >
-            <span className="case-progress-marker" aria-hidden="true">{state === 'completed' ? '✓' : index + 1}</span>
-            <span className="case-progress-label">{step.label}</span>
+            <span className="case-progress-marker" aria-hidden="true">{state === 'completed' ? '✓' : skipped ? '—' : index + 1}</span>
+            <span className="case-progress-label">{step.label}{skipped ? ' · 미산출' : ''}</span>
           </button>
         </li>;
       })}

@@ -61,7 +61,7 @@
 .safety24-content .safety24-list-row-head strong {
   overflow: hidden;
   color: var(--krds-gray-950);
-  font-size: 12px;
+  font-size: var(--font-size-subtitle);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -69,15 +69,15 @@
 .safety24-list-row-head time {
   flex: none;
   color: var(--krds-gray-500);
-  font-size: 9px;
+  font-size: var(--font-size-caption);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .safety24-content .safety24-list-location {
   color: var(--krds-gray-700) !important;
-  font-size: 10px !important;
-  font-weight: 600;
+  font-size: var(--font-size-body) !important;
+  font-weight: var(--font-weight-bold);
 }
 
 @media (max-width: 900px) {

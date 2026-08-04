@@ -6,6 +6,7 @@ import AnalysisResultCard from '../components/analysis/AnalysisResultCard';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
+import { isZeroSupportGrade } from '../utils/reviewRules';
 import './case-workspace.css';
 
 const EMPTY_ANALYSIS = { status: 'idle', jobId: null, result: null, reviewStatus: '검토 전' };
@@ -95,6 +96,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const requestAnalysis = useAnalysisStore((state) => state.requestAnalysis);
   const refreshAnalysis = useAnalysisStore((state) => state.refreshAnalysis);
   const submitReview = useAnalysisStore((state) => state.submitReview);
+  const confirmHeldReview = useAnalysisStore((state) => state.confirmHeldReview);
   const startReview = useAnalysisStore((state) => state.startReview);
   const unlockStage = useWorkflowStore((state) => state.unlockStage);
   const screen = initialScreen;
@@ -257,13 +259,16 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
       {serverResult && <div className="workspace-analysis-results">
         <AnalysisResultCard result={serverResult} analysis={{ completedAt: serverResult.completedAt }} />
         <AnalysisDecisionPanel
+          confidence={serverResult.confidence}
           recommendedGrade={serverResult.recommendedGrade}
           reviewedGrade={analysis.reviewedGrade}
           reviewStatus={analysis.reviewStatus}
           onSubmit={(review) => submitReview(caseId, review)}
-          onReviewApproved={() => {
-            unlockStage(caseId, 3);
-            navigate(`/cases/${caseId}/severity`);
+          onReReviewSubmit={(review) => confirmHeldReview(caseId, review)}
+          onReviewApproved={(grade) => {
+            const skipsSeverity = isZeroSupportGrade(grade);
+            unlockStage(caseId, skipsSeverity ? 4 : 3);
+            navigate(`/cases/${caseId}/${skipsSeverity ? 'support' : 'severity'}`);
           }}
           onReviewHeld={() => navigate(caseListPath)}
         />

@@ -157,8 +157,8 @@
 //                     color: count > 0 ? "#fff" : "#999",
 //                     border: "1px solid",
 //                     borderColor: count > 0 ? "#2563eb" : "#ddd",
-//                     fontSize: "12px",
-//                     fontWeight: 600,
+//                     fontSize: "var(--font-size-body)",
+//                     fontWeight: "var(--font-weight-bold)",
 //                     whiteSpace: "nowrap",
 //                     cursor: "pointer",
 //                     boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
@@ -203,7 +203,7 @@
 //               padding: "12px 14px",
 //               minWidth: "220px",
 //               boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-//               fontSize: "13px",
+//               fontSize: "var(--font-size-body)",
 //               position: "relative",
 //             }}
 //           >
@@ -216,14 +216,14 @@
 //                 border: "none",
 //                 background: "none",
 //                 cursor: "pointer",
-//                 fontSize: "14px",
+//                 fontSize: "var(--icon-font-size-14)",
 //                 color: "#888",
 //               }}
 //               aria-label="닫기"
 //             >
 //               ✕
 //             </button>
-//             <div style={{ fontWeight: 600, marginBottom: "4px" }}>
+//             <div style={{ fontWeight: "var(--font-weight-bold)", marginBottom: "4px" }}>
 //               {selectedCase.case_number}
 //             </div>
 //             <div style={{ marginBottom: "6px", color: "#333" }}>
@@ -430,7 +430,10 @@ const CaseMap = forwardRef((_, ref) => {
               padding: '12px 14px',
               minWidth: '220px',
               boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              fontSize: '13px',
+              fontFamily: 'var(--font-family-base)',
+              fontSize: 'var(--font-size-body)',
+              lineHeight: 'var(--line-height-default)',
+              letterSpacing: 'var(--letter-spacing-default)',
               position: 'relative',
             }}
           >
@@ -443,14 +446,15 @@ const CaseMap = forwardRef((_, ref) => {
                 border: 'none',
                 background: 'none',
                 cursor: 'pointer',
-                fontSize: '14px',
+                fontSize: 'var(--icon-font-size-14)',
+                lineHeight: 'var(--line-height-icon)',
                 color: '#888',
               }}
               aria-label="닫기"
             >
               ×
             </button>
-            <div style={{ fontWeight: 600, marginBottom: '4px' }}>
+            <div style={{ fontWeight: 'var(--font-weight-bold)', marginBottom: '4px' }}>
               {selectedCase.case_number}
             </div>
             <div style={{ marginBottom: '6px', color: '#333' }}>

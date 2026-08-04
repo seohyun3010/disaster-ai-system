@@ -1,0 +1,197 @@
+:root {
+  --font-family-base: "Pretendard GOV", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* KRDS official role tokens. */
+  --heading-xlarge: 40px;
+  --heading-large: 32px;
+  --heading-medium: 24px;
+  --heading-small: 19px;
+  --heading-xsmall: 17px;
+  --heading-xxsmall: 15px;
+
+  --body-large: 19px;
+  --body-medium: 17px;
+  --body-small: 15px;
+  --body-xsmall: 13px;
+
+  --navigation-title-large: 24px;
+  --navigation-title-small: 19px;
+  --navigation-depth-medium: 17px;
+  --navigation-depth-small: 15px;
+
+  --label-large: 19px;
+  --label-medium: 17px;
+  --label-small: 15px;
+  --label-xsmall: 13px;
+
+  --number-kpi-large: 28px;
+  --number-kpi-medium: 24px;
+  --number-kpi-small: 20px;
+
+  /* Backward-compatible semantic aliases used by existing components. */
+  --font-size-page: var(--heading-medium);
+  --font-size-section: var(--heading-small);
+  --font-size-card: var(--heading-xsmall);
+  --font-size-subtitle: var(--heading-xxsmall);
+  --font-size-body-large: var(--body-medium);
+  --font-size-body: var(--body-small);
+  --font-size-small: var(--body-xsmall);
+  --font-size-caption: var(--label-xsmall);
+  --font-size-button: var(--label-small);
+  --font-size-kpi: var(--number-kpi-large);
+  --font-size-kpi-compact: var(--number-kpi-medium);
+  --font-size-hidden: 0;
+
+  /* Text-based UI glyphs keep their existing visual dimensions. */
+  --icon-font-size-8: 0.5rem;
+  --icon-font-size-9: 0.5625rem;
+  --icon-font-size-10: 0.625rem;
+  --icon-font-size-12: 0.75rem;
+  --icon-font-size-14: 0.875rem;
+  --icon-font-size-16: 1rem;
+  --icon-font-size-20: 1.25rem;
+  --icon-font-size-22: 1.375rem;
+  --icon-font-size-23: 1.4375rem;
+  --icon-font-size-24: 1.5rem;
+  --icon-font-size-28: 1.75rem;
+  --icon-font-size-30: 1.875rem;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  --line-height-heading: 1.5;
+  --line-height-body: 1.5;
+  --line-height-label: 1.5;
+  --line-height-kpi: 1.2;
+  --line-height-default: var(--line-height-body);
+  --line-height-metric: var(--line-height-kpi);
+  --line-height-icon: 1;
+  --letter-spacing-default: 0;
+  --letter-spacing-display: 0.01em;
+
+  /* Color aliases preserve the existing KRDS palette and make text hierarchy explicit. */
+  --text-primary: var(--krds-gray-950, #131416);
+  --text-secondary: var(--krds-gray-700, #464c53);
+  --text-muted: var(--krds-gray-500, #6d7882);
+  --text-disabled: var(--krds-gray-300, #b1b8be);
+}
+
+html,
+body,
+button,
+input,
+textarea,
+select,
+option,
+table,
+dialog,
+[role="dialog"] {
+  font-family: var(--font-family-base);
+}
+
+body {
+  color: var(--text-primary);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-default);
+  letter-spacing: var(--letter-spacing-default);
+}
+
+button,
+input,
+textarea,
+select,
+option {
+  line-height: var(--line-height-default);
+  letter-spacing: var(--letter-spacing-default);
+}
+
+button,
+[type="button"],
+[type="submit"],
+[type="reset"] {
+  font-size: var(--label-small);
+  font-weight: var(--font-weight-regular);
+}
+
+input,
+textarea,
+select,
+option {
+  font-size: var(--label-small);
+  font-weight: var(--font-weight-regular);
+}
+
+::placeholder {
+  color: var(--text-muted);
+  font-size: var(--label-small);
+  font-weight: var(--font-weight-regular);
+  opacity: 1;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-block-start: 0;
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-heading);
+}
+
+h1 {
+  font-size: var(--font-size-page);
+  letter-spacing: var(--letter-spacing-display);
+}
+
+h2 {
+  font-size: var(--font-size-section);
+}
+
+h3 {
+  font-size: var(--font-size-card);
+}
+
+h4,
+h5 {
+  font-size: var(--font-size-subtitle);
+}
+
+h6 {
+  font-size: var(--font-size-small);
+}
+
+small,
+figcaption,
+caption {
+  font-size: var(--label-xsmall);
+  line-height: var(--line-height-label);
+}
+
+table {
+  font-size: var(--body-small);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+}
+
+th {
+  font-size: var(--body-small);
+  font-weight: var(--font-weight-bold);
+}
+
+td {
+  font-size: var(--body-small);
+  font-weight: var(--font-weight-regular);
+}
+
+dialog,
+[role="dialog"],
+.modal,
+.case-modal,
+.decision-modal {
+  font-family: var(--font-family-base);
+  line-height: var(--line-height-default);
+  letter-spacing: var(--letter-spacing-default);
+}

@@ -24,16 +24,16 @@
   background: transparent;
   color: var(--krds-primary-700);
   font: inherit;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: var(--font-size-button);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
 }
 
 .case-workflow-head h1 {
   margin: 0;
   color: var(--krds-gray-950);
-  font-size: 24px;
-  letter-spacing: -.02em;
+  font-size: var(--font-size-page);
+  letter-spacing: var(--letter-spacing-display);
 }
 
 .case-workflow-head dl {
@@ -49,14 +49,14 @@
 
 .case-workflow-head dt {
   color: var(--krds-gray-600);
-  font-size: 11px;
+  font-size: var(--font-size-small);
 }
 
 .case-workflow-head dd {
   margin: 0;
   color: var(--krds-gray-900);
-  font-size: 13px;
-  font-weight: 750;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
 }
 
 .case-workflow-grid {
@@ -86,13 +86,13 @@
 
 .workflow-gallery-title span {
   color: var(--krds-gray-950);
-  font-size: 16px;
-  font-weight: 850;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
 }
 
 .workflow-gallery-title strong {
   color: var(--krds-primary-700);
-  font-size: 12px;
+  font-size: var(--font-size-small);
 }
 
 .workflow-gallery-meta {
@@ -106,9 +106,9 @@
   background: var(--krds-gray-100);
   padding: 4px 7px;
   color: var(--krds-gray-700);
-  font-size: 9px;
+  font-size: var(--font-size-caption);
   font-style: normal;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold);
 }
 
 .case-workflow-gallery ol {
@@ -130,9 +130,9 @@
   bottom: -18px;
   z-index: 1;
   color: var(--krds-primary-600);
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 16px;
+  font-size: var(--icon-font-size-14);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-icon);
   transform: translateX(-50%);
 }
 
@@ -183,8 +183,8 @@
   border-radius: 50%;
   background: #fff;
   color: var(--krds-gray-700);
-  font-size: 12px;
-  font-weight: 850;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
 }
 
 .active .workflow-step-number,
@@ -202,14 +202,14 @@
 
 .workflow-step-copy strong {
   color: inherit;
-  font-size: 14px;
+  font-size: var(--font-size-small);
 }
 
 .workflow-step-copy small {
   overflow: hidden;
   color: var(--krds-gray-600);
-  font-size: 10px;
-  font-weight: 650;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -228,7 +228,7 @@
   background: var(--krds-primary-50);
   padding: 11px 14px;
   color: var(--krds-gray-700);
-  font-size: 11px;
+  font-size: var(--font-size-body);
 }
 
 .history-readonly-notice strong {

@@ -24,20 +24,20 @@
 .workspace-panel-head p {
   margin: 0 0 5px;
   color: var(--krds-primary-700);
-  font-size: 11px;
-  font-weight: 800;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
 }
 
 .workspace-panel-head h2 {
   margin: 0;
   color: var(--krds-gray-950);
-  font-size: 23px;
-  letter-spacing: -.02em;
+  font-size: var(--font-size-section);
+  letter-spacing: var(--letter-spacing-default);
 }
 
 .workspace-received-at {
   color: var(--krds-gray-600);
-  font-size: 12px;
+  font-size: var(--font-size-body);
   white-space: nowrap;
 }
 
@@ -65,7 +65,7 @@
 .private-report-section-title h3 {
   margin: 0 0 10px;
   color: var(--krds-gray-900);
-  font-size: 15px;
+  font-size: var(--font-size-subtitle);
 }
 
 .private-report-grid dl {
@@ -82,14 +82,14 @@
 
 .private-report-grid dt {
   color: var(--krds-gray-600);
-  font-size: 11px;
+  font-size: var(--font-size-small);
 }
 
 .private-report-grid dd {
   margin: 0;
   color: var(--krds-gray-900);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
   overflow-wrap: anywhere;
 }
 
@@ -111,8 +111,8 @@
 
 .private-report-section-title span {
   color: var(--krds-gray-600);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--font-size-card);
+  font-weight: var(--font-weight-bold);
 }
 
 .private-photo-carousel {
@@ -146,7 +146,7 @@
   overflow: hidden;
   padding: 10px 12px;
   color: var(--krds-gray-700);
-  font-size: 10px;
+  font-size: var(--font-size-caption);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -163,8 +163,8 @@
   background: rgba(20, 35, 50, .68);
   color: #fff;
   font: inherit;
-  font-size: 28px;
-  line-height: 1;
+  font-size: var(--icon-font-size-28);
+  line-height: var(--line-height-icon);
   cursor: pointer;
   transform: translateY(-50%);
 }
@@ -190,8 +190,8 @@
   background: rgba(20, 35, 50, .72);
   padding: 4px 9px;
   color: #fff;
-  font-size: 10px;
-  font-weight: 800;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
 }
 
 .private-photo-empty {
@@ -210,12 +210,12 @@
 
 .private-photo-empty strong {
   color: var(--krds-gray-800);
-  font-size: 13px;
+  font-size: var(--font-size-subtitle);
 }
 
 .private-photo-empty span,
 .private-report-security {
-  font-size: 11px;
+  font-size: var(--font-size-body);
 }
 
 .private-report-security {
@@ -248,13 +248,13 @@
 .workspace-analysis-state h3 {
   margin: 10px 0 0;
   color: var(--krds-gray-950);
-  font-size: 20px;
+  font-size: var(--font-size-subtitle);
 }
 
 .workspace-analysis-state p {
   margin: 0;
   color: var(--krds-gray-600);
-  font-size: 12px;
+  font-size: var(--font-size-body);
 }
 
 .workspace-ai-visual {
@@ -277,8 +277,8 @@
   border-radius: 18px;
   background: var(--krds-primary-700);
   color: #fff;
-  font-size: 24px;
-  font-weight: 900;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
 }
 
 .workspace-analysis-results {

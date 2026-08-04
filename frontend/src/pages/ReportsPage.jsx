@@ -58,6 +58,7 @@ import { ReviewGuidance } from '../components/persona/ReviewGuidance';
 import { downloadReport, generateReport, getReportByCase } from '../api/reportApi';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useWorkflowStore } from '../stores/workflowStore';
+import { isZeroSupportGrade } from '../utils/reviewRules';
 
 const formatDateTime = (value) => {
   if (!value) return '-';
@@ -137,15 +138,19 @@ const ReportsPage = () => {
     location: viewReport.case.address,
     type: viewReport.case.disaster_type,
   };
-  const supportAmount = viewReport.subsidy.confirmed_amount
-    ?? viewReport.subsidy.estimated_amount
-    ?? 0;
   const damageGrade = analysis?.reviewedGrade
     || workflow?.reviewedGrade
     || workflow?.confirmedGrade
     || workflow?.damageGrade
     || viewReport.analysis.damage_grade
     || '-';
+  const hasZeroSupport = isZeroSupportGrade(damageGrade);
+  const supportAmount = hasZeroSupport
+    ? 0
+    : viewReport.subsidy.confirmed_amount
+      ?? viewReport.subsidy.estimated_amount
+      ?? 0;
+  const urgencyScore = hasZeroSupport ? null : viewReport.severity.urgency_score;
 
   const download = async () => {
     setMessage('');
@@ -169,7 +174,7 @@ const ReportsPage = () => {
         item={viewReport.case}
         report={viewReport}
         damageGrade={damageGrade}
-        urgencyScore={viewReport.severity.urgency_score}
+        urgencyScore={urgencyScore}
         supportAmount={supportAmount}
         approvalStatus={viewReport.approval_result}
         onDownload={download}
