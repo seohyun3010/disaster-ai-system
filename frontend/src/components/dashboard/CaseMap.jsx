@@ -259,8 +259,9 @@ import {
   CustomOverlayMap,
   useKakaoLoader,
 } from 'react-kakao-maps-sdk';
-import axiosInstance from '../../api/axiosInstance';
-import { API_PATHS } from '../../constants/apiPaths';
+import { getCases } from '../../api/caseApi';
+import { TOTAL_MOCK_REPORTS } from '../../mocks/cases';
+import { normalizeRegionName } from '../../utils/regionNames';
 
 const STATUS_LABELS = {
   RECEIVED: '접수됨',
@@ -276,7 +277,10 @@ const PRIORITY_LABELS = {
 
 const DISASTER_TYPE_LABELS = {
   HEAVY_RAIN: '집중호우',
-  TYPHOON: '태풍',
+  LANDSLIDE: '산사태',
+  WILDFIRE: '산불',
+  HEAVY_SNOW: '대설',
+  EARTHQUAKE: '지진',
   FLOOD: '침수',
 };
 
@@ -306,7 +310,8 @@ const DEFAULT_LEVEL = 13;
 const DEFAULT_CENTER = { lat: 36.2683, lng: 127.6358 };
 
 function resolveRegion(sido = '') {
-  return REGION_CENTERS.find(({ prefixes }) => prefixes.some((prefix) => sido.startsWith(prefix)));
+  const normalized = normalizeRegionName(sido);
+  return REGION_CENTERS.find(({ prefixes }) => prefixes[0] === normalized);
 }
 
 // 범례(50건 이상=red, 20~49=navy, 5~19=gray, 5건 미만=light)와 맞춘 색상 판정
@@ -344,9 +349,8 @@ const CaseMap = forwardRef((_, ref) => {
 
   useEffect(() => {
     let ignore = false;
-    axiosInstance
-      .get(API_PATHS.CASES.LIST, { params: { limit: 100, offset: 0 } })
-      .then((res) => { if (!ignore) setCases(res.data.items ?? []); })
+    getCases({ limit: TOTAL_MOCK_REPORTS, offset: 0 })
+      .then((result) => { if (!ignore) setCases(result.items); })
       .catch((err) => { if (!ignore) setError(err.message); })
       .finally(() => { if (!ignore) setLoading(false); });
     return () => { ignore = true; };
@@ -366,7 +370,7 @@ const CaseMap = forwardRef((_, ref) => {
   const regionData = useMemo(() => {
     const data = new Map();
     validCases.forEach((c) => {
-      const region = resolveRegion(c.sido || '');
+      const region = resolveRegion(c.sido || c.address || '');
       if (!region) return;
       const entry = data.get(region.name) || { count: 0, latSum: 0, lngSum: 0 };
       entry.count += 1;
@@ -436,7 +440,7 @@ const CaseMap = forwardRef((_, ref) => {
                   // ===== 신규 추가 (1차: setBounds 도입) =====
                   // 해당 지역 케이스 좌표를 모두 포함하도록 setBounds로 자동 맞춤 확대
                   const regionCases = validCases.filter(
-                    (c) => resolveRegion(c.sido || '')?.name === region.name
+                    (c) => resolveRegion(c.sido || c.address || '')?.name === region.name
                   );
                   if (regionCases.length > 0 && mapRef.current && window.kakao) {
                     const bounds = new window.kakao.maps.LatLngBounds();
@@ -475,7 +479,7 @@ const CaseMap = forwardRef((_, ref) => {
         })
         : validCases.map((c) => (
           <MapMarker
-            key={c.case_id}
+            key={c.frontendKey || c.id || c.case_id}
             position={{ lat: Number(c.latitude), lng: Number(c.longitude) }}
             onClick={() => setSelectedCase(c)}
           />

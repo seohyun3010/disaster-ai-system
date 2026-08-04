@@ -99,7 +99,7 @@
   justify-content: center;
   gap: 16px;
   width: 100%;
-  margin: 0 auto 14px;
+  margin: 22px auto 0;
 }
 
 .verdict-image-navigation button {
@@ -188,7 +188,7 @@
 }
 
 .verdict-note {
-  margin: 10px 0 0;
+  margin: 18px 0 0;
   color: #6d7882;
   font-size: var(--font-size-caption);
 }

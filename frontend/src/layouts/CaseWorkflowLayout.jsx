@@ -64,11 +64,9 @@ const CaseWorkflowLayout = () => {
   const navigate = useNavigate();
   const historyView = new URLSearchParams(search).get('view') === 'history';
 
-  const numericCaseId = Number(caseId);
-
   const item = useCaseStore(
     (state) => state.cases.find(
-      (entry) => entry.case_id === numericCaseId,
+      (entry) => entry.id === caseId,
     ),
   );
 

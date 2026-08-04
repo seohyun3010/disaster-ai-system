@@ -16,6 +16,7 @@
  * 이 파일에서 필드명을 맞춘다.
  */
 import axiosInstance from './axiosInstance';
+import { getMockCaseByRouteId } from '../mocks/cases';
 
 export const ANALYSIS_POLLING_INTERVAL = 2000;
 
@@ -220,6 +221,36 @@ export const getAnalysisStatus = async (jobId) => {
 
 /** 사건 단위 결과 조회 — 재분석 이력 중 최신 1건 */
 export const getCaseAnalysisResult = async (caseId) => {
+  const mockCase = getMockCaseByRouteId(caseId);
+  if (mockCase) {
+    if (mockCase.ai_analysis_status !== '분석 완료') return null;
+    return {
+      resultId: `MOCK-AI-${mockCase.case_id}`,
+      caseId: mockCase.case_id,
+      caseNumber: mockCase.case_number,
+      recommendedGrade: `${mockCase.damage_grade} · Mock AI 예비판정`,
+      confidence: mockCase.ai_confidence.toFixed(1),
+      rationale: mockCase.description,
+      duplicateResult: mockCase.duplicate_suspected ? '중복 의심 검토 필요' : '중복 의심 없음',
+      damagedParts: 1 + (mockCase.case_id % 3),
+      visibleParts: 4,
+      camUrls: [],
+      sourceUrls: mockCase.photos.map((photo) => photo.url),
+      gate: {},
+      preprocess: [],
+      viewProbs: [],
+      damageGradeIndex: Number(mockCase.damage_grade.slice(-1)),
+      damageGrade: mockCase.damage_grade,
+      inspectionRequired: mockCase.review_status === '보류',
+      distribution: [],
+      modelVersion: 'Mock deterministic v1.0',
+      viewCount: mockCase.photos.length,
+      observation: {},
+      consistency: {},
+      analysisTime: 0,
+      completedAt: mockCase.reported_at,
+    };
+  }
   const response = await axiosInstance.get(`/cases/${caseId}/ai-results`);
   const records = Array.isArray(response.data) ? response.data : [];
   if (records.length === 0) return null;

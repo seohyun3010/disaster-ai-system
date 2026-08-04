@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAnalysisStore } from '../stores/analysisStore';
@@ -8,11 +8,13 @@ import { buildDisasterEvents } from '../utils/disasterEvents';
 import { isZeroSupportGrade } from '../utils/reviewRules';
 import { submitDamageGradeReview } from '../api/reviewApi';
 import { useAuthStore } from '../stores/authStore';
+import { DEFAULT_DISASTER_QUERY_RANGE } from '../mocks/cases';
 import './case-list.css';
 import './report-management.css';
 
 const PAGE_SIZE = 5;
 const EVENT_PAGE_SIZE_OPTIONS = [5, 10, 20];
+const SOURCE_PRIORITY = { backend: 0, mock: 1 };
 
 const FINAL_APPROVAL_STATUSES = [
   '최종 승인',
@@ -24,7 +26,31 @@ const STATUS_FILTERS = [
   '완료',
   '미완료',
   '보류',
+];
+
+const COMPLETED_LIST_STATUSES = [
+  ...FINAL_APPROVAL_STATUSES,
+  '완료',
+  '승인',
+  '수정 승인',
+  '처리 완료',
+  '보고서 생성 완료',
   '반려',
+];
+
+const HOLD_LIST_STATUSES = [
+  '보류',
+  '현장조사 필요',
+  '현장조사 대기',
+  '재판정 대기',
+];
+
+const FACILITY_FILTERS = [
+  '전체',
+  '주택',
+  '상가',
+  '농경지',
+  '도로',
 ];
 
 const DAMAGE_GRADE_OPTIONS = [
@@ -39,19 +65,84 @@ const getSimpleStatus = (
   reviewStatus,
   approvalStatus,
 ) => {
-  if (reviewStatus === '반려' || approvalStatus === '반려') {
-    return '반려';
-  }
+  const storedStatuses = [reviewStatus, approvalStatus].filter(Boolean);
 
-  if (reviewStatus === '보류' || approvalStatus === '보류') {
+  if (storedStatuses.some((value) => HOLD_LIST_STATUSES.includes(value))) {
     return '보류';
   }
 
-  if (FINAL_APPROVAL_STATUSES.includes(approvalStatus)) {
+  if (storedStatuses.some((value) => COMPLETED_LIST_STATUSES.includes(value))) {
     return '완료';
   }
 
   return '미완료';
+};
+
+const getItemCaseId = (item) => String(item.id ?? item.case_id);
+const getItemFrontendKey = (item) => item.frontendKey || getItemCaseId(item);
+
+const getListStatus = (item, reviewStatus, approvalStatus) => {
+  if (reviewStatus || approvalStatus) {
+    const storedStatus = getSimpleStatus(reviewStatus, approvalStatus);
+
+    if (storedStatus === '보류') return '보류';
+    if (storedStatus === '완료') return '완료';
+    return '미완료';
+  }
+
+  const detailedStatus =
+    item.processing_status
+    || item.processingStatus
+    || item.displayStatus
+    || item.status
+    || item.workflow_status
+    || item.workflowStatus
+    || item.review_status
+    || item.reviewStatus
+    || item.ai_analysis_status;
+
+  if (HOLD_LIST_STATUSES.includes(detailedStatus)) return '보류';
+  if (COMPLETED_LIST_STATUSES.includes(detailedStatus)) return '완료';
+  return '미완료';
+};
+
+const matchesStatusFilter = (listStatus, filter) => (
+  filter === '전체' || listStatus === filter
+);
+
+const getReportTimestamp = (item) => {
+  const rawValue = item.reported_at || item.received_at;
+  if (rawValue) {
+    const timestamp = Date.parse(rawValue);
+    if (!Number.isNaN(timestamp)) return timestamp;
+  }
+
+  const displayMatch = String(item.reportedAt || '').match(
+    /^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{1,2}):(\d{2})$/,
+  );
+  if (!displayMatch) return null;
+
+  const [, year, month, day, hour, minute] = displayMatch.map(Number);
+  const timestamp = new Date(year, month - 1, day, hour, minute).getTime();
+  return Number.isNaN(timestamp) ? null : timestamp;
+};
+
+const compareCasesByReportDate = (left, right, sortOrder) => {
+  const sourcePriority = (SOURCE_PRIORITY[left.__source] ?? 2)
+    - (SOURCE_PRIORITY[right.__source] ?? 2);
+  if (sourcePriority) return sourcePriority;
+
+  const leftTimestamp = getReportTimestamp(left);
+  const rightTimestamp = getReportTimestamp(right);
+  if (leftTimestamp === null && rightTimestamp !== null) return 1;
+  if (leftTimestamp !== null && rightTimestamp === null) return -1;
+  if (leftTimestamp !== rightTimestamp) {
+    return sortOrder === 'oldest'
+      ? leftTimestamp - rightTimestamp
+      : rightTimestamp - leftTimestamp;
+  }
+
+  return getItemFrontendKey(left).localeCompare(getItemFrontendKey(right));
 };
 
 const getReviewGrade = (analysis, item) => {
@@ -109,67 +200,6 @@ const getHeldReviewDestination = (grade) => {
   };
 };
 
-const FacilityFilter = ({
-  options,
-  value,
-  onChange,
-}) => {
-  const detailsRef = useRef(null);
-
-  const selectFacility = (facility) => {
-    onChange(facility);
-    detailsRef.current?.removeAttribute('open');
-  };
-
-  return (
-    <div className="scroll-select-field">
-      <span>시설 유형</span>
-
-      <details
-        ref={detailsRef}
-        onBlur={(event) => {
-          if (
-            !event.currentTarget.contains(
-              event.relatedTarget,
-            )
-          ) {
-            event.currentTarget.removeAttribute('open');
-          }
-        }}
-      >
-        <summary
-          aria-label={`시설 유형, 현재 선택 ${value}`}
-        >
-          {value}
-        </summary>
-
-        <div
-          className="scroll-select-options"
-          role="listbox"
-          aria-label="시설 유형"
-        >
-          {options.map((facility) => (
-            <button
-              type="button"
-              role="option"
-              aria-selected={value === facility}
-              className={
-                value === facility
-                  ? 'selected'
-                  : ''
-              }
-              key={facility}
-              onClick={() => selectFacility(facility)}
-            >
-              {facility}
-            </button>
-          ))}
-        </div>
-      </details>
-    </div>
-  );
-};
-
 const HeldReviewModal = ({
   record,
   onClose,
@@ -190,8 +220,7 @@ const HeldReviewModal = ({
 
   const destination = getHeldReviewDestination(grade);
 
-  const checkboxId =
-    `field-visit-confirm-${item.case_id ?? item.id}`;
+  const checkboxId = `field-visit-confirm-${getItemFrontendKey(item)}`;
 
   const checkboxDescriptionId =
     `${checkboxId}-description`;
@@ -412,7 +441,7 @@ const DisasterEventSelection = ({
   const filteredEvents = useMemo(() => {
     const term = eventSearch.trim().toLowerCase();
 
-    return events
+    return [...events]
       .filter((event) => {
         const searchText = (
           `${event.year} `
@@ -425,8 +454,8 @@ const DisasterEventSelection = ({
       })
       .sort((left, right) => (
         eventSortOrder === 'latest'
-          ? right.deadlineAt - left.deadlineAt
-          : left.deadlineAt - right.deadlineAt
+          ? right.startAt - left.startAt
+          : left.startAt - right.startAt
       ));
   }, [
     eventSearch,
@@ -755,9 +784,10 @@ const CaseListPage = () => {
     (state) => state.unlockStage,
   );
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
   const [status, setStatus] = useState('전체');
   const [facility, setFacility] = useState('전체');
+  const [sortOrder, setSortOrder] = useState('newest');
   const [page, setPage] = useState(1);
 
   const [
@@ -774,17 +804,28 @@ const CaseListPage = () => {
     }).catch(() => {});
   }, [fetchCases]);
 
+  const rangeFrom = searchParams.get('from') || DEFAULT_DISASTER_QUERY_RANGE.from;
+  const rangeTo = searchParams.get('to') || DEFAULT_DISASTER_QUERY_RANGE.to;
+
   const events = useMemo(
-    () => buildDisasterEvents(cases),
-    [cases],
+    () => buildDisasterEvents(cases, { from: rangeFrom, to: rangeTo }),
+    [cases, rangeFrom, rangeTo],
   );
 
-  const selectedEventId =
-    searchParams.get('event');
+  const selectedEventId = searchParams.get('event');
+  const globalSearch = searchParams.get('search')?.trim() || '';
 
-  const selectedEvent = events.find(
-    (event) => event.id === selectedEventId,
-  );
+  const selectedEvent = useMemo(() => (
+    events.find((event) => event.id === selectedEventId)
+    || (globalSearch ? {
+      id: 'all-search-results',
+      name: '전체 재난 신고 검색 결과',
+      occurredPeriod: '2025.8.12 ~ 2026.7.18',
+      deadlinePeriod: '-',
+      status: '진행중',
+      caseIds: cases.map(getItemFrontendKey),
+    } : null)
+  ), [cases, events, globalSearch, selectedEventId]);
 
   /*
    * selectedEvent가 아직 없을 때도
@@ -795,31 +836,26 @@ const CaseListPage = () => {
       return [];
     }
 
-    return cases.filter((item) => (
-      selectedEvent.caseIds.includes(item.case_id)
+    const selectedCaseIds = new Set(selectedEvent.caseIds);
+    const matchesSelectedEvent = (item) => (
+      selectedCaseIds.has(getItemFrontendKey(item))
+    );
+    const backendCasesForEvent = cases.filter((item) => (
+      item.__source === 'backend' && matchesSelectedEvent(item)
     ));
+    const mockCasesForEvent = cases.filter((item) => (
+      item.__source === 'mock' && matchesSelectedEvent(item)
+    ));
+
+    return [...backendCasesForEvent, ...mockCasesForEvent];
   }, [
     cases,
     selectedEvent,
   ]);
 
-  const facilityOptions = useMemo(
-    () => [
-      '전체',
-      ...new Set(
-        eventCases.map(
-          (item) => item.facility,
-        ),
-      ),
-    ],
-    [eventCases],
-  );
-
   const filtered = useMemo(
     () => eventCases.filter((item) => {
-      const itemCaseId = String(
-        item.case_id ?? item.id,
-      );
+      const itemCaseId = getItemCaseId(item);
 
       const reviewStatus =
         analyses[itemCaseId]?.reviewStatus;
@@ -827,14 +863,9 @@ const CaseListPage = () => {
       const approvalStatus =
         workflows[itemCaseId]?.approvalStatus;
 
-      const simpleStatus = getSimpleStatus(
-        reviewStatus,
-        approvalStatus,
-      );
+      const listStatus = getListStatus(item, reviewStatus, approvalStatus);
 
-      const matchesStatus =
-        status === '전체'
-        || simpleStatus === status;
+      const matchesStatus = matchesStatusFilter(listStatus, status);
 
       const matchesFacility =
         facility === '전체'
@@ -864,12 +895,24 @@ const CaseListPage = () => {
     ],
   );
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filtered.length / PAGE_SIZE),
+  const sorted = useMemo(
+    () => [...filtered].sort((left, right) => (
+      compareCasesByReportDate(left, right, sortOrder)
+    )),
+    [filtered, sortOrder],
   );
 
-  const rows = filtered.slice(
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sorted.length / PAGE_SIZE),
+  );
+  const pageGroupStart = Math.floor((page - 1) / 10) * 10 + 1;
+  const visiblePageNumbers = Array.from(
+    { length: Math.min(10, totalPages - pageGroupStart + 1) },
+    (_, index) => pageGroupStart + index,
+  );
+
+  const rows = sorted.slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE,
   );
@@ -878,13 +921,12 @@ const CaseListPage = () => {
     setSearch('');
     setStatus('전체');
     setFacility('전체');
+    setSortOrder('newest');
     setPage(1);
   };
 
   const openCase = (item) => {
-    const itemCaseId = String(
-      item.case_id ?? item.id,
-    );
+    const itemCaseId = getItemCaseId(item);
 
     const itemAnalysis =
       analyses[itemCaseId];
@@ -909,10 +951,7 @@ const CaseListPage = () => {
       return;
     }
 
-    const heldCaseId = String(
-      heldReviewRecord.item.case_id
-      ?? heldReviewRecord.item.id,
-    );
+    const heldCaseId = getItemCaseId(heldReviewRecord.item);
 
     const destination =
       getHeldReviewDestination(review.grade);
@@ -960,9 +999,10 @@ const CaseListPage = () => {
         loading={loading}
         error={error}
         onSelect={(eventId) => {
-          setSearchParams({
-            event: eventId,
-          });
+          const nextParams = new URLSearchParams(searchParams);
+          nextParams.set('event', eventId);
+          nextParams.delete('search');
+          setSearchParams(nextParams);
         }}
       />
     );
@@ -986,7 +1026,10 @@ const CaseListPage = () => {
           className="secondary-action"
           onClick={() => {
             resetFilters();
-            setSearchParams({});
+            const nextParams = new URLSearchParams(searchParams);
+            nextParams.delete('event');
+            nextParams.delete('search');
+            setSearchParams(nextParams);
           }}
         >
           ← 자연재난 다시 선택
@@ -1069,14 +1112,38 @@ const CaseListPage = () => {
             </select>
           </label>
 
-          <FacilityFilter
-            options={facilityOptions}
-            value={facility}
-            onChange={(value) => {
-              setFacility(value);
-              setPage(1);
-            }}
-          />
+          <label>
+            시설 유형
+
+            <select
+              value={facility}
+              onChange={(event) => {
+                setFacility(event.target.value);
+                setPage(1);
+              }}
+            >
+              {FACILITY_FILTERS.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            정렬 기준
+
+            <select
+              value={sortOrder}
+              onChange={(event) => {
+                setSortOrder(event.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="newest">신고일 최신순</option>
+              <option value="oldest">신고일 오래된순</option>
+            </select>
+          </label>
 
           <button
             type="button"
@@ -1116,9 +1183,7 @@ const CaseListPage = () => {
 
             <tbody>
               {rows.map((item) => {
-                const itemCaseId = String(
-                  item.case_id ?? item.id,
-                );
+                const itemCaseId = getItemCaseId(item);
 
                 const reviewStatus =
                   analyses[itemCaseId]?.reviewStatus;
@@ -1126,15 +1191,11 @@ const CaseListPage = () => {
                 const approvalStatus =
                   workflows[itemCaseId]?.approvalStatus;
 
-                const simpleStatus =
-                  getSimpleStatus(
-                    reviewStatus,
-                    approvalStatus,
-                  );
+                const listStatus = getListStatus(item, reviewStatus, approvalStatus);
 
                 return (
                   <tr
-                    key={itemCaseId}
+                    key={getItemFrontendKey(item)}
                     className="clickable-row"
                     onClick={() => openCase(item)}
                   >
@@ -1163,10 +1224,10 @@ const CaseListPage = () => {
                     <td>
                       <span
                         className={
-                          `status-badge ${simpleStatus}`
+                          `status-badge ${listStatus}`
                         }
                       >
-                        {simpleStatus}
+                        {listStatus}
                       </span>
                     </td>
                   </tr>
@@ -1187,10 +1248,14 @@ const CaseListPage = () => {
             className="pagination"
             aria-label="목록 페이지"
           >
-            {Array.from(
-              { length: totalPages },
-              (_, index) => index + 1,
-            ).map((pageNumber) => (
+            <button
+              type="button"
+              disabled={page === 1}
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+            >
+              이전
+            </button>
+            {visiblePageNumbers.map((pageNumber) => (
               <button
                 type="button"
                 key={pageNumber}
@@ -1206,6 +1271,13 @@ const CaseListPage = () => {
                 {pageNumber}
               </button>
             ))}
+            <button
+              type="button"
+              disabled={page === totalPages}
+              onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+            >
+              다음
+            </button>
           </nav>
         )}
       </section>
