@@ -13,6 +13,7 @@ from routers import (
     benefit_checks_router,
     case_router,
     duplicate_router,
+    rag_router,
     report_router,
     review_router,
     severity,
@@ -55,6 +56,7 @@ app.include_router(subsidy_router.router)
 app.include_router(report_router.router)
 app.include_router(severity.router)
 app.include_router(benefit_checks_router.router)
+app.include_router(rag_router.router)
 
 @app.get("/")
 def root():
