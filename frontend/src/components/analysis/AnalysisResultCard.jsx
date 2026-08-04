@@ -26,28 +26,6 @@ const EvidenceGallery = ({ camUrls, sourceUrls, result }) => {
 
   return (
     <>
-      <nav className="verdict-image-navigation" aria-label="판독 근거 이미지 탐색">
-        <button
-          type="button"
-          onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
-          disabled={safeIndex === 0}
-          aria-label="이전 이미지"
-        >
-          <span aria-hidden="true">‹</span> 이전
-        </button>
-        <strong aria-live="polite" aria-atomic="true">
-          {safeIndex + 1} / {imageCount}
-        </strong>
-        <button
-          type="button"
-          onClick={() => setCurrentIndex((index) => Math.min(lastIndex, index + 1))}
-          disabled={safeIndex === lastIndex}
-          aria-label="다음 이미지"
-        >
-          다음 <span aria-hidden="true">›</span>
-        </button>
-      </nav>
-
       <div className="verdict-evidence-grid">
         <figure className="verdict-evidence-panel">
           <h4>원본 사진</h4>
@@ -81,6 +59,28 @@ const EvidenceGallery = ({ camUrls, sourceUrls, result }) => {
           </figcaption>
         </figure>
       </div>
+
+      <nav className="verdict-image-navigation" aria-label="판독 근거 이미지 탐색">
+        <button
+          type="button"
+          onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
+          disabled={safeIndex === 0}
+          aria-label="이전 이미지"
+        >
+          <span aria-hidden="true">‹</span> 이전
+        </button>
+        <strong aria-live="polite" aria-atomic="true">
+          {safeIndex + 1} / {imageCount}
+        </strong>
+        <button
+          type="button"
+          onClick={() => setCurrentIndex((index) => Math.min(lastIndex, index + 1))}
+          disabled={safeIndex === lastIndex}
+          aria-label="다음 이미지"
+        >
+          다음 <span aria-hidden="true">›</span>
+        </button>
+      </nav>
     </>
   );
 };

@@ -1,5 +1,6 @@
 import axiosInstance from './axiosInstance';
 import { API_PATHS } from '../constants/apiPaths';
+import { getMockCaseByRouteId } from '../mocks/cases';
 
 export const calculateSubsidy = async (caseId) => {
   const response = await axiosInstance.post(
@@ -9,6 +10,13 @@ export const calculateSubsidy = async (caseId) => {
 };
 
 export const getSubsidy = async (caseId) => {
+  const mockCase = getMockCaseByRouteId(caseId);
+  if (mockCase) {
+    return {
+      case_id: mockCase.case_id,
+      status: ['최종 승인', '반려'].includes(mockCase.displayStatus) ? 'CONFIRMED' : 'PENDING',
+    };
+  }
   const response = await axiosInstance.get(API_PATHS.SUBSIDY.DETAIL(caseId));
   return response.data;
 };

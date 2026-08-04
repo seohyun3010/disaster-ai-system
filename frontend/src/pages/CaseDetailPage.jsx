@@ -15,13 +15,16 @@ import './case-workspace.css';
 const EMPTY_ANALYSIS = { status: 'idle', jobId: null, result: null, reviewStatus: '검토 전' };
 
 const maskResidentNumber = (value) =>
-  value?.replace(/^(\d{6})-\d{7}$/, '$1-*******') || '******-*******';
+  (/^\d{6}-[1-4]\*{6}$/.test(value) ? value : value?.replace(/^(\d{6})-\d{7}$/, '$1-*******'))
+  || '******-*******';
 
 const maskPhoneNumber = (value) =>
-  value?.replace(/^(\d{3})-\d{3,4}-(\d{4})$/, '$1-****-$2') || '-';
+  (/^\d{3}-\*{4}-\d{4}$/.test(value) ? value : value?.replace(/^(\d{3})-\d{3,4}-(\d{4})$/, '$1-****-$2'))
+  || '-';
 
 const maskAccountNumber = (value) => {
   if (!value) return '***-**-******';
+  if (value.includes('*')) return value;
   let remainingDigits = value.replace(/\D/g, '').length - 4;
   return [...value].map((character) => {
     if (!/\d/.test(character) || remainingDigits <= 0) return character;
@@ -41,7 +44,7 @@ const getCaseListPath = (item) => {
 const createReportView = (item) => {
   const external = item.raw_payload || {};
   return {
-    reportId: item.external_report_id || item.case_number,
+    reportId: item.case_number || item.external_report_id,
     receivedAt: item.reportedAt,
     disasterType: item.type,
     facilityType: item.facility,
@@ -94,7 +97,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const { caseId } = useParams();
   const navigate = useNavigate();
   const item = useCaseStore((state) =>
-    state.cases.find((entry) => entry.case_id === Number(caseId)));
+    state.cases.find((entry) => entry.id === caseId));
   const analysis = useAnalysisStore((state) => state.analyses[caseId] || EMPTY_ANALYSIS);
   const requestAnalysis = useAnalysisStore((state) => state.requestAnalysis);
   const refreshAnalysis = useAnalysisStore((state) => state.refreshAnalysis);
@@ -110,16 +113,15 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   // 판독 결과는 서버(ai_results)를 단일 출처로 삼는다.
   // 브라우저 저장소 상태에 의존하면 DB에 결과가 있어도 화면이 비는
   // 문제가 발생하므로, 진입 시 항상 서버에서 조회한다.
-  const [serverResult, setServerResult] = useState(null);
-  const [resultLoading, setResultLoading] = useState(true);
+  const [serverResultState, setServerResultState] = useState({ caseId: null, data: null });
+  const serverResult = serverResultState.caseId === caseId ? serverResultState.data : null;
+  const resultLoading = serverResultState.caseId !== caseId;
 
   useEffect(() => {
     let alive = true;
-    setResultLoading(true);
     getCaseAnalysisResult(caseId)
-      .then((data) => { if (alive) setServerResult(data); })
-      .catch(() => { if (alive) setServerResult(null); })
-      .finally(() => { if (alive) setResultLoading(false); });
+      .then((data) => { if (alive) setServerResultState({ caseId, data }); })
+      .catch(() => { if (alive) setServerResultState({ caseId, data: null }); });
     return () => { alive = false; };
   }, [caseId, analysis.status]);
 
@@ -141,7 +143,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
     if (serverResult || !['queued', 'processing'].includes(analysis.status)) return undefined;
     const timer = window.setInterval(() => {
       getCaseAnalysisResult(caseId)
-        .then((data) => { if (data) setServerResult(data); })
+        .then((data) => { if (data) setServerResultState({ caseId, data }); })
         .catch(() => {});
     }, ANALYSIS_POLLING_INTERVAL);
     return () => window.clearInterval(timer);
@@ -155,7 +157,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const startAnalysis = async () => {
     unlockStage(caseId, 2);
     navigate(`/cases/${caseId}/analysis`);
-    setServerResult(null);
+    setServerResultState({ caseId, data: null });
     await requestAnalysis(caseId);
   };
 

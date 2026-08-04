@@ -428,6 +428,25 @@
   cursor: not-allowed;
 }
 
+.approval-history-page .approval-history-pagination {
+  display: flex;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.approval-history-page .approval-history-pagination > div {
+  gap: 10px;
+}
+
+.approval-history-page .approval-history-pagination .page-navi {
+  min-width: 72px;
+  height: 36px;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
 .report-management-table td small {
   display: block;
   margin-top: 4px;
@@ -544,5 +563,15 @@
   .krds-report-pagination {
     grid-template-columns: 64px 1fr 64px;
     gap: 8px;
+  }
+
+  .approval-history-page .approval-history-pagination,
+  .approval-history-page .approval-history-pagination > div {
+    gap: 4px;
+  }
+
+  .approval-history-page .approval-history-pagination .page-navi {
+    min-width: 58px;
+    padding-inline: 6px;
   }
 }

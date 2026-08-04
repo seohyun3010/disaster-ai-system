@@ -1,90 +1,62 @@
-const DISASTER_SCHEDULES = {
-  HEAVY_RAIN: {
-    name: '집중호우',
-    occurredFrom: '2026-07-15',
-    occurredTo: '2026-07-18',
-  },
-  LANDSLIDE: {
-    name: '산사태',
-    occurredFrom: '2026-04-03',
-    occurredTo: '2026-04-05',
-  },
-  EARTHQUAKE: {
-    name: '지진',
-    occurredFrom: '2026-06-12',
-    occurredTo: '2026-06-13',
-  },
-  WILDFIRE: {
-    name: '산불',
-    occurredFrom: '2026-04-06',
-    occurredTo: '2026-04-08',
-  },
-  HEAVY_SNOW: {
-    name: '대설',
-    occurredFrom: '2026-02-07',
-    occurredTo: '2026-02-09',
-  },
-};
+import { MOCK_DISASTER_EVENTS } from '../mocks/cases';
 
-const toDate = (item) => new Date(item.reported_at || item.received_at);
+const toCaseDate = (item) => new Date(item.reported_at || item.received_at);
+const parseLocalDate = (value) => {
+  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day));
+};
 const formatDate = (date) => Number.isNaN(date.getTime())
   ? '-'
   : new Intl.DateTimeFormat('ko-KR').format(date);
-const parseLocalDate = (value) => new Date(`${value}T00:00:00`);
-const addDays = (date, days) => {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
-};
 const formatMonthDay = (date) => `${date.getMonth() + 1}.${date.getDate()}`;
 const formatPeriod = (from, to) => `${formatMonthDay(from)} ~ ${formatMonthDay(to)}`;
+const isEventInRange = (event, range) => {
+  if (!range?.from && !range?.to) return true;
+  const eventStart = parseLocalDate(event.from)?.getTime();
+  const rangeFrom = parseLocalDate(range.from)?.getTime() ?? Number.NEGATIVE_INFINITY;
+  const rangeTo = parseLocalDate(range.to)?.getTime() ?? Number.POSITIVE_INFINITY;
+  return eventStart >= rangeFrom && eventStart <= rangeTo;
+};
 
-export const buildDisasterEvents = (cases) => {
-  const groups = new Map();
-  cases.forEach((item) => {
-    if (item.disaster_type === 'TYPHOON') return;
-    const date = toDate(item);
-    const year = Number.isNaN(date.getTime()) ? '미상' : date.getFullYear();
-    const key = `${year}-${item.disaster_type || 'OTHER'}`;
-    const schedule = DISASTER_SCHEDULES[item.disaster_type];
-    const occurredFrom = schedule ? parseLocalDate(schedule.occurredFrom) : null;
-    const occurredTo = schedule ? parseLocalDate(schedule.occurredTo) : null;
-    const filingFrom = occurredTo ? addDays(occurredTo, 1) : null;
-    const filingTo = filingFrom ? addDays(filingFrom, 9) : null;
-    const deadlineFrom = filingTo ? addDays(filingTo, 1) : null;
-    const deadlineTo = deadlineFrom ? addDays(deadlineFrom, 13) : null;
-    const deadlineCompleted = deadlineTo
-      ? Date.now() >= addDays(deadlineTo, 1).getTime()
-      : false;
-    const current = groups.get(key) || {
-      id: key,
-      year,
-      name: schedule
-        ? `${formatMonthDay(occurredFrom)} ~ ${formatMonthDay(occurredTo)} ${schedule.name}`
-        : `${year}년 ${item.type}`,
-      status: deadlineCompleted ? '완료' : '진행중',
-      occurredPeriod: schedule ? formatPeriod(occurredFrom, occurredTo) : '-',
-      filingPeriod: schedule ? formatPeriod(filingFrom, filingTo) : '-',
-      deadlinePeriod: schedule ? formatPeriod(deadlineFrom, deadlineTo) : '-',
-      deadlineAt: deadlineTo?.getTime() || 0,
-      dates: [],
-      caseIds: [],
-    };
-    if (!Number.isNaN(date.getTime())) current.dates.push(date);
-    current.caseIds.push(item.case_id);
-    groups.set(key, current);
-  });
+export const buildDisasterEvents = (cases, range) => {
+  const casesByEvent = cases.reduce((groups, item) => {
+    if (!item.disaster_event_id) return groups;
+    const current = groups.get(item.disaster_event_id) || [];
+    current.push(item);
+    groups.set(item.disaster_event_id, current);
+    return groups;
+  }, new Map());
 
-  return [...groups.values()]
+  return MOCK_DISASTER_EVENTS
+    .filter((event) => isEventInRange(event, range))
     .map((event) => {
-      const sorted = event.dates.sort((a, b) => a - b);
+      const occurredFrom = parseLocalDate(event.from);
+      const occurredTo = parseLocalDate(event.to);
+      const deadlineFrom = parseLocalDate(event.deadlineFrom);
+      const deadlineTo = parseLocalDate(event.deadlineTo);
+      const eventCases = casesByEvent.get(event.id) || [];
+      const dates = eventCases
+        .map(toCaseDate)
+        .filter((date) => !Number.isNaN(date.getTime()))
+        .sort((left, right) => left - right);
+
       return {
         ...event,
-        period: sorted.length
-          ? `${formatDate(sorted[0])} ~ ${formatDate(sorted.at(-1))}`
+        year: event.year,
+        name: `${formatPeriod(occurredFrom, occurredTo)} ${event.label}`,
+        occurredPeriod: formatPeriod(occurredFrom, occurredTo),
+        filingPeriod: '-',
+        deadlinePeriod: formatPeriod(deadlineFrom, deadlineTo),
+        startAt: occurredFrom.getTime(),
+        deadlineAt: deadlineTo.getTime(),
+        period: dates.length
+          ? `${formatDate(dates[0])} ~ ${formatDate(dates.at(-1))}`
           : '-',
-        reportCount: event.caseIds.length,
+        caseIds: eventCases.map((item) => item.frontendKey || item.id || String(item.case_id)),
+        reportCount: eventCases.length,
       };
     })
-    .sort((a, b) => b.deadlineAt - a.deadlineAt);
+    .sort((left, right) => right.startAt - left.startAt);
 };

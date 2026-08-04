@@ -161,22 +161,17 @@ import CaseMap from '../components/dashboard/CaseMap';
 import { ROUTES } from '../routes/routeConfig';
 import { useCaseStore } from '../stores/caseStore';
 import { buildDisasterEvents } from '../utils/disasterEvents';
+import { MOCK_DISASTER_CONFIG, TOTAL_MOCK_REPORTS } from '../mocks/cases';
 import '../components/dashboard/dashboard.css';
 
 ChartJS.register(ArcElement, Tooltip);
 
 const KPIS = [
-  { icon: '☀', label: '재난 발생 (금일)', value: '5', unit: '건', change: '-1건', tone: 'blue' },
-  { icon: '▤', label: '피해 신고 (누적)', value: '1,248', unit: '건', change: '+87건', tone: 'red' },
+  { icon: '☀', label: '재난 발생', value: '5', unit: '건', change: '-1건', tone: 'blue' },
+  { icon: '▤', label: '피해 신고 (누적)', value: TOTAL_MOCK_REPORTS.toLocaleString('ko-KR'), unit: '건', change: '+87건', tone: 'red' },
 ];
 
-const DISASTER_YEAR_STATS = [
-  ['호우', 412],
-  ['태풍', 286],
-  ['산불', 214],
-  ['대설', 183],
-  ['지진', 153],
-];
+const DISASTER_YEAR_STATS = MOCK_DISASTER_CONFIG.map(({ label, count }) => [label, count]);
 
 const DISASTER_YEAR_COLORS = ['#6FA8FF', '#72D4C8', '#FFB26B', '#B79CFF', '#D8BC92'];
 const DISASTER_YEAR_HOVER_COLORS = ['#6599E8', '#68C1B6', '#E8A261', '#A78EE8', '#C5AB85'];
@@ -202,14 +197,6 @@ const DISASTER_YEAR_CHART_OPTIONS = {
     tooltip: { enabled: true },
   },
 };
-
-const REPORTS = [
-  ['DS-2026-000008', '서울특별시 동작구 상도로 104', '상가', '2026.07.28 15:45', '문지아', '미완료'],
-  ['DS-2026-000007', '충청남도 논산시 연산면 계백로 1842', '농경지', '2026.07.28 14:20', '오성호', '미완료'],
-  ['DS-2026-000006', '경기도 가평군 청평면 호반로 112', '도로', '2026.07.28 13:05', '한도윤', '미완료'],
-  ['DS-2026-000004', '충청북도 청주시 상당구 남일면 효촌송암길 21', '상가', '2026.07.28 11:10', '정우진', '미완료'],
-  ['DS-2026-000001', '충청북도 청주시 상당구 상당로 123', '주택', '2026.07.28 06:34', '김민수', '미완료'],
-];
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const DEADLINE_NOTICE_WINDOW_DAYS = 14;
@@ -257,13 +244,25 @@ const formatDeadlineDate = (timestamp) => {
 const DashboardPage = () => {
   const fetchCases = useCaseStore((state) => state.fetchCases);
   const cases = useCaseStore((state) => state.cases);
-  const totalCases = useCaseStore((state) => state.total);
   const mapRef = useRef(null);
   const noticeIntervalRef = useRef(null);
   const [noticeIndex, setNoticeIndex] = useState(0);
   const [noticeCycleKey, setNoticeCycleKey] = useState(0);
   const [generatedReportCount, setGeneratedReportCount] = useState(0);
-  const pendingReportCount = Math.max(totalCases - generatedReportCount, 0);
+  const currentTotal = TOTAL_MOCK_REPORTS;
+  const pendingReportCount = Math.max(currentTotal - generatedReportCount, 0);
+  const recentReports = useMemo(
+    () => [...cases]
+      .sort((left, right) => {
+        const sourceOrder = (left.__source === 'backend' ? 0 : 1)
+          - (right.__source === 'backend' ? 0 : 1);
+        return sourceOrder
+          || right.reported_at.localeCompare(left.reported_at)
+          || right.case_id - left.case_id;
+      })
+      .slice(0, 6),
+    [cases],
+  );
   const deadlineNotices = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -364,7 +363,7 @@ const DashboardPage = () => {
             <button type="submit">조회</button>
           </form>
         </div>
-        <p className="compact-query-meta">조회 결과 <strong>1,248건</strong> · 최근 1년 기준</p>
+        <p className="compact-query-meta">조회 결과 <strong>{currentTotal.toLocaleString('ko-KR')}건</strong> · 최근 1년 기준</p>
       </section>
 
       <section className="dashboard-main-grid">
@@ -382,11 +381,11 @@ const DashboardPage = () => {
           <article className="dashboard-card recent-card">
             <CardTitle title="최근 접수" action="더보기 ›" actionTo={ROUTES.CASES} />
             <ul className="recent-report-list">
-              {REPORTS.slice(0, 6).map((row) => (
-                <li key={row[0]}>
-                  <strong>{row[0]}</strong>
-                  <span>{row[2]}</span>
-                  <span>{row[1]}</span>
+              {recentReports.map((item) => (
+                <li key={item.frontendKey || item.id || item.case_id}>
+                  <strong>{item.case_number}</strong>
+                  <span>{item.facility}</span>
+                  <span>{item.address}</span>
                 </li>
               ))}
             </ul>
@@ -428,7 +427,7 @@ const DashboardPage = () => {
               <div
                 className="annual-disaster-donut"
                 role="img"
-                aria-label="최근 1년 전체 1,248건 중 호우 412건, 태풍 286건, 산불 214건, 대설 183건, 지진 153건"
+                aria-label="최근 1년 전체 1,248건 중 집중호우 412건, 산사태 286건, 산불 214건, 대설 183건, 지진 153건"
               >
                 <Doughnut data={DISASTER_YEAR_CHART_DATA} options={DISASTER_YEAR_CHART_OPTIONS} />
                 <div className="annual-donut-center" aria-hidden="true">

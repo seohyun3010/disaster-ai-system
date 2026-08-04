@@ -19,7 +19,7 @@ const getSeverityErrorMessage = (error) => {
 const SeverityPage = () => {
   const { caseId } = useParams();
   const item = useCaseStore((state) => (
-    state.cases.find((entry) => entry.case_id === Number(caseId))
+    state.cases.find((entry) => entry.id === caseId)
   ));
   const savedResult = useWorkflowStore((state) => state.workflows[caseId]?.severityResult);
   const saveSeverityResult = useWorkflowStore((state) => state.saveSeverityResult);

@@ -6,25 +6,20 @@ const SupportCompletionGuard = ({ children }) => {
   const { caseId } = useParams();
   const { search } = useLocation();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [supportConfirmed, setSupportConfirmed] = useState(false);
   const historyView = new URLSearchParams(search).get('view') === 'history';
+  const [supportState, setSupportState] = useState({ caseId: null, confirmed: false });
+  const loading = Boolean(caseId && !historyView && supportState.caseId !== caseId);
+  const supportConfirmed = supportState.caseId === caseId && supportState.confirmed;
 
   useEffect(() => {
-    if (!caseId || historyView) {
-      setLoading(false);
-      return;
-    }
+    if (!caseId || historyView) return undefined;
     let ignore = false;
     getSubsidy(caseId)
       .then((data) => {
-        if (!ignore) setSupportConfirmed(data.status === 'CONFIRMED');
+        if (!ignore) setSupportState({ caseId, confirmed: data.status === 'CONFIRMED' });
       })
       .catch(() => {
-        if (!ignore) setSupportConfirmed(false);
-      })
-      .finally(() => {
-        if (!ignore) setLoading(false);
+        if (!ignore) setSupportState({ caseId, confirmed: false });
       });
     return () => { ignore = true; };
   }, [caseId, historyView]);
