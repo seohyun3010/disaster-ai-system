@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import './ai-verdict.css';
 
 /* 부위 표시 순서 및 라벨 */
@@ -13,6 +14,75 @@ const STATUS_LABEL = {
   DAMAGED: '손상',
   UNDAMAGED: '이상 없음',
   NOT_VISIBLE: '확인 불가',
+};
+
+const EvidenceGallery = ({ camUrls, sourceUrls, result }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const imageCount = Math.max(camUrls.length, sourceUrls.length);
+  const lastIndex = imageCount - 1;
+  const safeIndex = Math.min(currentIndex, lastIndex);
+  const viewLabel = `View ${safeIndex + 1}`;
+  const probability = result.viewProbs?.[safeIndex]?.[result.damageGradeIndex];
+
+  return (
+    <>
+      <nav className="verdict-image-navigation" aria-label="판독 근거 이미지 탐색">
+        <button
+          type="button"
+          onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}
+          disabled={safeIndex === 0}
+          aria-label="이전 이미지"
+        >
+          <span aria-hidden="true">‹</span> 이전
+        </button>
+        <strong aria-live="polite" aria-atomic="true">
+          {safeIndex + 1} / {imageCount}
+        </strong>
+        <button
+          type="button"
+          onClick={() => setCurrentIndex((index) => Math.min(lastIndex, index + 1))}
+          disabled={safeIndex === lastIndex}
+          aria-label="다음 이미지"
+        >
+          다음 <span aria-hidden="true">›</span>
+        </button>
+      </nav>
+
+      <div className="verdict-evidence-grid">
+        <figure className="verdict-evidence-panel">
+          <h4>원본 사진</h4>
+          <div className="verdict-image-frame">
+            {sourceUrls[safeIndex] ? (
+              <img src={sourceUrls[safeIndex]} alt={`${viewLabel} 원본 사진`} />
+            ) : (
+              <p className="verdict-image-empty">원본 사진을 불러올 수 없습니다.</p>
+            )}
+          </div>
+          <figcaption>{viewLabel}</figcaption>
+        </figure>
+
+        <figure className="verdict-evidence-panel">
+          <h4>AI 분석 결과(Grad-CAM++)</h4>
+          <div className="verdict-image-frame">
+            {camUrls[safeIndex] ? (
+              <img src={camUrls[safeIndex]} alt={`${viewLabel} AI 분석 결과 Grad-CAM++`} />
+            ) : (
+              <p className="verdict-image-empty">AI 분석 이미지를 불러올 수 없습니다.</p>
+            )}
+          </div>
+          <figcaption>
+            {viewLabel}
+            {probability != null && (
+              <span>
+                {' '}
+                · p({result.damageGrade})={(probability * 100).toFixed(0)}%
+              </span>
+            )}
+          </figcaption>
+        </figure>
+      </div>
+    </>
+  );
 };
 
 const AnalysisResultCard = ({ result, analysis }) => {
@@ -94,32 +164,14 @@ const AnalysisResultCard = ({ result, analysis }) => {
             <h3>판독 근거 영역</h3>
           </div>
 
-          <div className="verdict-images view-both">
-            {camUrls.map((url, i) => (
-              <figure key={url}>
-                {sourceUrls[i] ? (
-                  <div className="verdict-pair">
-                    <img src={sourceUrls[i]} alt={`뷰 ${i + 1} 원본`} />
-                    <img src={url} alt={`뷰 ${i + 1} 주목 영역`} />
-                  </div>
-                ) : (
-                  <img src={url} alt={`뷰 ${i + 1}`} />
-                )}
-                <figcaption>
-                  뷰 {i + 1}
-                  {result.viewProbs?.[i] && result.damageGradeIndex != null && (
-                    <span>
-                      {' '}
-                      · p({result.damageGrade})={' '}
-                      {(result.viewProbs[i][result.damageGradeIndex] * 100).toFixed(0)}%
-                    </span>
-                  )}
-                </figcaption>
-              </figure>
-            ))}
-          </div>
+          <EvidenceGallery
+            key={result.resultId || [...sourceUrls, ...camUrls].join('|')}
+            camUrls={camUrls}
+            sourceUrls={sourceUrls}
+            result={result}
+          />
           <p className="verdict-note">
-            붉은 영역이 판정에 크게 기여한 부분입니다 (Grad-CAM++).
+            붉은 영역이 AI 판정에 크게 기여한 부분입니다. (Grad-CAM++)
           </p>
         </section>
       )}

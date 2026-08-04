@@ -48,7 +48,7 @@ const ApprovalHistoryPage = () => {
   const visibleLogs = filteredLogs.slice((page - 1) * pageSize, page * pageSize);
 
   return <div className="case-page approval-history-page">
-    <section className="case-card approval-history-section">
+    <section className="case-card report-management-card approval-history-section">
       <div className="report-management-toolbar"><label>이력 검색<input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="사건번호, 재해명, 신고자, 피해 위치 검색" /></label><p className="report-management-count">총 <strong>{filteredLogs.length}</strong>건</p></div>
 
       <div className="krds-structured-report-list">

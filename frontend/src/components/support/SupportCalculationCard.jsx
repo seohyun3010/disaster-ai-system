@@ -115,7 +115,7 @@ const SupportCalculationCard = ({
         {error && <p className="form-error" role="alert">{error}</p>}
         {message && <p className="decision-success" role="status">{message}</p>}
 
-        <div className="stage-card-actions">
+        <div className="stage-card-actions support-card-actions">
           {!fixedZeroAmount && <button type="button" className="secondary-action" onClick={onCalculate} disabled={calculating}>
             {calculating ? '재계산 중...' : '다시 계산'}
           </button>}

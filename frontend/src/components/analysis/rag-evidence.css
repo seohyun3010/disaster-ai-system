@@ -1,0 +1,129 @@
+.analysis-rag-evidence.persona-evidence {
+  width: 100%;
+  min-width: 0;
+  margin-top: 0;
+  overflow: hidden;
+  border-color: var(--krds-gray-300);
+  border-radius: 10px;
+  background: #fff;
+  padding: 0;
+  color: var(--krds-gray-700);
+}
+
+.analysis-rag-evidence.persona-evidence summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px;
+  color: var(--krds-primary-800);
+  font-size: var(--font-size-subtitle);
+  list-style: none;
+}
+
+.analysis-rag-evidence.persona-evidence summary::-webkit-details-marker {
+  display: none;
+}
+
+.analysis-rag-evidence.persona-evidence summary::before {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--krds-primary-50);
+  color: var(--krds-primary-700);
+  content: '›';
+  font-size: var(--icon-font-size-9);
+  line-height: var(--line-height-icon);
+  transition: transform .18s ease;
+}
+
+.analysis-rag-evidence.persona-evidence[open] summary {
+  border-bottom: 1px solid var(--krds-gray-200);
+}
+
+.analysis-rag-evidence.persona-evidence[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.analysis-rag-evidence.persona-evidence > div {
+  padding: 0;
+}
+
+.rag-evidence-list {
+  display: grid;
+}
+
+.rag-evidence-list article {
+  min-width: 0;
+  padding: 17px 18px;
+}
+
+.rag-evidence-list article + article {
+  border-top: 1px solid var(--krds-gray-200);
+}
+
+.rag-evidence-list h3 {
+  margin: 0;
+  color: var(--krds-gray-950);
+  font-size: var(--font-size-subtitle);
+  font-weight: var(--font-weight-bold);
+  overflow-wrap: anywhere;
+}
+
+.rag-evidence-list p {
+  margin: 8px 0 0;
+  color: var(--krds-gray-700);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-default);
+}
+
+.rag-evidence-list footer {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--krds-gray-600);
+  font-size: var(--font-size-caption);
+}
+
+.rag-evidence-list footer span {
+  flex: 0 0 auto;
+  border-radius: 4px;
+  background: var(--krds-primary-50);
+  padding: 3px 6px;
+  color: var(--krds-primary-700);
+  font-weight: var(--font-weight-bold);
+}
+
+.rag-evidence-list footer strong {
+  color: var(--krds-gray-600);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.analysis-rag-evidence .rag-evidence-state {
+  margin: 0;
+  padding: 22px 18px;
+  color: var(--krds-gray-600);
+  font-size: var(--font-size-body);
+  text-align: center;
+}
+
+.analysis-rag-evidence .rag-evidence-state.is-error {
+  color: var(--krds-danger-700, #bd2c0f);
+}
+
+@media (max-width: 620px) {
+  .analysis-rag-evidence.persona-evidence summary,
+  .rag-evidence-list article {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .rag-evidence-list footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

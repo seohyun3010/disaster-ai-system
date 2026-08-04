@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ANALYSIS_POLLING_INTERVAL, getCaseAnalysisResult } from '../api/analysisApi';
 import AnalysisDecisionPanel from '../components/analysis/AnalysisDecisionPanel';
 import AnalysisResultCard from '../components/analysis/AnalysisResultCard';
+import RagEvidenceCard from '../components/analysis/RagEvidenceCard';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
@@ -258,6 +259,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
 
       {serverResult && <div className="workspace-analysis-results">
         <AnalysisResultCard result={serverResult} analysis={{ completedAt: serverResult.completedAt }} />
+        <RagEvidenceCard caseId={caseId} damageGrade={serverResult.damageGrade} />
         <AnalysisDecisionPanel
           confidence={serverResult.confidence}
           recommendedGrade={serverResult.recommendedGrade}

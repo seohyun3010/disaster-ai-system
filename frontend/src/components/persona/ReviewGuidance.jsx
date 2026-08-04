@@ -16,8 +16,8 @@ export const TermHelp = ({ label, children }) => (
   </span>
 );
 
-export const EvidencePanel = ({ title = '적용 근거', children }) => (
-  <details className="persona-evidence">
+export const EvidencePanel = ({ title = '적용 근거', children, className = '', ...props }) => (
+  <details className={`persona-evidence ${className}`.trim()} {...props}>
     <summary>{title}</summary>
     <div>{children}</div>
   </details>

@@ -326,9 +326,21 @@
   resize: none;
 }
 
-.case-workflow-stage .severity-grid .urgency-summary-card .evidence-details[open] {
-  max-height: 210px;
-  overflow-y: auto;
+.case-workflow-stage .severity-grid .urgency-summary-card {
+  align-self: start;
+}
+
+.case-workflow-stage .severity-grid .urgency-summary-card .urgency-total {
+  margin: 18px 0 0;
+}
+
+.case-workflow-stage .severity-grid .urgency-formula-list {
+  margin: 0;
+}
+
+.case-workflow-stage .severity-grid .urgency-formula-list > div {
+  border-bottom: 0;
+  padding: 14px 2px 10px;
 }
 
 .case-workflow-stage .case-card {

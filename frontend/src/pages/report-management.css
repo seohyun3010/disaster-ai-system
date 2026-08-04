@@ -116,7 +116,7 @@
   justify-content: flex-end;
 }
 
-.approval-history-table-wrap {
+.approval-history-page .approval-history-table-wrap {
   margin-top: 0;
 }
 
@@ -127,8 +127,15 @@
 
 .approval-history-page .approval-log-table th,
 .approval-history-page .approval-log-table td {
+  border-bottom: 1px solid var(--krds-gray-200);
   padding: 17px 12px;
   line-height: var(--line-height-default);
+}
+
+.approval-history-page .approval-log-table thead th {
+  border-top: 0;
+  background: var(--krds-gray-50);
+  color: var(--krds-gray-800);
 }
 
 .approval-history-page .approval-log-table th:nth-child(1) { width: 9%; }
