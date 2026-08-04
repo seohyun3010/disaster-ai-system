@@ -37,11 +37,11 @@ export const useWorkflowStore = create(
           maxUnlockedStage: Math.max(current.maxUnlockedStage || 1, stage),
         });
       }),
-      saveSeverity: (caseId, scores, reason) => set((state) => {
+      saveSeverityResult: (caseId, result) => set((state) => {
         const current = state.workflows[caseId] || createInitialWorkflow();
         return updateCaseWorkflow(state, caseId, {
-          severityScores: scores,
-          severityReason: reason,
+          severityResult: result,
+          recoveryUrgencyScore: result?.recovery_urgency_score ?? null,
           severityConfirmed: true,
           maxUnlockedStage: Math.max(current.maxUnlockedStage || 1, 4),
         });

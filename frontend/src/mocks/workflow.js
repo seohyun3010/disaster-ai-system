@@ -110,6 +110,8 @@ export const createInitialWorkflow = () => ({
   maxUnlockedStage: 1,
   severityScores: {},
   severityReason: '',
+  severityResult: null,
+  recoveryUrgencyScore: null,
   severityConfirmed: false,
   supportAmount: 0,
   supportReason: '',

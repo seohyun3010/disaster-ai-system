@@ -1,15 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, Integer, String, Text, UniqueConstraint
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from database.database import Base
-
-if TYPE_CHECKING:
-    from models.policy_reference import PolicyReference
 
 
 class PolicyDocument(Base):
@@ -29,7 +25,3 @@ class PolicyDocument(Base):
     keywords: Mapped[str] = mapped_column(Text, nullable=False, default="")
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
-
-    references: Mapped[list["PolicyReference"]] = relationship(
-        back_populates="document"
-    )
