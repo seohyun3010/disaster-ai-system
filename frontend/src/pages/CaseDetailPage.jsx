@@ -259,7 +259,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
 
       {serverResult && <div className="workspace-analysis-results">
         <AnalysisResultCard result={serverResult} analysis={{ completedAt: serverResult.completedAt }} />
-        <RagEvidenceCard caseId={caseId} damageGrade={serverResult.damageGrade} />
+        <RagEvidenceCard caseId={caseId} damageGrade={serverResult.damageGrade} facilityType={report.facilityType} />
         <AnalysisDecisionPanel
           confidence={serverResult.confidence}
           recommendedGrade={serverResult.recommendedGrade}

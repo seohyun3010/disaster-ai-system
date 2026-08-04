@@ -33,13 +33,22 @@ SOURCE_DOCUMENTS = (
 # 시설유형 -> 편람 document_code 시설 구분자
 FACILITY_SEGMENTS = {
     "house": "HOUSE",
+    "주택": "HOUSE",
     "livestock": "LIVESTOCK",
+    "축사": "LIVESTOCK",
     "greenhouse": "FARMFAC",
     "farmfacility": "FARMFAC",
+    "비닐하우스": "FARMFAC",
+    "농림시설": "FARMFAC",
     "farmland": "FARMLAND",
+    "농경지": "FARMLAND",
     "vessel": "VESSEL",
+    "어선": "VESSEL",
     "aqua": "AQUA",
+    "양식장": "AQUA",
     "etc": "ETC",
+    "공장": "ETC",
+    "광산": "ETC",
 }
 
 # 시설 필터가 걸려도 항상 후보에 포함되는 공통 구분자
@@ -147,10 +156,11 @@ def _facility_conditions(source: dict, facility_type: str | None):
     """시설 필터 조건을 만든다. 해당 없으면 None."""
     if not facility_type or not source.get("facility_scoped"):
         return None
+    prefix = source["code"]
     segment = FACILITY_SEGMENTS.get(facility_type.lower())
     if not segment:
-        return None
-    prefix = source["code"]
+        # 편람 사유시설에 없는 유형(도로·옹벽 등 공공시설)은 공통 조항만 인출
+        return PolicyDocument.document_code.like(f"{prefix}-{COMMON_SEGMENT}-%")
     return or_(
         PolicyDocument.document_code.like(f"{prefix}-{segment}-%"),
         PolicyDocument.document_code.like(f"{prefix}-{COMMON_SEGMENT}-%"),
