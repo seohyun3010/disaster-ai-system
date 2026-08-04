@@ -14,7 +14,7 @@ const getDocuments = (response) => {
   return [];
 };
 
-const RagEvidenceCard = ({ caseId, damageGrade }) => {
+const RagEvidenceCard = ({ caseId, damageGrade, facilityType }) => {
   const [status, setStatus] = useState('loading');
   const [documents, setDocuments] = useState([]);
   const [usesMockData, setUsesMockData] = useState(false);
@@ -24,7 +24,7 @@ const RagEvidenceCard = ({ caseId, damageGrade }) => {
 
     const loadEvidence = async () => {
       try {
-        const response = await searchPolicyDocuments({ caseId, damageGrade });
+        const response = await searchPolicyDocuments({ caseId, damageGrade, facilityType });
         if (!active) return;
         setDocuments(getDocuments(response));
         setUsesMockData(false);
@@ -49,7 +49,7 @@ const RagEvidenceCard = ({ caseId, damageGrade }) => {
 
     loadEvidence();
     return () => { active = false; };
-  }, [caseId, damageGrade]);
+  }, [caseId, damageGrade, facilityType]);
 
   return (
     <EvidencePanel
