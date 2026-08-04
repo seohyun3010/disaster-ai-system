@@ -11,6 +11,8 @@ class SeverityResponse(BaseModel):
     recovery_urgency_score: float
     recovery_priority: int
     urgency_level: str
+    applied_damage_grade: str | None = None
+    damage_grade_source: str | None = None
     rule_version: str
     calculated_at: datetime
     calculation_method: str = "RECOVERY_URGENCY_RULE_ENGINE"

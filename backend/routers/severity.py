@@ -19,6 +19,8 @@ def _result_response(result: SeverityResult) -> SeverityResponse:
         recovery_urgency_score=result.recovery_urgency_score,
         recovery_priority=result.recovery_priority,
         urgency_level=result.urgency_level,
+        applied_damage_grade=result.applied_damage_grade,
+        damage_grade_source=result.damage_grade_source,
         rule_version=result.rule_version,
         calculated_at=result.calculated_at,
         calculation_method="RECOVERY_URGENCY_RULE_ENGINE",

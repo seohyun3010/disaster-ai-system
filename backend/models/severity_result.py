@@ -24,6 +24,8 @@ class SeverityResult(Base):
     recovery_urgency_score: Mapped[float] = mapped_column(Float, nullable=False)
     recovery_priority: Mapped[int] = mapped_column(Integer, nullable=False)
     urgency_level: Mapped[str] = mapped_column(String(20), nullable=False)
+    applied_damage_grade: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    damage_grade_source: Mapped[str | None] = mapped_column(String(20), nullable=True)
     rule_version: Mapped[str] = mapped_column(String(100), nullable=False)
     calculated_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, default=datetime.utcnow

@@ -57,11 +57,17 @@ const AnalysisDecisionPanel = ({ confidence, recommendedGrade, reviewedGrade, re
     }
     setIsSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 400));
-    if (mode === 'reReview') {
-      onReReviewSubmit?.({ grade: selectedGrade, reason: reason.trim() });
-    } else {
-      const status = mode === 'hold' ? '보류' : '승인';
-      onSubmit({ status, grade: selectedGrade, previousGrade: recommendedGrade, reason: reason.trim() });
+    try {
+      if (mode === 'reReview') {
+        await onReReviewSubmit?.({ grade: selectedGrade, reason: reason.trim() });
+      } else {
+        const status = mode === 'hold' ? '보류' : '승인';
+        await onSubmit({ status, grade: selectedGrade, previousGrade: recommendedGrade, reason: reason.trim() });
+      }
+    } catch (submitError) {
+      setError(submitError.message || '피해등급 검토 결과 저장에 실패했습니다.');
+      setIsSubmitting(false);
+      return;
     }
     setMessage(mode === 'hold'
       ? '보류 처리가 완료되었습니다.'

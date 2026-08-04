@@ -31,7 +31,7 @@ const SeverityPage = () => {
 
   useEffect(() => {
     let ignore = false;
-    getSeverity(caseId)
+    calculateSeverity(caseId)
       .then((data) => {
         if (ignore) return;
         setResult(data);
@@ -40,11 +40,7 @@ const SeverityPage = () => {
       })
       .catch((requestError) => {
         if (ignore) return;
-        if (requestError.response?.status === 404) {
-          setResult(null);
-          setError(getSeverityErrorMessage(requestError));
-          return;
-        }
+        setResult(null);
         setError(getSeverityErrorMessage(requestError));
       })
       .finally(() => { if (!ignore) setLoading(false); });
