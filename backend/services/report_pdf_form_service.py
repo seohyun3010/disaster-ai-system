@@ -10,6 +10,7 @@
   자동으로 실제 값으로 채워지므로 이 파일을 다시 고칠 필요는 없습니다.
 """
 
+import json
 import os
 from io import BytesIO
 from pathlib import Path
@@ -107,6 +108,46 @@ def _level(value: str | None) -> str:
         "MEDIUM": "보통",
         "LOW": "낮음",
     }.get((value or "").upper(), _plain(value))
+
+
+# 부위별 손상 관찰 — 프론트(AnalysisResultCard.jsx)와 동일한 순서·라벨.
+# ai_result.ai_explanation(JSON)의 "observation" 키에서 그대로 옴.
+_DAMAGE_PARTS = [
+    ("roof", "지붕"),
+    ("structure", "기둥"),
+    ("wall", "벽체"),
+]
+_DAMAGE_STATUS_LABELS = {
+    "DAMAGED": "손상",
+    "UNDAMAGED": "이상 없음",
+    "NOT_VISIBLE": "확인 불가",
+}
+
+
+def _damage_observation(detail: ReportDetailResponse):
+    """AI 분석 결과(ai_explanation JSON)의 observation을 부위별 표로 정리.
+
+    프론트 AnalysisResultCard.jsx와 동일하게, AI 분석 결과 자체가 있으면
+    (observation 키가 없어도) 3개 부위를 전부 "확인 불가"로 표시한 표를
+    반환하고, AI 분석 결과가 아예 없을 때만 None을 반환해 문장으로
+    대체한다.
+    """
+    raw = detail.analysis.explanation
+    if not raw:
+        return None
+    try:
+        parsed = json.loads(raw)
+    except (TypeError, ValueError):
+        return None
+    observation = parsed.get("observation") or {}
+    rows = []
+    for key, label in _DAMAGE_PARTS:
+        entry = observation.get(key) or {}
+        status = entry.get("status") or "NOT_VISIBLE"
+        note = entry.get("note") or "-"
+        rows.append([label, _DAMAGE_STATUS_LABELS.get(status, status), note])
+    summary = observation.get("summary")
+    return rows, summary
 
 
 _GRADE_LABELS = {
@@ -337,6 +378,17 @@ def render_official_report_pdf(detail: ReportDetailResponse) -> bytes:
         t.setStyle(style)
         return t
 
+    def parts_table(header, rows, widths):
+        """총계 행이 없는 3열 표(부위별 손상 관찰용) — data_table의 합계행 없는 버전."""
+        data = [[p(h, bold_center) for h in header]]
+        for row in rows:
+            data.append(
+                [p(cell, body if i in (0, 2) else center) for i, cell in enumerate(row)]
+            )
+        t = Table(data, colWidths=widths)
+        t.setStyle(_framed_style(len(data), shade_rows=(0,)))
+        return t
+
     def approval_strip():
         """관용 보고서 양식 참고 이미지와 동일한 좌/우 두 박스 구조.
         좌: 문서번호/보존기간/공개여부/결재일자 (4행)
@@ -563,10 +615,25 @@ def render_official_report_pdf(detail: ReportDetailResponse) -> bytes:
     else:
         judgement = "판정 신뢰도가 담당자 검토 기준을 충족하여 AI 예비판정 결과를 활용함."
     story.append(item("나.", judgement))
-    # TODO(schema): 부위별 손상 관찰(지붕·외벽·창호·구조체·침수) 세부 필드가
-    # 아직 없어 문장으로만 표기. 필드가 생기면 Style E와 동일하게
-    # 전부 값이 있을 때만 표로 전환하는 조건부 로직을 추가하세요.
-    story.append(item("1)", "부위별 손상 관찰: 세부 관찰 데이터 미제공으로 확인 불가.", level=2))
+    # AI 분석 결과(ai_explanation JSON)의 observation을 부위별 표로 반영.
+    # AI 분석 자체가 없을 때만(explanation 파싱 불가) 문장으로 대체.
+    observation_data = _damage_observation(detail)
+    if observation_data:
+        obs_rows, obs_summary = observation_data
+        story.append(item("1)", "부위별 손상 관찰은 다음과 같음.", level=2))
+        story.append(Spacer(1, 2 * mm))
+        story.append(
+            parts_table(
+                ["부위", "상태", "설명"],
+                obs_rows,
+                widths=[24 * mm, 24 * mm, PAGE_WIDTH - 48 * mm],
+            )
+        )
+        if obs_summary:
+            story.append(Spacer(1, 1.5 * mm))
+            story.append(Paragraph(escape(obs_summary), item2_style))
+    else:
+        story.append(item("1)", "부위별 손상 관찰: AI 분석 결과가 없어 확인 불가.", level=2))
     story.append(Spacer(1, 3 * mm))
     story.extend(image_grid())
     story.append(Spacer(1, 3 * mm))
