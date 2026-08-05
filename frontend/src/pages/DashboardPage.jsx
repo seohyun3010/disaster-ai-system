@@ -165,8 +165,10 @@ import { formatFacilityType } from '../utils/disasterTypeLabels';
 import { MOCK_DISASTER_CONFIG, MOCK_DISASTER_EVENTS } from '../mocks/cases';
 import {
   buildDashboardMetrics,
+  DASHBOARD_REFERENCE_DATE,
   DEFAULT_DASHBOARD_RANGE,
   formatDashboardPeriod,
+  migrateLegacyDashboardRange,
   sortCasesByReportedAt,
   validateDashboardRange,
 } from '../utils/dashboardMetrics';
@@ -251,7 +253,7 @@ const DashboardPage = () => {
   const urlStartDate = searchParams.get('startDate') || '';
   const urlEndDate = searchParams.get('endDate') || '';
   const appliedRange = useMemo(() => (
-    getValidRange(urlStartDate, urlEndDate)
+    migrateLegacyDashboardRange(getValidRange(urlStartDate, urlEndDate))
     || getValidRange(appliedStartDate, appliedEndDate)
     || DEFAULT_DASHBOARD_RANGE
   ), [appliedEndDate, appliedStartDate, urlEndDate, urlStartDate]);
@@ -313,7 +315,7 @@ const DashboardPage = () => {
     }],
   }), [dashboardMetrics.typeStats]);
   const deadlineNotices = useMemo(() => {
-    const today = new Date();
+    const today = new Date(`${DASHBOARD_REFERENCE_DATE}T00:00:00`);
     today.setHours(0, 0, 0, 0);
     return buildDisasterEvents(cases)
       .map((event) => ({
@@ -354,7 +356,8 @@ const DashboardPage = () => {
   }, [fetchCases]);
 
   useEffect(() => {
-    const urlRange = getValidRange(urlStartDate, urlEndDate);
+    const originalUrlRange = getValidRange(urlStartDate, urlEndDate);
+    const urlRange = migrateLegacyDashboardRange(originalUrlRange);
     const storedRange = getValidRange(appliedStartDate, appliedEndDate)
       || DEFAULT_DASHBOARD_RANGE;
     const nextRange = urlRange || storedRange;
@@ -364,7 +367,7 @@ const DashboardPage = () => {
       || appliedEndDate !== nextRange.endDate
     ) setAppliedRange(nextRange.startDate, nextRange.endDate);
 
-    if (!urlRange) {
+    if (!originalUrlRange || urlRange !== originalUrlRange) {
       const nextParams = new URLSearchParams(searchParams);
       nextParams.set('startDate', nextRange.startDate);
       nextParams.set('endDate', nextRange.endDate);

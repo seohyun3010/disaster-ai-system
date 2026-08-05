@@ -57,6 +57,15 @@ const isEventInRange = (event, range) => {
   return eventStart >= rangeFrom && eventStart <= rangeTo;
 };
 
+const isCaseCoveredByConfiguredEvent = (item, range) => MOCK_DISASTER_EVENTS.some((event) => (
+  isEventInRange(event, range)
+  && filterCasesByDisasterPeriod([item], {
+    disasterType: event.disasterType,
+    startDate: event.from,
+    endDate: event.to,
+  }).length > 0
+));
+
 const getCaseReportTimestamp = (item) => {
   const value = item?.reported_at || item?.received_at || item?.reportedAt;
   if (!value) return null;
@@ -144,16 +153,14 @@ export const buildDisasterEvents = (cases, range) => {
       const occurredFrom = parseLocalDate(event.from);
       const occurredTo = parseLocalDate(event.to);
       const calculatedDeadline = calculateDeadlineDates(occurredTo);
-      const deadlineFrom = calculatedDeadline.deadlineFrom;
-      const deadlineTo = calculatedDeadline.deadlineTo;
-      const eventCases = filterCasesByDisasterPeriod(
-        casesByEvent.get(event.id) || [],
-        {
-          disasterType: event.disasterType,
-          startDate: event.from,
-          endDate: event.to,
-        },
-      );
+      const deadlineFrom = parseLocalDate(event.deadlineFrom) || calculatedDeadline.deadlineFrom;
+      const deadlineTo = parseLocalDate(event.deadlineTo) || calculatedDeadline.deadlineTo;
+      // 백엔드와 프론트의 재난 ID가 달라도 같은 유형·기간이면 하나의 행으로 묶는다.
+      const eventCases = filterCasesByDisasterPeriod(cases, {
+        disasterType: event.disasterType,
+        startDate: event.from,
+        endDate: event.to,
+      });
       const dates = eventCases
         .map(toCaseDate)
         .filter((date) => !Number.isNaN(date.getTime()))
@@ -186,7 +193,10 @@ export const buildDisasterEvents = (cases, range) => {
       && eventCases.some((item) => item.__source === 'backend')
     ))
     .flatMap(([eventId, eventCases]) => {
-      const backendCases = eventCases.filter((item) => item.__source === 'backend');
+      const backendCases = eventCases.filter((item) => (
+        item.__source === 'backend'
+        && !isCaseCoveredByConfiguredEvent(item, range)
+      ));
       const dates = backendCases
         .map(toCaseDate)
         .filter((date) => !Number.isNaN(date.getTime()))
