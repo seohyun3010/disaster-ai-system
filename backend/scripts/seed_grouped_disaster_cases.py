@@ -16,6 +16,7 @@ from models.case import Case
 from models.case_image import CaseImage
 from schemas.case import CaseCreate
 from services.case_service import create_case
+from services.disaster_event_service import sync_disaster_event_metadata
 
 
 IMAGE_DIRECTORY = BACKEND_DIRECTORY / "uploads" / "mock-cases"
@@ -230,9 +231,11 @@ def main() -> None:
             created_cases += int(was_created)
             created_images += _upsert_images(db, case, report["images"])
         db.commit()
+        metadata_updates = sync_disaster_event_metadata(db)
         print(
             f"재난 신고 4건 등록 완료: cases_created={created_cases}, "
-            f"images_created={created_images}, total_images=10"
+            f"images_created={created_images}, total_images=10, "
+            f"event_metadata_updated={metadata_updates}"
         )
     except Exception:
         db.rollback()

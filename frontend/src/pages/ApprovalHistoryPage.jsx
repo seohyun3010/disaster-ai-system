@@ -11,9 +11,6 @@ import './report-management.css';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
 const normalizeStatus = (status) => String(status || '').replaceAll(' ', '').toUpperCase();
-const ACTIVE_DISASTER_STATUSES = new Set(
-  ['진행중', 'ACTIVE', 'IN_PROGRESS'].map(normalizeStatus),
-);
 const COMPLETED_HISTORY_STATUSES = new Set([
   '최종 승인',
   '금액 수정 후 승인',
@@ -27,9 +24,6 @@ const COMPLETED_HISTORY_STATUSES = new Set([
   'REJECTED',
 ].map(normalizeStatus));
 
-const isActiveDisaster = (disaster) => ACTIVE_DISASTER_STATUSES.has(
-  normalizeStatus(disaster.status),
-);
 const isCompletedHistory = (log) => COMPLETED_HISTORY_STATUSES.has(
   normalizeStatus(log.status),
 );
@@ -52,12 +46,6 @@ const ApprovalHistoryPage = () => {
 
   const caseById = useMemo(() => Object.fromEntries(cases.map((item) => [item.id, item])), [cases]);
   const disasterEvents = useMemo(() => buildDisasterEvents(cases), [cases]);
-  const activeDisasterIds = useMemo(() => new Set(
-    disasterEvents.filter(isActiveDisaster).flatMap((event) => [
-      event.id,
-      ...(event.sourceEventIds || []),
-    ]),
-  ), [disasterEvents]);
   const disasterNameById = useMemo(() => Object.fromEntries(
     disasterEvents.flatMap((event) => [
       [event.id, event.name],
@@ -73,10 +61,9 @@ const ApprovalHistoryPage = () => {
     return [...savedLogs, ...mockLogs]
       .filter((log) => Boolean(log.case))
       .filter((log) => !deletedIds.includes(log.caseId))
-      .filter((log) => activeDisasterIds.has(getCaseDisasterId(log.case)))
       .filter(isCompletedHistory)
       .sort((left, right) => (right.processedAt || '').localeCompare(left.processedAt || ''));
-  }, [activeDisasterIds, caseById, deletedIds, disasterNameById, workflows]);
+  }, [caseById, deletedIds, disasterNameById, workflows]);
   const filteredLogs = useMemo(() => {
     const term = search.trim().toLowerCase();
     return allLogs
@@ -114,7 +101,7 @@ const ApprovalHistoryPage = () => {
           </div>
         </div>
 
-        <div className="case-table-wrap approval-history-table-wrap"><table className="case-table approval-log-table"><thead><tr><th>처리 일시</th><th>사건번호</th><th>재해명</th><th>신고자 / 위치</th><th>처리 결과</th><th>승인자</th><th>최종 금액</th><th>긴급도 점수</th><th>처리 사유</th><th>관리</th></tr></thead><tbody>{visibleLogs.map((log) => { const officer = log.officer || getCurrentUser(); const historyPath = `/cases/${log.caseId}/final-approval?view=history`; return <tr key={log.caseId} onClick={() => navigate(historyPath)} className="clickable-row"><td>{log.processedAt || '기록 없음'}</td><td><strong>{log.caseId}</strong></td><td><strong>{log.disasterName}</strong></td><td><strong>{log.case?.reporter || '-'}</strong><small>{log.case?.location || '-'}</small></td><td><span className={`approval-status-badge ${log.status.replaceAll(' ', '-')}`}>{log.status}</span></td><td><strong>{formatOfficerName(officer)}</strong><small>{formatOfficerAffiliation(officer)}</small></td><td>{Number(log.amount || 0).toLocaleString('ko-KR')}원</td><td><strong>{log.severityScore}점</strong></td><td className="approval-reason">{log.reason}</td><td><div className="history-row-actions"><button className="row-action" onClick={(event) => { event.stopPropagation(); navigate(historyPath); }}>상세</button></div></td></tr>; })}</tbody></table>{!visibleLogs.length && <p className="empty-case">{allLogs.length ? '검색 조건에 일치하는 처리 이력이 없습니다.' : '현재 진행 중인 재난의 처리 완료 이력이 없습니다.'}</p>}</div>
+        <div className="case-table-wrap approval-history-table-wrap"><table className="case-table approval-log-table"><thead><tr><th>처리 일시</th><th>사건번호</th><th>재해명</th><th>신고자 / 위치</th><th>처리 결과</th><th>승인자</th><th>최종 금액</th><th>긴급도 점수</th><th>처리 사유</th><th>관리</th></tr></thead><tbody>{visibleLogs.map((log) => { const officer = log.officer || getCurrentUser(); const historyPath = `/cases/${log.caseId}/final-approval?view=history`; return <tr key={log.caseId} onClick={() => navigate(historyPath)} className="clickable-row"><td>{log.processedAt || '기록 없음'}</td><td><strong>{log.caseId}</strong></td><td><strong>{log.disasterName}</strong></td><td><strong>{log.case?.reporter || '-'}</strong><small>{log.case?.location || '-'}</small></td><td><span className={`approval-status-badge ${log.status.replaceAll(' ', '-')}`}>{log.status}</span></td><td><strong>{formatOfficerName(officer)}</strong><small>{formatOfficerAffiliation(officer)}</small></td><td>{Number(log.amount || 0).toLocaleString('ko-KR')}원</td><td><strong>{log.severityScore}점</strong></td><td className="approval-reason">{log.reason}</td><td><div className="history-row-actions"><button className="row-action" onClick={(event) => { event.stopPropagation(); navigate(historyPath); }}>상세</button></div></td></tr>; })}</tbody></table>{!visibleLogs.length && <p className="empty-case">{allLogs.length ? '검색 조건에 일치하는 처리 이력이 없습니다.' : '처리 완료 이력이 없습니다.'}</p>}</div>
 
         {totalPages > 1 && <nav className="krds-report-pagination approval-history-pagination" aria-label="승인 이력 목록 페이지">
           <button type="button" className="page-navi" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>‹ 이전</button>
