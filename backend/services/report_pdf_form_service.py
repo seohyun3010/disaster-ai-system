@@ -112,11 +112,22 @@ def _level(value: str | None) -> str:
 
 # 부위별 손상 관찰 — 프론트(AnalysisResultCard.jsx)와 동일한 순서·라벨.
 # ai_result.ai_explanation(JSON)의 "observation" 키에서 그대로 옴.
-_DAMAGE_PARTS = [
-    ("roof", "지붕"),
-    ("structure", "기둥"),
-    ("wall", "벽체"),
-]
+# 부위별 손상 관찰 — 팀원마다(또는 시설유형마다) observation에 들어있는
+# 부위 종류·개수·순서가 다를 수 있어 고정 리스트로 만들면 안 됨.
+# 실제 JSON에 있는 키를 있는 순서 그대로 렌더링하고, 알고 있는 키만 한글로
+# 바꿔주고 모르는 키는 원문 그대로 표시(= 나중에 이 표에 추가하면 됨).
+_DAMAGE_PART_LABELS = {
+    "roof": "지붕",
+    "structure": "기둥",
+    "wall": "벽체",
+    "exterior_wall": "외벽",
+    "window": "창호",
+    "floor": "바닥",
+    "foundation": "기초",
+    "flooding": "침수",
+    "door": "출입구",
+    "ceiling": "천장",
+}
 _DAMAGE_STATUS_LABELS = {
     "DAMAGED": "손상",
     "UNDAMAGED": "이상 없음",
@@ -127,9 +138,9 @@ _DAMAGE_STATUS_LABELS = {
 def _damage_observation(detail: ReportDetailResponse):
     """AI 분석 결과(ai_explanation JSON)의 observation을 부위별 표로 정리.
 
-    프론트 AnalysisResultCard.jsx와 동일하게, AI 분석 결과 자체가 있으면
-    (observation 키가 없어도) 3개 부위를 전부 "확인 불가"로 표시한 표를
-    반환하고, AI 분석 결과가 아예 없을 때만 None을 반환해 문장으로
+    observation에 들어있는 부위를 실제 JSON에 있는 것만, 있는 순서 그대로
+    표로 만듦(고정된 부위 목록을 강제하지 않음 — 팀원/시설유형마다 다를 수
+    있어서). observation 자체가 없거나 비어 있으면 None을 반환해 문장으로
     대체한다.
     """
     raw = detail.analysis.explanation
@@ -140,11 +151,15 @@ def _damage_observation(detail: ReportDetailResponse):
     except (TypeError, ValueError):
         return None
     observation = parsed.get("observation") or {}
+    parts = {k: v for k, v in observation.items() if k != "summary"}
+    if not parts:
+        return None
     rows = []
-    for key, label in _DAMAGE_PARTS:
-        entry = observation.get(key) or {}
+    for key, entry in parts.items():
+        entry = entry or {}
         status = entry.get("status") or "NOT_VISIBLE"
         note = entry.get("note") or "-"
+        label = _DAMAGE_PART_LABELS.get(key, key)
         rows.append([label, _DAMAGE_STATUS_LABELS.get(status, status), note])
     summary = observation.get("summary")
     return rows, summary
@@ -452,12 +467,13 @@ def render_official_report_pdf(detail: ReportDetailResponse) -> bytes:
 
     def image_grid():
         """사진 개수가 고정(4장)이 아니라 실제 등록된 사진 수만큼 늘어남.
-        한 줄에 들어가는 사진이 적을수록(특히 1장뿐일 때) 칸 너비와 사진
-        크기도 그만큼 커져서 화면을 채움. 캡션·촬영일시·촬영자·좌표 등
-        텍스트는 전부 빼고 사진만 중앙정렬로 표시함.
+        한 줄에 최대 2장까지만 배치(per_row=2) — 4장이면 2장씩 2줄로 나눠
+        사진을 더 크게 보여줌. 한 줄에 들어가는 사진이 적을수록(특히 1장뿐
+        일 때) 칸 너비와 사진 크기도 그만큼 커져서 화면을 채움. 캡션·
+        촬영일시·촬영자·좌표 등 텍스트는 전부 빼고 사진만 중앙정렬로 표시함.
         """
         images = detail.images or []
-        per_row = 4
+        per_row = 2
         blocks = []
 
         if not images:
@@ -468,7 +484,7 @@ def render_official_report_pdf(detail: ReportDetailResponse) -> bytes:
             for start in range(0, len(images), per_row):
                 chunk = images[start:start + per_row]
                 col_w = PAGE_WIDTH / len(chunk)
-                row_h = {1: 100 * mm, 2: 80 * mm, 3: 70 * mm}.get(len(chunk), 60 * mm)
+                row_h = 100 * mm if len(chunk) == 1 else 90 * mm
                 max_w = col_w - 8 * mm
                 max_h = row_h - 8 * mm
                 cells = []
