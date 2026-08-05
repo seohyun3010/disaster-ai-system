@@ -7,6 +7,7 @@ import {
   mergeBackendAndMockCases,
   validateMergedCases,
 } from '../mocks/cases';
+import { formatDisasterType, formatFacilityType } from '../utils/disasterTypeLabels';
 
 const STATUS_LABELS = {
   RECEIVED: '접수',
@@ -17,29 +18,6 @@ const STATUS_LABELS = {
   APPROVED: '최종 승인',
   REJECTED: '반려',
   HOLD: '보류',
-};
-
-const DISASTER_LABELS = {
-  HEAVY_RAIN: '집중호우',
-  TYPHOON: '산사태',
-  LANDSLIDE: '산사태',
-  EARTHQUAKE: '지진',
-  HEAVY_SNOW: '대설',
-  WILDFIRE: '산불',
-};
-
-const FACILITY_LABELS = {
-  HOUSE: '주택',
-  ROAD: '도로',
-  RETAINING_WALL: '옹벽',
-  STORE: '상가',
-  FARMLAND: '농경지',
-  LIVESTOCK_FACILITY: '축사',
-  FACTORY: '공장',
-  FOREST: '임야',
-  WAREHOUSE: '창고',
-  GREENHOUSE: '비닐하우스',
-  EMBANKMENT: '축대',
 };
 
 const PRIORITY_LABELS = {
@@ -87,6 +65,7 @@ export const normalizeCase = (data) => {
     disaster_event_id: disasterEventId,
     frontendDisasterKey: disasterEventId,
     __source: 'backend',
+    sourcePriority: 0,
     caseId: data.case_id,
     caseNumber: data.case_number,
     reporter:
@@ -95,8 +74,8 @@ export const normalizeCase = (data) => {
       rawPayload.applicant_name ||
       rawPayload.reporter ||
       '신고자 미제공',
-    type: DISASTER_LABELS[data.disaster_type] || data.disaster_type || '기타',
-    facility: FACILITY_LABELS[data.facility_type] || data.facility_type || '기타',
+    type: formatDisasterType(data.disaster_type),
+    facility: formatFacilityType(data.facility_type),
     location: data.address || '-',
     reportedAt: formatDateTime(data.reported_at || data.received_at),
     status: displayStatus,
@@ -163,9 +142,8 @@ export const getCases = async (params = {}) => {
       backendCountsByDisaster: merged.backendCounts,
     };
   } catch (error) {
-    if (!import.meta.env?.DEV) throw error;
     return {
-      items: [...CASES],
+      items: CASES.map((item) => ({ ...item, sourcePriority: 1 })),
       total: CASES.length,
       backendTotal: 0,
       mockTotal: CASES.length,

@@ -9,6 +9,7 @@ import { isZeroSupportGrade } from '../utils/reviewRules';
 import { submitDamageGradeReview } from '../api/reviewApi';
 import { useAuthStore } from '../stores/authStore';
 import { DEFAULT_DISASTER_QUERY_RANGE } from '../mocks/cases';
+import { formatFacilityType } from '../utils/disasterTypeLabels';
 import './case-list.css';
 import './report-management.css';
 
@@ -130,8 +131,8 @@ const getReportTimestamp = (item) => {
 };
 
 const compareCasesByReportDate = (left, right, sortOrder) => {
-  const sourcePriority = (SOURCE_PRIORITY[left.__source] ?? 2)
-    - (SOURCE_PRIORITY[right.__source] ?? 2);
+  const sourcePriority = (left.sourcePriority ?? SOURCE_PRIORITY[left.__source] ?? 2)
+    - (right.sourcePriority ?? SOURCE_PRIORITY[right.__source] ?? 2);
   if (sourcePriority) return sourcePriority;
 
   const leftTimestamp = getReportTimestamp(left);
@@ -1198,7 +1199,7 @@ const CaseListPage = () => {
             >
               {FACILITY_FILTERS.map((value) => (
                 <option key={value} value={value}>
-                  {value}
+                  {value === '전체' ? value : formatFacilityType(value)}
                 </option>
               ))}
             </select>
@@ -1292,7 +1293,7 @@ const CaseListPage = () => {
                     </td>
 
                     <td>
-                      {item.facility}
+                      {formatFacilityType(item.facility)}
                     </td>
 
                     <td>

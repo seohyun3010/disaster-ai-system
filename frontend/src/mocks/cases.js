@@ -12,7 +12,23 @@ const FEMALE_NAMES = [
   '신영희', '유순자', '백정숙', '홍미숙', '남정희', '문영자',
 ];
 
-const REPORTER_NAMES = MALE_NAMES.flatMap((name, index) => [name, FEMALE_NAMES[index]]);
+const BASE_REPORTER_NAMES = MALE_NAMES.flatMap((name, index) => [name, FEMALE_NAMES[index]]);
+const ADDITIONAL_REPORTER_NAMES = [
+  '황희찬', '엄성현', '안건호', '백지헌', '유지민', '홍지수', '변백현',
+  '도경수', '김준면', '김태형', '전정국', '이은지', '진경은', '정원이',
+  '김석진', '미나미', '윤정한', '김선호', '고윤정', '이광수', '유재석',
+  '김우빈', '윤경호', '박지훈', '소지섭', '김태평', '손예진', '박원빈',
+  '김성찬', '안유진', '장원영', '손흥민', '김고은', '공지철', '이동욱',
+  '김슬기', '배주현', '박수영', '김예림', '손승완', '이수지', '김원훈',
+  '서강준', '이주연', '최산', '최태훈', '조진세', '엄지윤', '박보검',
+  '이재용', '이건희', '박윤영', '정재현', '이태용', '이나경', '윤두준',
+  '권지용', '이정하', '김제니', '박채영', '김지수', '옹성우', '오세훈',
+  '성시경', '황민현', '노윤서', '정채연', '천우희',
+];
+const REPORTER_NAMES = [
+  ...BASE_REPORTER_NAMES,
+  ...ADDITIONAL_REPORTER_NAMES,
+];
 const BANKS = ['국민은행', '신한은행', '우리은행', '하나은행', '농협은행', '기업은행', '광주은행', '부산은행'];
 const STREETS = ['중앙로', '새마을로', '산업로', '평화로', '충효로', '무궁화로', '희망길', '솔밭길', '강변로', '시장길'];
 const PHOTO_ROOT = '/mock/flood-2026';
@@ -508,55 +524,77 @@ export const getDisasterEventIdForCase = (item) => {
   ))?.id || null;
 };
 
-export const mergeBackendAndMockCases = (backendItems) => {
-  const backendCases = backendItems.map((item) => {
-    const disasterEventId = getDisasterEventIdForCase(item);
-    return {
-      ...item,
-      disaster_event_id: disasterEventId,
-      frontendDisasterKey: disasterEventId,
-    };
+const normalizeCaseIdentifier = (value) => {
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).trim();
+  return normalized || null;
+};
+
+export const getCaseKey = (item) => normalizeCaseIdentifier(
+  item?.external_report_id
+  ?? item?.externalReportId
+  ?? item?.case_id
+  ?? item?.caseId
+  ?? item?.case_number
+  ?? item?.caseNumber,
+);
+
+const getCaseIdentifiers = (item) => ({
+  externalReportId: normalizeCaseIdentifier(
+    item?.external_report_id ?? item?.externalReportId,
+  ),
+  caseId: normalizeCaseIdentifier(item?.case_id ?? item?.caseId),
+  caseNumber: normalizeCaseIdentifier(item?.case_number ?? item?.caseNumber),
+});
+
+const createIdentifierSets = () => ({
+  externalReportIds: new Set(),
+  caseIds: new Set(),
+  caseNumbers: new Set(),
+});
+
+const addCaseIdentifiers = (sets, item) => {
+  const identifiers = getCaseIdentifiers(item);
+  if (identifiers.externalReportId) sets.externalReportIds.add(identifiers.externalReportId);
+  if (identifiers.caseId) sets.caseIds.add(identifiers.caseId);
+  if (identifiers.caseNumber) sets.caseNumbers.add(identifiers.caseNumber);
+};
+
+const hasMatchingIdentifier = (sets, item) => {
+  const identifiers = getCaseIdentifiers(item);
+  return Boolean(
+    (identifiers.externalReportId && sets.externalReportIds.has(identifiers.externalReportId))
+    || (identifiers.caseId && sets.caseIds.has(identifiers.caseId))
+    || (identifiers.caseNumber && sets.caseNumbers.has(identifiers.caseNumber)),
+  );
+};
+
+export const mergeBackendAndMockCases = (backendItems, generatedItems = CASES) => {
+  const backendCases = (Array.isArray(backendItems) ? backendItems : []).map((item) => (
+    item.sourcePriority === 0 && item.__source === 'backend'
+      ? item
+      : { ...item, __source: 'backend', sourcePriority: 0 }
+  ));
+  const identifiers = createIdentifierSets();
+  backendCases.forEach((item) => addCaseIdentifiers(identifiers, item));
+
+  const mockCases = [];
+  (Array.isArray(generatedItems) ? generatedItems : []).forEach((item) => {
+    if (hasMatchingIdentifier(identifiers, item)) return;
+    const generatedCase = item.sourcePriority === 1
+      ? item
+      : { ...item, __source: 'mock', sourcePriority: 1 };
+    mockCases.push(generatedCase);
+    addCaseIdentifiers(identifiers, generatedCase);
   });
+
   const backendCounts = backendCases.reduce((counts, item) => {
-    if (item.disaster_event_id) {
-      counts[item.disaster_event_id] = (counts[item.disaster_event_id] || 0) + 1;
+    const disasterEventId = item.disaster_event_id || getDisasterEventIdForCase(item);
+    if (disasterEventId) {
+      counts[disasterEventId] = (counts[disasterEventId] || 0) + 1;
     }
     return counts;
   }, {});
-  MOCK_DISASTER_EVENTS.forEach((event) => {
-    const backendCount = backendCounts[event.id] || 0;
-    if (backendCount > event.targetCount) {
-      console.error(
-        `[Mock 데이터 병합 오류] ${event.id}: 백엔드 ${backendCount}건이 목표 ${event.targetCount}건을 초과했습니다.`,
-      );
-    }
-  });
-  const mockCasesByEvent = CASES.reduce((groups, item) => {
-    const current = groups.get(item.disaster_event_id) || [];
-    current.push(item);
-    groups.set(item.disaster_event_id, current);
-    return groups;
-  }, new Map());
-  const replacedMockKeys = new Set();
-  backendCases.forEach((backendCase) => {
-    if (!backendCase.disaster_event_id) return;
-    const candidates = mockCasesByEvent.get(backendCase.disaster_event_id) || [];
-    const backendRegion = normalizeRegionName(backendCase.sido || backendCase.address);
-    const replacement = candidates.find((item) => (
-      !replacedMockKeys.has(item.frontendKey)
-      && normalizeRegionName(item.sido || item.address) === backendRegion
-    )) || candidates.find((item) => !replacedMockKeys.has(item.frontendKey));
-
-    if (replacement) replacedMockKeys.add(replacement.frontendKey);
-  });
-  const mockCases = CASES.filter((item) => !replacedMockKeys.has(item.frontendKey));
-  const unmatchedBackendCases = backendCases.filter((item) => !item.disaster_event_id);
-  if (unmatchedBackendCases.length) {
-    console.error(
-      '[Mock 데이터 병합 오류] 소속 재난을 찾지 못한 백엔드 신고:',
-      unmatchedBackendCases.map((item) => item.frontendKey || item.id || item.case_id),
-    );
-  }
 
   return {
     backendCases,
@@ -597,40 +635,41 @@ export const validateMockCases = (cases = CASES) => {
 };
 
 export const validateMergedCases = (cases) => {
-  const eventTypeById = Object.fromEntries(
-    MOCK_DISASTER_EVENTS.map((event) => [event.id, event.disasterType]),
-  );
-  const eventCounts = cases.reduce((counts, item) => {
-    if (item.disaster_event_id) {
-      counts[item.disaster_event_id] = (counts[item.disaster_event_id] || 0) + 1;
-    }
-    return counts;
-  }, {});
-  const typeCounts = cases.reduce((counts, item) => {
-    const disasterType = eventTypeById[item.disaster_event_id];
-    if (disasterType) counts[disasterType] = (counts[disasterType] || 0) + 1;
-    return counts;
-  }, {});
-  const regionCounts = cases.reduce((counts, item) => {
-    const region = normalizeRegionName(item.sido || item.address);
-    counts[region] = (counts[region] || 0) + 1;
-    return counts;
-  }, {});
+  const items = Array.isArray(cases) ? cases : [];
+  const backendCases = items.filter((item) => item.sourcePriority === 0 || item.__source === 'backend');
+  const frontendCases = items.filter((item) => item.sourcePriority === 1 || item.__source === 'mock');
+  const backendIdentifiers = createIdentifierSets();
+  backendCases.forEach((item) => addCaseIdentifiers(backendIdentifiers, item));
+
+  const duplicateValues = (selector) => {
+    const seen = new Set();
+    const duplicates = new Set();
+    items.forEach((item) => {
+      const value = normalizeCaseIdentifier(selector(item));
+      if (!value) return;
+      if (seen.has(value)) duplicates.add(value);
+      seen.add(value);
+    });
+    return [...duplicates];
+  };
+
+  const firstFrontendIndex = items.findIndex((item) => item.sourcePriority === 1 || item.__source === 'mock');
+  const backendAfterFrontend = firstFrontendIndex >= 0
+    && items.slice(firstFrontendIndex + 1).some((item) => item.sourcePriority === 0 || item.__source === 'backend');
   const failures = [
-    ...MOCK_DISASTER_EVENTS
-      .filter((event) => eventCounts[event.id] !== event.targetCount)
-      .map((event) => `${event.id}: ${eventCounts[event.id] || 0}건 (예상 ${event.targetCount}건)`),
-    ...(cases.length === TOTAL_MOCK_REPORTS ? [] : [`전체: ${cases.length}건 (예상 ${TOTAL_MOCK_REPORTS}건)`]),
-    ...MOCK_DISASTER_CONFIG
-      .filter((disaster) => typeCounts[disaster.key] !== disaster.count)
-      .map((disaster) => `${disaster.key} 유형 합계: ${typeCounts[disaster.key] || 0}건 (예상 ${disaster.count}건)`),
-    ...Object.entries(REGION_TARGETS)
-      .filter(([region, count]) => regionCounts[region] !== count)
-      .map(([region, count]) => `${region} 지역 합계: ${regionCounts[region] || 0}건 (예상 ${count}건)`),
-    ...(cases.every((item) => Boolean(item.disaster_event_id)) ? [] : ['소속 재난 식별자가 없는 신고']),
-    ...(new Set(cases.map((item) => item.case_number || item.caseNumber)).size === cases.length ? [] : ['신고번호 중복']),
-    ...(new Set(cases.map((item) => item.external_report_id || item.externalReportId)).size === cases.length ? [] : ['외부 신고번호 중복']),
-    ...(new Set(cases.map((item) => item.frontendKey)).size === cases.length ? [] : ['프론트 신고 식별자 중복']),
+    ...(backendAfterFrontend ? ['백엔드 데이터보다 먼저 배치된 프론트 생성 데이터'] : []),
+    ...(frontendCases.some((item) => hasMatchingIdentifier(backendIdentifiers, item))
+      ? ['백엔드와 프론트 생성 데이터 간 식별자 중복']
+      : []),
+    ...(duplicateValues((item) => item.external_report_id ?? item.externalReportId).length
+      ? ['외부 신고번호 중복']
+      : []),
+    ...(duplicateValues((item) => item.case_id ?? item.caseId).length
+      ? ['caseId 중복']
+      : []),
+    ...(duplicateValues((item) => item.case_number ?? item.caseNumber).length
+      ? ['신고번호 중복']
+      : []),
   ];
   if (failures.length) {
     console.error('[병합 데이터 검증 오류]', failures);

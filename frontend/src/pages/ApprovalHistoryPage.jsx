@@ -6,6 +6,7 @@ import { calculateSeverityTotal, DEFAULT_WORKFLOW } from '../mocks/workflow';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { buildDisasterEvents } from '../utils/disasterEvents';
+import { formatDisasterType } from '../utils/disasterTypeLabels';
 import './report-management.css';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
@@ -60,9 +61,9 @@ const ApprovalHistoryPage = () => {
   const allLogs = useMemo(() => {
     const savedLogs = Object.entries(workflows)
       .filter(([, workflow]) => workflow.approvalStatus && workflow.approvalStatus !== DEFAULT_WORKFLOW.approvalStatus)
-      .map(([caseId, workflow]) => ({ caseId, case: caseById[caseId], disasterName: disasterNameById[getCaseDisasterId(caseById[caseId])] || caseById[caseId]?.type || '-', status: workflow.approvalStatus, amount: workflow.approvalAmount, severityScore: calculateSeverityTotal(workflow.severityScores || DEFAULT_WORKFLOW.severityScores), reason: workflow.approvalReason || '최종 처리 사유 없음', processedAt: workflow.approvedAt, officer: workflow.approvedBy }));
+      .map(([caseId, workflow]) => ({ caseId, case: caseById[caseId], disasterName: disasterNameById[getCaseDisasterId(caseById[caseId])] || formatDisasterType(caseById[caseId]?.type), status: workflow.approvalStatus, amount: workflow.approvalAmount, severityScore: calculateSeverityTotal(workflow.severityScores || DEFAULT_WORKFLOW.severityScores), reason: workflow.approvalReason || '최종 처리 사유 없음', processedAt: workflow.approvedAt, officer: workflow.approvedBy }));
     const savedIds = new Set(savedLogs.map((log) => log.caseId));
-    const mockLogs = MOCK_APPROVAL_HISTORY.filter((log) => !savedIds.has(log.caseId)).map((log) => ({ ...log, case: caseById[log.caseId], disasterName: disasterNameById[getCaseDisasterId(caseById[log.caseId])] || caseById[log.caseId]?.type || '-', severityScore: calculateSeverityTotal(DEFAULT_WORKFLOW.severityScores) }));
+    const mockLogs = MOCK_APPROVAL_HISTORY.filter((log) => !savedIds.has(log.caseId)).map((log) => ({ ...log, case: caseById[log.caseId], disasterName: disasterNameById[getCaseDisasterId(caseById[log.caseId])] || formatDisasterType(caseById[log.caseId]?.type), severityScore: calculateSeverityTotal(DEFAULT_WORKFLOW.severityScores) }));
     return [...savedLogs, ...mockLogs]
       .filter((log) => Boolean(log.case))
       .filter((log) => !deletedIds.includes(log.caseId))

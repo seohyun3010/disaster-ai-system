@@ -45,6 +45,45 @@ const toDateKey = (value) => {
 
 const getReportedAt = (item) => item?.reported_at || item?.received_at || item?.reportedAt;
 
+const DISASTER_TYPE_ALIASES = Object.freeze({
+  집중호우: '집중호우',
+  호우: '집중호우',
+  HEAVY_RAIN: '집중호우',
+  HEAVYRAIN: '집중호우',
+  FLOOD: '집중호우',
+  산사태: '산사태',
+  LANDSLIDE: '산사태',
+  산불: '산불',
+  WILDFIRE: '산불',
+  FOREST_FIRE: '산불',
+  대설: '대설',
+  HEAVY_SNOW: '대설',
+  HEAVYSNOW: '대설',
+  지진: '지진',
+  EARTHQUAKE: '지진',
+});
+
+export const normalizeDisasterType = (value) => {
+  const normalized = String(value || '').trim().toUpperCase();
+  if (!normalized) return '기타';
+
+  const compact = normalized.replace(/\s+/g, '');
+  const underscored = normalized.replace(/[\s-]+/g, '_');
+  return DISASTER_TYPE_ALIASES[normalized]
+    || DISASTER_TYPE_ALIASES[compact]
+    || DISASTER_TYPE_ALIASES[underscored]
+    || '기타';
+};
+
+const getNormalizedCaseDisasterType = (item) => {
+  const candidates = [item?.disaster_type, item?.type, item?.disasterType]
+    .filter((value) => value !== null && value !== undefined && String(value).trim());
+  return candidates
+    .map(normalizeDisasterType)
+    .find((value) => value !== '기타')
+    || '기타';
+};
+
 export const validateDashboardRange = ({ startDate, endDate }) => {
   if (!startDate || !endDate) return '시작일과 종료일을 모두 입력해 주세요.';
 
@@ -110,8 +149,14 @@ export const buildDashboardMetrics = ({ cases, events, disasterTypes, range }) =
   const generatedReportCount = filteredCases.filter(isGeneratedReport).length;
   const previousDate = getPreviousDateKey(range.endDate);
 
+  const typeCounts = filteredCases.reduce((counts, item) => {
+    const type = getNormalizedCaseDisasterType(item);
+    counts.set(type, (counts.get(type) || 0) + 1);
+    return counts;
+  }, new Map());
+
   const typeStats = disasterTypes.map(({ key, label }) => {
-    const count = filteredCases.filter((item) => item.disaster_type === key).length;
+    const count = typeCounts.get(normalizeDisasterType(label)) || 0;
     return {
       key,
       label,
@@ -119,6 +164,15 @@ export const buildDashboardMetrics = ({ cases, events, disasterTypes, range }) =
       percentage: reportTotal ? Math.round((count / reportTotal) * 100) : 0,
     };
   });
+  const otherCount = typeCounts.get('기타') || 0;
+  if (otherCount > 0) {
+    typeStats.push({
+      key: 'OTHER',
+      label: '기타',
+      count: otherCount,
+      percentage: reportTotal ? Math.round((otherCount / reportTotal) * 100) : 0,
+    });
+  }
 
   return {
     cases: filteredCases,

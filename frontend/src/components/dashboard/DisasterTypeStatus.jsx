@@ -1,3 +1,5 @@
+import { formatDisasterType } from '../../utils/disasterTypeLabels';
+
 const TYPE_META = {
   집중호우: { icon: '☔' },
   산사태: { icon: '▲' },
@@ -9,7 +11,7 @@ const TYPE_META = {
 
 const DisasterTypeStatus = ({ cases }) => {
   const counts = cases.reduce((result, item) => {
-    const type = item.type || '기타';
+    const type = formatDisasterType(item.type);
     result[type] = (result[type] || 0) + 1;
     return result;
   }, {});

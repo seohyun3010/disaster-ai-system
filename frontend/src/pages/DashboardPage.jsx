@@ -161,6 +161,7 @@ import { ROUTES } from '../routes/routeConfig';
 import { useCaseStore } from '../stores/caseStore';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { buildDisasterEvents } from '../utils/disasterEvents';
+import { formatFacilityType } from '../utils/disasterTypeLabels';
 import { MOCK_DISASTER_CONFIG, MOCK_DISASTER_EVENTS } from '../mocks/cases';
 import {
   buildDashboardMetrics,
@@ -173,8 +174,8 @@ import '../components/dashboard/dashboard.css';
 
 ChartJS.register(ArcElement, Tooltip);
 
-const DISASTER_YEAR_COLORS = ['#6FA8FF', '#72D4C8', '#FFB26B', '#B79CFF', '#D8BC92'];
-const DISASTER_YEAR_HOVER_COLORS = ['#6599E8', '#68C1B6', '#E8A261', '#A78EE8', '#C5AB85'];
+const DISASTER_YEAR_COLORS = ['#6FA8FF', '#72D4C8', '#FFB26B', '#B79CFF', '#D8BC92', '#9AA6B2'];
+const DISASTER_YEAR_HOVER_COLORS = ['#6599E8', '#68C1B6', '#E8A261', '#A78EE8', '#C5AB85', '#8B97A3'];
 const DISASTER_YEAR_CHART_OPTIONS = {
   cutout: '72%',
   radius: '98%',
@@ -281,28 +282,25 @@ const DashboardPage = () => {
   }), [cases, appliedRange]);
   const currentTotal = dashboardMetrics.reportTotal;
   const periodLabel = formatDashboardPeriod(appliedRange);
-  const kpiPeriodLabel = `${appliedRange.startDate.replaceAll('-', '.')} ~ ${appliedRange.endDate.replaceAll('-', '.')}`;
   const kpis = useMemo(() => [
     {
       icon: '☀',
       label: '기간 내 재난 발생',
       value: dashboardMetrics.disasterCount.toLocaleString('ko-KR'),
       unit: '건',
-      period: kpiPeriodLabel,
     },
     {
       icon: '▤',
       label: '기간 내 피해 신고',
       value: currentTotal.toLocaleString('ko-KR'),
       unit: '건',
-      period: kpiPeriodLabel,
     },
-  ], [currentTotal, dashboardMetrics.disasterCount, kpiPeriodLabel]);
+  ], [currentTotal, dashboardMetrics.disasterCount]);
   const recentReports = useMemo(
     () => sortCasesByReportedAt(dashboardMetrics.cases).slice(0, 6),
     [dashboardMetrics.cases],
   );
-  const disasterYearTotal = dashboardMetrics.typeStats.reduce((sum, item) => sum + item.count, 0);
+  const disasterYearTotal = currentTotal;
   const disasterYearMax = Math.max(0, ...dashboardMetrics.typeStats.map((item) => item.count));
   const disasterYearChartData = useMemo(() => ({
     labels: dashboardMetrics.typeStats.map((item) => item.label),
@@ -497,7 +495,6 @@ const DashboardPage = () => {
               <article className="dashboard-kpi" key={kpi.label}>
                 <span className="dashboard-kpi-icon" aria-hidden="true">{kpi.icon}</span>
                 <div><span>{kpi.label}</span><strong>{kpi.value}<small>{kpi.unit}</small></strong></div>
-                <footer>{kpi.period}</footer>
               </article>
             ))}
           </section>
@@ -508,7 +505,7 @@ const DashboardPage = () => {
               {recentReports.map((item) => (
                 <li key={item.frontendKey || item.id || item.case_id}>
                   <strong>{item.case_number}</strong>
-                  <span>{item.facility}</span>
+                  <span>{formatFacilityType(item.facility)}</span>
                   <span>{item.address}</span>
                 </li>
               ))}
