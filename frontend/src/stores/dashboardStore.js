@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { DEFAULT_DASHBOARD_RANGE } from '../utils/dashboardMetrics';
+import {
+  DEFAULT_DASHBOARD_RANGE,
+  migrateLegacyDashboardRange,
+} from '../utils/dashboardMetrics';
 
 export const useDashboardStore = create(
   persist(
@@ -18,8 +21,9 @@ export const useDashboardStore = create(
     }),
     {
       name: 'disaster-recovery.dashboard-query',
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => localStorage),
+      migrate: (persistedState) => migrateLegacyDashboardRange(persistedState),
       partialize: ({ appliedStartDate, appliedEndDate }) => ({
         appliedStartDate,
         appliedEndDate,

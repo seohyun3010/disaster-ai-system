@@ -1,9 +1,23 @@
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
+export const DASHBOARD_REFERENCE_DATE = '2026-08-15';
+
 export const DEFAULT_DASHBOARD_RANGE = Object.freeze({
+  startDate: '2025-08-15',
+  endDate: DASHBOARD_REFERENCE_DATE,
+});
+
+const LEGACY_DEFAULT_DASHBOARD_RANGE = Object.freeze({
   startDate: '2025-07-30',
   endDate: '2026-07-30',
 });
+
+export const migrateLegacyDashboardRange = (range) => (
+  range?.startDate === LEGACY_DEFAULT_DASHBOARD_RANGE.startDate
+  && range?.endDate === LEGACY_DEFAULT_DASHBOARD_RANGE.endDate
+    ? { ...DEFAULT_DASHBOARD_RANGE }
+    : range
+);
 
 const parseDateOnly = (value, endOfDay = false) => {
   if (!value || typeof value !== 'string') return null;
@@ -51,6 +65,8 @@ const DISASTER_TYPE_ALIASES = Object.freeze({
   HEAVY_RAIN: '집중호우',
   HEAVYRAIN: '집중호우',
   FLOOD: '집중호우',
+  태풍: '태풍',
+  TYPHOON: '태풍',
   산사태: '산사태',
   LANDSLIDE: '산사태',
   산불: '산불',

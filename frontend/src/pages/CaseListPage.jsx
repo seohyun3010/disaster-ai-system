@@ -848,7 +848,7 @@ const CaseListPage = () => {
     || (globalSearch ? {
       id: 'all-search-results',
       name: '전체 재난 신고 검색 결과',
-      occurredPeriod: '2025.8.12 ~ 2026.7.18',
+      occurredPeriod: `${rangeFrom.replaceAll('-', '.')} ~ ${rangeTo.replaceAll('-', '.')}`,
       deadlinePeriod: '-',
       status: '진행중',
       caseIds: cases.map(getItemFrontendKey),
@@ -857,6 +857,8 @@ const CaseListPage = () => {
     cases,
     events,
     globalSearch,
+    rangeFrom,
+    rangeTo,
     requestedDisasterType,
     requestedEndDate,
     requestedStartDate,

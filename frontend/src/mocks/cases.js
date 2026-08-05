@@ -68,6 +68,18 @@ export const MOCK_DISASTER_CONFIG = Object.freeze([
     photos: ['house-01.png', 'store-01.png', 'farmland-01.png', 'road-02.png', 'house-02.png'],
   },
   {
+    key: 'TYPHOON', label: '태풍', count: 20, from: '2026-07-28', to: '2026-08-04',
+    facilities: ['주택', '상가', '도로', '농경지'],
+    regions: ['경상북도', '전라남도', '부산광역시', '충청북도', '경상남도'],
+    descriptions: {
+      주택: ['강풍으로 지붕과 외벽 일부 파손'],
+      상가: ['강풍과 비바람으로 출입구와 간판 파손'],
+      도로: ['강풍으로 쓰러진 시설물로 도로 통행 제한'],
+      농경지: ['강풍과 집중호우로 농작물 도복 피해'],
+    },
+    photos: ['house-02.png', 'store-03.png', 'road-04.png', 'farmland-01.png'],
+  },
+  {
     key: 'LANDSLIDE', label: '산사태', count: 286, from: '2026-04-03', to: '2026-04-05',
     facilities: ['주택', '농경지', '도로', '임야', '옹벽', '축대'],
     regions: ['강원특별자치도', '경기도', '충청북도', '충청남도', '경상북도', '경상남도', '전라남도', '인천광역시', '광주광역시', '대구광역시', '부산광역시', '제주특별자치도'],
@@ -87,7 +99,7 @@ export const MOCK_DISASTER_CONFIG = Object.freeze([
     photos: ['house-01.png', 'store-03.png', 'farmland-01.png'],
   },
   {
-    key: 'HEAVY_SNOW', label: '대설', count: 183, from: '2026-02-07', to: '2026-02-09',
+    key: 'HEAVY_SNOW', label: '대설', count: 163, from: '2026-02-07', to: '2026-02-09',
     facilities: ['주택', '비닐하우스', '축사', '도로'],
     regions: ['강원특별자치도', '경기도', '충청북도', '전북특별자치도', '인천광역시', '세종특별자치시', '대전광역시', '광주광역시'],
     descriptions: {
@@ -120,6 +132,13 @@ export const REGION_TARGETS_BY_TYPE = Object.freeze({
     전라남도: 45,
     광주광역시: 8,
   },
+  TYPHOON: {
+    경상북도: 6,
+    전라남도: 5,
+    부산광역시: 4,
+    충청북도: 3,
+    경상남도: 2,
+  },
   LANDSLIDE: {
     강원특별자치도: 43,
     경기도: 36,
@@ -140,9 +159,9 @@ export const REGION_TARGETS_BY_TYPE = Object.freeze({
     경상남도: 59,
   },
   HEAVY_SNOW: {
-    강원특별자치도: 40,
-    경기도: 33,
-    충청북도: 35,
+    강원특별자치도: 30,
+    경기도: 28,
+    충청북도: 30,
     전북특별자치도: 35,
     인천광역시: 15,
     세종특별자치시: 8,
@@ -192,20 +211,20 @@ const REGION_SEQUENCE_BY_TYPE = Object.fromEntries(
 );
 
 export const DEFAULT_DISASTER_QUERY_RANGE = Object.freeze({
-  from: '2025-07-18',
-  to: '2026-07-30',
+  from: '2025-08-15',
+  to: '2026-08-15',
 });
 
 export const MOCK_DISASTER_EVENTS = Object.freeze([
   {
     id: '2026-HEAVY_RAIN', year: 2026, disasterType: 'HEAVY_RAIN', label: '집중호우',
     from: '2026-07-15', to: '2026-07-18', deadlineFrom: '2026-07-29', deadlineTo: '2026-08-11',
-    status: '진행중', targetCount: 292, __source: 'backend',
+    status: '완료', targetCount: 292, __source: 'backend',
   },
   {
     id: '2026-EARTHQUAKE', year: 2026, disasterType: 'EARTHQUAKE', label: '지진',
     from: '2026-06-12', to: '2026-06-13', deadlineFrom: '2026-06-24', deadlineTo: '2026-07-07',
-    status: '완료', targetCount: 153, __source: 'backend',
+    status: '완료', targetCount: 133, __source: 'backend',
   },
   {
     id: '2026-WILDFIRE', year: 2026, disasterType: 'WILDFIRE', label: '산불',
@@ -215,12 +234,12 @@ export const MOCK_DISASTER_EVENTS = Object.freeze([
   {
     id: '2026-LANDSLIDE', year: 2026, disasterType: 'LANDSLIDE', label: '산사태',
     from: '2026-04-03', to: '2026-04-05', deadlineFrom: '2026-04-16', deadlineTo: '2026-04-29',
-    status: '완료', targetCount: 206, __source: 'backend',
+    status: '완료', targetCount: 186, __source: 'backend',
   },
   {
     id: '2026-HEAVY_SNOW', year: 2026, disasterType: 'HEAVY_SNOW', label: '대설',
     from: '2026-02-07', to: '2026-02-09', deadlineFrom: '2026-02-20', deadlineTo: '2026-03-05',
-    status: '완료', targetCount: 123, __source: 'backend',
+    status: '완료', targetCount: 103, __source: 'backend',
   },
   {
     id: 'mock-disaster-2025-heavy-snow-01', year: 2025, disasterType: 'HEAVY_SNOW', label: '대설',
@@ -236,6 +255,22 @@ export const MOCK_DISASTER_EVENTS = Object.freeze([
     id: 'mock-disaster-2025-heavy-rain-01', year: 2025, disasterType: 'HEAVY_RAIN', label: '집중호우',
     from: '2025-07-18', to: '2025-07-21', deadlineFrom: '2025-07-30', deadlineTo: '2025-08-12',
     status: '완료', targetCount: 120, __source: 'mock',
+  },
+  // 활성 재난 목업은 기존 생성 데이터 뒤에 배치해 백엔드 case_id와의 충돌을 피한다.
+  {
+    id: 'backend-2026-08-EARTHQUAKE', year: 2026, disasterType: 'EARTHQUAKE', label: '지진',
+    from: '2026-08-03', to: '2026-08-04', deadlineFrom: '2026-08-15', deadlineTo: '2026-08-28',
+    status: '진행중', targetCount: 20, __source: 'mock',
+  },
+  {
+    id: 'backend-2026-07-TYPHOON', year: 2026, disasterType: 'TYPHOON', label: '태풍',
+    from: '2026-07-28', to: '2026-08-04', deadlineFrom: '2026-08-15', deadlineTo: '2026-08-28',
+    status: '진행중', targetCount: 20, __source: 'mock',
+  },
+  {
+    id: 'backend-2026-07-LANDSLIDE', year: 2026, disasterType: 'LANDSLIDE', label: '산사태',
+    from: '2026-07-28', to: '2026-07-28', deadlineFrom: '2026-08-08', deadlineTo: '2026-08-21',
+    status: '진행중', targetCount: 20, __source: 'mock',
   },
 ]);
 
@@ -254,6 +289,9 @@ const toLocalIso = (date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-
 const formatDisplayDate = (date) => `${date.getFullYear()}. ${pad(date.getMonth() + 1)}. ${pad(date.getDate())}. ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 
 const STATUS_DISTRIBUTIONS = {
+  'backend-2026-08-EARTHQUAKE': { completed: 15, incomplete: 75 },
+  'backend-2026-07-TYPHOON': { completed: 15, incomplete: 75 },
+  'backend-2026-07-LANDSLIDE': { completed: 15, incomplete: 75 },
   '2026-HEAVY_RAIN': { completed: 44, incomplete: 46 },
   '2026-LANDSLIDE': { completed: 75, incomplete: 15 },
   '2026-WILDFIRE': { completed: 80, incomplete: 12 },
@@ -525,7 +563,8 @@ export const getDisasterEventIdForCase = (item) => {
 
   if (matchingEvent) return matchingEvent.id;
   if (!disasterType || !year) return null;
-  return `backend-${year}-${disasterType}`;
+  const month = String(occurredAt).slice(5, 7);
+  return month ? `backend-${year}-${month}-${disasterType}` : `backend-${year}-${disasterType}`;
 };
 
 const normalizeCaseIdentifier = (value) => {
