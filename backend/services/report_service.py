@@ -65,6 +65,25 @@ from services.damage_grade_service import resolve_damage_grade
 #     )
 
 
+# 보고서 본문에서는 DS0~DS4 코드 대신 한글 등급명만 노출합니다
+# (report_pdf_form_service.py의 _grade_label과 동일한 매핑을 사용하되,
+# 처리이력 설명문은 서비스 계층에서 문장을 조립하므로 여기에도 둡니다).
+_GRADE_LABELS = {
+    "DS0": "정상",
+    "DS1": "경미",
+    "DS2": "중간",
+    "DS3": "반파",
+    "DS4": "전파",
+}
+
+
+def _grade_text(raw_grade: str | None) -> str:
+    if not raw_grade:
+        return "미분류"
+    code = raw_grade.strip().upper().split()[0]
+    return _GRADE_LABELS.get(code, raw_grade)
+
+
 def upsert_report(
     db: Session,
     case_id: int,
@@ -174,7 +193,7 @@ def _timeline(
             ReportTimelineResponse(
                 occurred_at=ai_result.created_at,
                 title="AI 분석 완료",
-                description=f"피해등급 {ai_result.damage_grade or '미분류'}로 분석했습니다.",
+                description=f"피해등급 {_grade_text(ai_result.damage_grade)}로 분석했습니다.",
                 actor="AI 업무지원",
             )
         )
@@ -208,7 +227,7 @@ def _timeline(
                     "검토 승인" if review.hitl_result else "검토 반려"
                 ),
                 description=(
-                    f"최종 피해등급을 {review.confirmed_damage_grade}로 확정했습니다. "
+                    f"최종 피해등급을 {_grade_text(review.confirmed_damage_grade)}로 확정했습니다. "
                     f"{review.comment or ''}"
                 ).strip() if review.confirmed_damage_grade else (
                     review.comment or "담당자 검토 결과가 반영되었습니다."
@@ -304,11 +323,26 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
             confidence=ai_result.confidence if ai_result else None,
             explanation=ai_result.ai_explanation if ai_result else None,
             inspection_required=ai_result.inspection_required if ai_result else None,
+            # ▼▼▼ 신규 추가: PDF 보고서 2번 섹션(분석 소요시간/판독 시각) 연계
+            analysis_time=ai_result.analysis_time if ai_result else None,
+            analyzed_at=ai_result.created_at if ai_result else None,
+            # ▲▲▲ 신규 추가 끝
         ),
         severity=ReportSeverityResponse(
             urgency_score=severity.recovery_urgency_score if severity else 0,
             urgency_level=severity.urgency_level if severity else None,
             recovery_priority=severity.recovery_priority if severity else None,
+            # ▼▼▼ 신규 추가: PDF 보고서 3번 섹션(복구 긴급도 산정 근거표)에서
+            # 씀. recovery_urgency_rules.py 실제 산정값과 동일한 컬럼을 그대로
+            # 전달만 함 — 계산 로직은 severity_service.py에 이미 있음.
+            damage_score=severity.damage_score if severity else None,
+            human_risk_score=severity.human_risk_score if severity else None,
+            vulnerability_score=severity.vulnerability_score if severity else None,
+            infrastructure_score=severity.infrastructure_score if severity else None,
+            secondary_damage_score=severity.secondary_damage_score if severity else None,
+            applied_damage_grade=severity.applied_damage_grade if severity else None,
+            rule_version=severity.rule_version if severity else None,
+            # ▲▲▲ 신규 추가 끝
         ),
         subsidy=ReportSubsidyResponse(
             estimated_amount=subsidy.estimated_amount if subsidy else None,
