@@ -4,10 +4,8 @@ import './ai-verdict.css';
 /* 부위 표시 순서 및 라벨 */
 const PARTS = [
   ['roof', '지붕'],
-  ['wall', '외벽'],
-  ['opening', '창호'],
-  ['structure', '구조체'],
-  ['inundation', '침수'],
+  ['structure', '기둥'],
+  ['wall', '벽체'],
 ];
 
 const STATUS_LABEL = {
@@ -89,7 +87,6 @@ const AnalysisResultCard = ({ result, analysis }) => {
   if (!result) return null;
 
   const observation = result.observation || {};
-  const consistency = result.consistency || {};
   const gate = result.gate || {};
   const preprocess = result.preprocess || [];
   const camUrls = result.camUrls || [];
@@ -204,18 +201,6 @@ const AnalysisResultCard = ({ result, analysis }) => {
 
         {observation.summary && <p className="verdict-summary">{observation.summary}</p>}
 
-        {consistency.consistent === true && (
-          <p className="verdict-consistency is-ok">
-            판정 결과와 관찰 내용이 일치합니다
-            {consistency.visible_parts != null &&
-              ` (관찰 ${consistency.visible_parts}개 부위 중 손상 ${consistency.damaged_parts}개)`}
-          </p>
-        )}
-        {consistency.consistent === false && (
-          <p className="verdict-consistency is-warn">
-            {consistency.reason} — 현장조사 대상으로 분류되었습니다
-          </p>
-        )}
       </section>
 
       {/* 판독 정보 */}
