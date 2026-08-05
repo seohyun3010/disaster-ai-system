@@ -153,40 +153,28 @@
 // export default DashboardPage;
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { ArcElement, Chart as ChartJS, Tooltip } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
-import { getReports } from '../api/reportApi';
 import CaseMap from '../components/dashboard/CaseMap';
 import { ROUTES } from '../routes/routeConfig';
 import { useCaseStore } from '../stores/caseStore';
+import { useDashboardStore } from '../stores/dashboardStore';
 import { buildDisasterEvents } from '../utils/disasterEvents';
-import { MOCK_DISASTER_CONFIG, TOTAL_MOCK_REPORTS } from '../mocks/cases';
+import { MOCK_DISASTER_CONFIG, MOCK_DISASTER_EVENTS } from '../mocks/cases';
+import {
+  buildDashboardMetrics,
+  DEFAULT_DASHBOARD_RANGE,
+  formatDashboardPeriod,
+  sortCasesByReportedAt,
+  validateDashboardRange,
+} from '../utils/dashboardMetrics';
 import '../components/dashboard/dashboard.css';
 
 ChartJS.register(ArcElement, Tooltip);
 
-const KPIS = [
-  { icon: '☀', label: '재난 발생', value: '5', unit: '건', change: '-1건', tone: 'blue' },
-  { icon: '▤', label: '피해 신고 (누적)', value: TOTAL_MOCK_REPORTS.toLocaleString('ko-KR'), unit: '건', change: '+87건', tone: 'red' },
-];
-
-const DISASTER_YEAR_STATS = MOCK_DISASTER_CONFIG.map(({ label, count }) => [label, count]);
-
 const DISASTER_YEAR_COLORS = ['#6FA8FF', '#72D4C8', '#FFB26B', '#B79CFF', '#D8BC92'];
 const DISASTER_YEAR_HOVER_COLORS = ['#6599E8', '#68C1B6', '#E8A261', '#A78EE8', '#C5AB85'];
-const DISASTER_YEAR_TOTAL = DISASTER_YEAR_STATS.reduce((total, [, value]) => total + value, 0);
-const DISASTER_YEAR_MAX = Math.max(...DISASTER_YEAR_STATS.map(([, value]) => value));
-const DISASTER_YEAR_CHART_DATA = {
-  labels: DISASTER_YEAR_STATS.map(([name]) => name),
-  datasets: [{
-    data: DISASTER_YEAR_STATS.map(([, value]) => value),
-    backgroundColor: DISASTER_YEAR_COLORS,
-    hoverBackgroundColor: DISASTER_YEAR_HOVER_COLORS,
-    borderWidth: 0,
-    spacing: 0,
-  }],
-};
 const DISASTER_YEAR_CHART_OPTIONS = {
   cutout: '72%',
   radius: '98%',
@@ -241,28 +229,91 @@ const formatDeadlineDate = (timestamp) => {
   return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())}`;
 };
 
+const getValidRange = (startDate, endDate) => {
+  const range = { startDate, endDate };
+  return validateDashboardRange(range) ? null : range;
+};
+
 const DashboardPage = () => {
+  const { key: locationKey } = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const fetchCases = useCaseStore((state) => state.fetchCases);
   const cases = useCaseStore((state) => state.cases);
+  const appliedStartDate = useDashboardStore((state) => state.appliedStartDate);
+  const appliedEndDate = useDashboardStore((state) => state.appliedEndDate);
+  const setAppliedRange = useDashboardStore((state) => state.setAppliedRange);
+  const resetAppliedRange = useDashboardStore((state) => state.resetAppliedRange);
   const mapRef = useRef(null);
   const noticeIntervalRef = useRef(null);
   const [noticeIndex, setNoticeIndex] = useState(0);
   const [noticeCycleKey, setNoticeCycleKey] = useState(0);
-  const [generatedReportCount, setGeneratedReportCount] = useState(0);
-  const currentTotal = TOTAL_MOCK_REPORTS;
-  const pendingReportCount = Math.max(currentTotal - generatedReportCount, 0);
+  const urlStartDate = searchParams.get('startDate') || '';
+  const urlEndDate = searchParams.get('endDate') || '';
+  const appliedRange = useMemo(() => (
+    getValidRange(urlStartDate, urlEndDate)
+    || getValidRange(appliedStartDate, appliedEndDate)
+    || DEFAULT_DASHBOARD_RANGE
+  ), [appliedEndDate, appliedStartDate, urlEndDate, urlStartDate]);
+  const appliedRangeKey = `${appliedRange.startDate}:${appliedRange.endDate}`;
+  const rangeContextKey = `${locationKey}:${appliedRangeKey}`;
+  const [draftRangeState, setDraftRangeState] = useState(() => ({
+    ...appliedRange,
+    contextKey: rangeContextKey,
+  }));
+  const [rangeErrorState, setRangeErrorState] = useState({
+    contextKey: rangeContextKey,
+    message: '',
+  });
+  const draftStartDate = draftRangeState.contextKey === rangeContextKey
+    ? draftRangeState.startDate
+    : appliedRange.startDate;
+  const draftEndDate = draftRangeState.contextKey === rangeContextKey
+    ? draftRangeState.endDate
+    : appliedRange.endDate;
+  const rangeError = rangeErrorState.contextKey === rangeContextKey
+    ? rangeErrorState.message
+    : '';
+  const dashboardMetrics = useMemo(() => buildDashboardMetrics({
+    cases,
+    events: MOCK_DISASTER_EVENTS,
+    disasterTypes: MOCK_DISASTER_CONFIG,
+    range: appliedRange,
+  }), [cases, appliedRange]);
+  const currentTotal = dashboardMetrics.reportTotal;
+  const periodLabel = formatDashboardPeriod(appliedRange);
+  const kpiPeriodLabel = `${appliedRange.startDate.replaceAll('-', '.')} ~ ${appliedRange.endDate.replaceAll('-', '.')}`;
+  const kpis = useMemo(() => [
+    {
+      icon: '☀',
+      label: '기간 내 재난 발생',
+      value: dashboardMetrics.disasterCount.toLocaleString('ko-KR'),
+      unit: '건',
+      period: kpiPeriodLabel,
+    },
+    {
+      icon: '▤',
+      label: '기간 내 피해 신고',
+      value: currentTotal.toLocaleString('ko-KR'),
+      unit: '건',
+      period: kpiPeriodLabel,
+    },
+  ], [currentTotal, dashboardMetrics.disasterCount, kpiPeriodLabel]);
   const recentReports = useMemo(
-    () => [...cases]
-      .sort((left, right) => {
-        const sourceOrder = (left.__source === 'backend' ? 0 : 1)
-          - (right.__source === 'backend' ? 0 : 1);
-        return sourceOrder
-          || right.reported_at.localeCompare(left.reported_at)
-          || right.case_id - left.case_id;
-      })
-      .slice(0, 6),
-    [cases],
+    () => sortCasesByReportedAt(dashboardMetrics.cases).slice(0, 6),
+    [dashboardMetrics.cases],
   );
+  const disasterYearTotal = dashboardMetrics.typeStats.reduce((sum, item) => sum + item.count, 0);
+  const disasterYearMax = Math.max(0, ...dashboardMetrics.typeStats.map((item) => item.count));
+  const disasterYearChartData = useMemo(() => ({
+    labels: dashboardMetrics.typeStats.map((item) => item.label),
+    datasets: [{
+      data: dashboardMetrics.typeStats.map((item) => item.count),
+      backgroundColor: DISASTER_YEAR_COLORS,
+      hoverBackgroundColor: DISASTER_YEAR_HOVER_COLORS,
+      borderWidth: 0,
+      spacing: 0,
+    }],
+  }), [dashboardMetrics.typeStats]);
   const deadlineNotices = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -305,16 +356,31 @@ const DashboardPage = () => {
   }, [fetchCases]);
 
   useEffect(() => {
-    let active = true;
-    getReports({ limit: 1, offset: 0 })
-      .then((result) => {
-        if (active) setGeneratedReportCount(Number(result.total) || 0);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, []);
+    const urlRange = getValidRange(urlStartDate, urlEndDate);
+    const storedRange = getValidRange(appliedStartDate, appliedEndDate)
+      || DEFAULT_DASHBOARD_RANGE;
+    const nextRange = urlRange || storedRange;
+
+    if (
+      appliedStartDate !== nextRange.startDate
+      || appliedEndDate !== nextRange.endDate
+    ) setAppliedRange(nextRange.startDate, nextRange.endDate);
+
+    if (!urlRange) {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set('startDate', nextRange.startDate);
+      nextParams.set('endDate', nextRange.endDate);
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [
+    appliedEndDate,
+    appliedStartDate,
+    searchParams,
+    setAppliedRange,
+    setSearchParams,
+    urlEndDate,
+    urlStartDate,
+  ]);
 
   useEffect(() => {
     if (dashboardNotices.length <= 1) return undefined;
@@ -327,6 +393,36 @@ const DashboardPage = () => {
       if (noticeIntervalRef.current === intervalId) noticeIntervalRef.current = null;
     };
   }, [dashboardNotices.length, noticeCycleKey]);
+
+  const handleRangeSubmit = (event) => {
+    event.preventDefault();
+    const draftRange = { startDate: draftStartDate, endDate: draftEndDate };
+    const validationMessage = validateDashboardRange(draftRange);
+    setRangeErrorState({ contextKey: rangeContextKey, message: validationMessage });
+    if (validationMessage) return;
+    setDraftRangeState({
+      startDate: draftStartDate,
+      endDate: draftEndDate,
+      contextKey: rangeContextKey,
+    });
+    setRangeErrorState({ contextKey: rangeContextKey, message: '' });
+    setAppliedRange(draftStartDate, draftEndDate);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('startDate', draftStartDate);
+    nextParams.set('endDate', draftEndDate);
+    setSearchParams(nextParams);
+  };
+
+  const handleRangeReset = () => {
+    const { startDate, endDate } = DEFAULT_DASHBOARD_RANGE;
+    setDraftRangeState({ startDate, endDate, contextKey: rangeContextKey });
+    setRangeErrorState({ contextKey: rangeContextKey, message: '' });
+    resetAppliedRange();
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('startDate', startDate);
+    nextParams.set('endDate', endDate);
+    setSearchParams(nextParams);
+  };
 
   return (
     <div className="dashboard-page light-dashboard">
@@ -352,28 +448,56 @@ const DashboardPage = () => {
       <section className="compact-query-panel" aria-labelledby="compact-query-title">
         <div className="compact-query-toolbar">
           <h1 id="compact-query-title">조회 기간</h1>
-          <form onSubmit={(event) => event.preventDefault()}>
+          <form onSubmit={handleRangeSubmit}>
             <label className="compact-date-field">
               <div>
-                <input type="date" defaultValue="2025-07-30" aria-label="조회 시작일" />
+                <input
+                  type="date"
+                  value={draftStartDate}
+                  onChange={(event) => {
+                    setDraftRangeState({
+                      startDate: event.target.value,
+                      endDate: draftEndDate,
+                      contextKey: rangeContextKey,
+                    });
+                    setRangeErrorState({ contextKey: rangeContextKey, message: '' });
+                  }}
+                  aria-label="조회 시작일"
+                />
                 <em>~</em>
-                <input type="date" defaultValue="2026-07-30" aria-label="조회 종료일" />
+                <input
+                  type="date"
+                  value={draftEndDate}
+                  onChange={(event) => {
+                    setDraftRangeState({
+                      startDate: draftStartDate,
+                      endDate: event.target.value,
+                      contextKey: rangeContextKey,
+                    });
+                    setRangeErrorState({ contextKey: rangeContextKey, message: '' });
+                  }}
+                  aria-label="조회 종료일"
+                />
               </div>
             </label>
-            <button type="submit">조회</button>
+            <div className="compact-query-actions">
+              <button type="submit">조회</button>
+              <button type="button" className="compact-query-reset" onClick={handleRangeReset}>초기화</button>
+            </div>
           </form>
+          {rangeError && <p className="compact-query-error" role="alert">{rangeError}</p>}
         </div>
-        <p className="compact-query-meta">조회 결과 <strong>{currentTotal.toLocaleString('ko-KR')}건</strong> · 최근 1년 기준</p>
+        <p className="compact-query-meta">조회 결과 <strong>{currentTotal.toLocaleString('ko-KR')}건</strong> · {periodLabel}</p>
       </section>
 
       <section className="dashboard-main-grid">
         <aside className="dashboard-left-column" aria-label="핵심 현황 및 최근 업무">
           <section className="dashboard-kpi-grid" aria-label="핵심 현황">
-            {KPIS.map((kpi) => (
+            {kpis.map((kpi) => (
               <article className="dashboard-kpi" key={kpi.label}>
                 <span className="dashboard-kpi-icon" aria-hidden="true">{kpi.icon}</span>
                 <div><span>{kpi.label}</span><strong>{kpi.value}<small>{kpi.unit}</small></strong></div>
-                <footer>전일 대비 <b className={kpi.tone}>{kpi.change}</b></footer>
+                <footer>{kpi.period}</footer>
               </article>
             ))}
           </section>
@@ -388,14 +512,17 @@ const DashboardPage = () => {
                   <span>{item.address}</span>
                 </li>
               ))}
+              {recentReports.length === 0 && (
+                <li className="recent-report-empty">선택한 기간에 접수된 신고가 없습니다.</li>
+              )}
             </ul>
           </article>
 
           <article className="dashboard-card report-summary-card">
             <CardTitle title="보고서" action="전체 보기 ›" actionTo={ROUTES.REPORT_MANAGEMENT} />
             <div className="report-summary-list">
-              <div><span>생성 대기</span><strong>{pendingReportCount}<small>건</small></strong></div>
-              <div><span>생성 완료</span><strong>{generatedReportCount}<small>건</small></strong></div>
+              <div><span>생성 대기</span><strong>{dashboardMetrics.pendingReportCount}<small>건</small></strong></div>
+              <div><span>생성 완료</span><strong>{dashboardMetrics.generatedReportCount}<small>건</small></strong></div>
             </div>
           </article>
         </aside>
@@ -410,7 +537,7 @@ const DashboardPage = () => {
               <span><i className="light" />5건 미만</span>
             </div>
             <div className="dashboard-map-canvas">
-              <CaseMap ref={mapRef} />
+              <CaseMap ref={mapRef} cases={dashboardMetrics.cases} />
             </div>
             <div className="map-controls">
               <button onClick={() => mapRef.current?.zoomIn()}>＋</button>
@@ -422,42 +549,38 @@ const DashboardPage = () => {
 
         <aside className="dashboard-right-column">
           <article className="dashboard-card annual-disaster-card">
-            <CardTitle title="재난 유형 현황" meta="최근 1년 기준" />
+            <CardTitle title="재난 유형 현황" meta={periodLabel} />
             <div className="annual-donut-content">
               <div
                 className="annual-disaster-donut"
                 role="img"
-                aria-label="최근 1년 전체 1,248건 중 집중호우 412건, 산사태 286건, 산불 214건, 대설 183건, 지진 153건"
+                aria-label={`${periodLabel} 전체 ${disasterYearTotal.toLocaleString('ko-KR')}건, ${dashboardMetrics.typeStats.map((item) => `${item.label} ${item.count.toLocaleString('ko-KR')}건`).join(', ')}`}
               >
-                <Doughnut data={DISASTER_YEAR_CHART_DATA} options={DISASTER_YEAR_CHART_OPTIONS} />
+                <Doughnut data={disasterYearChartData} options={DISASTER_YEAR_CHART_OPTIONS} />
                 <div className="annual-donut-center" aria-hidden="true">
-                  <strong>{DISASTER_YEAR_TOTAL.toLocaleString('ko-KR')}</strong>
-                  <span>전체 누적</span>
+                  <strong>{disasterYearTotal.toLocaleString('ko-KR')}</strong>
+                  <span>{disasterYearTotal ? '전체 누적' : '데이터 없음'}</span>
                 </div>
               </div>
               <ul className="annual-donut-legend">
-                {DISASTER_YEAR_STATS.map(([name, value], index) => {
-                  const percentage = Math.round((value / DISASTER_YEAR_TOTAL) * 100);
-
-                  return (
+                {dashboardMetrics.typeStats.map((item, index) => (
                     <li
-                      className={value === DISASTER_YEAR_MAX ? 'is-leading' : undefined}
-                      key={name}
+                      className={disasterYearTotal > 0 && item.count === disasterYearMax ? 'is-leading' : undefined}
+                      key={item.key}
                       style={{
                         '--annual-legend-color': DISASTER_YEAR_COLORS[index],
                         '--annual-legend-hover-color': DISASTER_YEAR_HOVER_COLORS[index],
                       }}
                     >
                       <i />
-                      <span className="annual-legend-name">{name}</span>
-                      <b>{value.toLocaleString('ko-KR')}건</b>
-                      <em>{percentage}%</em>
+                      <span className="annual-legend-name">{item.label}</span>
+                      <b>{item.count.toLocaleString('ko-KR')}건</b>
+                      <em>{item.percentage}%</em>
                       <span className="annual-legend-bar" aria-hidden="true">
-                        <span style={{ width: `${percentage}%` }} />
+                        <span style={{ width: `${item.percentage}%` }} />
                       </span>
                     </li>
-                  );
-                })}
+                ))}
               </ul>
             </div>
           </article>

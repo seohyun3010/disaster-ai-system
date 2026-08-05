@@ -1,0 +1,80 @@
+.severity-grid {
+  grid-template-columns: minmax(0, 2fr) minmax(360px, 1fr);
+  align-items: stretch;
+}
+
+.severity-grid > .case-card {
+  height: 100%;
+  padding: 24px;
+}
+
+.severity-grid .section-heading {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  margin-bottom: 20px;
+}
+
+.severity-score-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.severity-score-card .stage-table-wrap {
+  margin-top: 0;
+}
+
+.severity-score-card .stage-card-actions {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.urgency-summary-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.urgency-summary-card .urgency-total {
+  margin: 0 0 22px;
+}
+
+.urgency-summary-card .urgency-formula-list {
+  margin: 0;
+}
+
+.urgency-summary-card .urgency-formula-list > div {
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+
+.urgency-summary-card .urgency-formula-list dd {
+  min-width: 0;
+  font-size: var(--font-size-caption);
+  white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+  .severity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .severity-grid > .case-card {
+    height: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .severity-grid > .case-card {
+    padding: 20px;
+  }
+
+  .urgency-summary-card .urgency-formula-list > div {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .urgency-summary-card .urgency-formula-list dd {
+    white-space: normal;
+  }
+}

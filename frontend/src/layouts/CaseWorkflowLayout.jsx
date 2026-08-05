@@ -8,9 +8,11 @@ import {
 
 import { getSubsidy } from '../api/subsidyApi';
 import { useWorkflowNavigation } from '../hooks/useWorkflowNavigation';
+import { ROUTES } from '../routes/routeConfig';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
+import { buildDisasterCaseListPath } from '../utils/disasterEvents';
 
 import './case-workflow-layout.css';
 
@@ -58,9 +60,17 @@ const getStepPath = (caseId, step) => (
     : `/cases/${caseId}`
 );
 
+const getCaseListPath = (item, savedPath) => {
+  if (savedPath === ROUTES.CASES || savedPath?.startsWith(`${ROUTES.CASES}?`)) {
+    return savedPath;
+  }
+
+  return buildDisasterCaseListPath(item);
+};
+
 const CaseWorkflowLayout = () => {
   const { caseId } = useParams();
-  const { pathname, search } = useLocation();
+  const { pathname, search, state } = useLocation();
   const navigate = useNavigate();
   const historyView = new URLSearchParams(search).get('view') === 'history';
 
@@ -106,6 +116,8 @@ const CaseWorkflowLayout = () => {
 
   const activeIndex = getActiveIndex(pathname);
   const requestedStage = activeIndex + 1;
+  const isCaseDetail = pathname === `${ROUTES.CASES}/${caseId}`;
+  const detailCaseListPath = getCaseListPath(item, state?.caseListPath);
 
   const reviewCompleted = Boolean(
     ['승인', '수정 승인'].includes(
@@ -295,7 +307,7 @@ const CaseWorkflowLayout = () => {
         <button
           type="button"
           className="primary-action"
-          onClick={() => navigate('/cases')}
+          onClick={() => navigate(ROUTES.CASES)}
         >
           신고 목록으로
         </button>
@@ -309,9 +321,15 @@ const CaseWorkflowLayout = () => {
         <div>
           <button
             type="button"
-            onClick={() => navigate(historyView ? '/approval-history' : '/cases')}
+            onClick={() => navigate(
+              isCaseDetail
+                ? detailCaseListPath
+                : historyView
+                  ? ROUTES.APPROVAL_HISTORY
+                  : ROUTES.CASES,
+            )}
           >
-            ← {historyView ? '이력 관리' : '신고 목록'}
+            ← {isCaseDetail ? '신고 목록' : historyView ? '이력 관리' : '신고 목록'}
           </button>
 
           <h1>{item.case_number}</h1>

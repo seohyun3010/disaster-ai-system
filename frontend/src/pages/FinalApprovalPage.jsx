@@ -3,13 +3,33 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import FinalApprovalPanel from '../components/approval/FinalApprovalPanel';
 import CaseStageHeader from '../components/case/CaseStageHeader';
 import StageNavigation from '../components/case/StageNavigation';
-import { DEFAULT_WORKFLOW, SUPPORT_STANDARD } from '../mocks/workflow';
+import { DEFAULT_WORKFLOW } from '../mocks/workflow';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { confirmSubsidy, getSubsidy } from '../api/subsidyApi';
 import { getSeverity } from '../api/severityApi';
-import { isDs2Grade, isZeroSupportGrade } from '../utils/reviewRules';
+import {
+  formatDamageGradeLabel,
+  getDamageGradeCode,
+  isDs2Grade,
+  isZeroSupportGrade,
+} from '../utils/reviewRules';
+
+const AUTOMATIC_CHANGE_MESSAGES = [
+  '변경 내역 없음',
+  '수정 없음',
+  '자동 재산정',
+  '서버 자동 재산정',
+  '확정 피해등급 기준 자동 재산정',
+];
+
+const getUserChangeReason = (value) => {
+  const text = String(value ?? '').trim();
+  if (!text || /^(undefined|null)$/i.test(text) || /[□�]/.test(text)) return '-';
+  if (AUTOMATIC_CHANGE_MESSAGES.some((message) => text.includes(message))) return '-';
+  return text;
+};
 
 const FinalApprovalPage = () => {
   const { caseId } = useParams();
@@ -33,6 +53,17 @@ const FinalApprovalPage = () => {
     || severity?.applied_damage_grade
     || localDamageGrade
     || item?.damage;
+  const damageGradeLabel = formatDamageGradeLabel(damageGrade);
+  const previousDamageGradeCode = getDamageGradeCode(analysis?.result?.recommendedGrade);
+  const finalDamageGradeCode = getDamageGradeCode(analysis?.reviewedGrade || damageGrade);
+  const damageGradeChange = previousDamageGradeCode
+    && finalDamageGradeCode
+    && previousDamageGradeCode !== finalDamageGradeCode
+    ? `${previousDamageGradeCode} → ${finalDamageGradeCode}`
+    : '';
+  const damageGradeChangeSummary = damageGradeChange || '-';
+  const severityReason = getUserChangeReason(workflow.severityReason);
+  const supportReason = getUserChangeReason(workflow.supportReason);
   const isHeldGrade = isDs2Grade(damageGrade);
   const hasZeroSupport = isZeroSupportGrade(damageGrade);
   const urgencyScore = severity?.recovery_urgency_score ?? null;
@@ -75,7 +106,30 @@ const FinalApprovalPage = () => {
 
   if (!item) return <div className="case-page"><section className="case-card missing-case"><h1>신고 정보를 찾을 수 없습니다</h1></section></div>;
 
-  return <div className="case-page"><CaseStageHeader item={item} breadcrumb="복구 심사 / 최종 승인" title="최종 승인" progressHistoryView={historyView} />{loadError && <p className="form-error" role="alert">{loadError}</p>}<section className="case-card final-summary-card"><div className="section-heading"><div><h2>최종 검토 요약</h2></div></div><dl className="final-summary-grid"><div><dt>사건번호</dt><dd>{item.id}</dd></div><div><dt>AI 분석 결과</dt><dd>{analysis?.result ? `${analysis.result.recommendedGrade} · 신뢰도 ${analysis.result.confidence}%` : 'AI 원본 결과 확인 필요'}</dd></div><div><dt>최종 피해등급</dt><dd>{damageGrade || '-'}</dd></div><div><dt>복구 긴급도</dt><dd>{urgencyScore == null ? '미산출' : `${urgencyScore}점`}</dd></div><div><dt>최종 지원금</dt><dd>{finalSupportAmount.toLocaleString('ko-KR')}원</dd></div><div><dt>중복 수혜 검증</dt><dd><span className={item.duplicate ? 'duplicate-badge' : 'analysis-state-badge completed'}>{item.duplicate ? '추가 확인 필요' : SUPPORT_STANDARD.duplicateResult}</span></dd></div></dl><div className="reason-summary"><h3>이전 단계 수정 사유</h3><p><b>피해등급:</b> {analysis?.reviewReason || '수정 없음'}</p><p><b>긴급도:</b> {workflow.severityReason || '서버 자동 재산정'}</p><p><b>지원금:</b> {workflow.supportReason || '확정 피해등급 기준 자동 재산정'}</p></div></section><FinalApprovalPanel amount={finalSupportAmount} status={approvalStatus} onSubmit={handleApproval} />{!historyView && <StageNavigation previousPath={`/cases/${caseId}/support`} previousLabel="지원금 심사" />}</div>;
+  return (
+    <div className="case-page">
+      <CaseStageHeader item={item} breadcrumb="복구 심사 / 최종 승인" title="최종 승인" progressHistoryView={historyView} />
+      {loadError && <p className="form-error" role="alert">{loadError}</p>}
+      <section className="case-card final-summary-card">
+        <div className="section-heading"><div><h2>최종 검토 요약</h2></div></div>
+        <dl className="final-summary-grid">
+          <div><dt>사건번호</dt><dd>{item.id}</dd></div>
+          <div><dt>AI 분석 결과</dt><dd>{analysis?.result ? `${formatDamageGradeLabel(analysis.result.recommendedGrade)} · 신뢰도 ${analysis.result.confidence}%` : 'AI 원본 결과 확인 필요'}</dd></div>
+          <div className="summary-emphasis"><dt>최종 피해등급</dt><dd>{damageGradeLabel || '-'}</dd></div>
+          <div className="summary-emphasis"><dt>복구 긴급도</dt><dd>{urgencyScore == null ? '미산출' : `${urgencyScore}점`}</dd></div>
+          <div className="summary-emphasis summary-support-amount"><dt>최종 지원금</dt><dd>{finalSupportAmount.toLocaleString('ko-KR')}원</dd></div>
+        </dl>
+        <div className="reason-summary">
+          <h3>이전 단계 수정 사유</h3>
+          <p><b>피해등급:</b> {damageGradeChangeSummary}</p>
+          <p><b>긴급도:</b> {severityReason}</p>
+          <p><b>지원금:</b> {supportReason}</p>
+        </div>
+      </section>
+      <FinalApprovalPanel amount={finalSupportAmount} status={approvalStatus} onSubmit={handleApproval} />
+      {!historyView && <StageNavigation previousPath={`/cases/${caseId}/support`} previousLabel="지원금 심사" />}
+    </div>
+  );
 };
 
 export default FinalApprovalPage;
