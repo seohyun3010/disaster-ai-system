@@ -91,6 +91,9 @@ const AnalysisResultCard = ({ result, analysis }) => {
   const preprocess = result.preprocess || [];
   const camUrls = result.camUrls || [];
   const sourceUrls = result.sourceUrls || [];
+  const observationReady = PARTS.some(([key]) => (
+    Boolean(observation[key]?.status)
+  ));
 
   const confidence = Number(result.confidence);
   const threshold = gate.threshold != null ? gate.threshold * 100 : 40;
@@ -180,26 +183,36 @@ const AnalysisResultCard = ({ result, analysis }) => {
           <span className="verdict-hint">등급 정보 없이 독립 관찰</span>
         </div>
 
-        <table className="verdict-table">
-          <tbody>
-            {PARTS.map(([key, label]) => {
-              const entry = observation[key] || {};
-              const status = entry.status || 'NOT_VISIBLE';
-              return (
-                <tr key={key} className={`status-${status.toLowerCase()}`}>
-                  <th scope="row">{label}</th>
-                  <td className="verdict-status">
-                    <i aria-hidden="true" />
-                    {STATUS_LABEL[status] || status}
-                  </td>
-                  <td className="verdict-detail">{entry.note || '—'}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        {observationReady ? <>
+          <table className="verdict-table">
+            <tbody>
+              {PARTS.map(([key, label]) => {
+                const entry = observation[key] || {};
+                const status = entry.status || 'NOT_VISIBLE';
+                return (
+                  <tr key={key} className={`status-${status.toLowerCase()}`}>
+                    <th scope="row">{label}</th>
+                    <td className="verdict-status">
+                      <i aria-hidden="true" />
+                      {STATUS_LABEL[status] || status}
+                    </td>
+                    <td className="verdict-detail">{entry.note || '-'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
 
-        {observation.summary && <p className="verdict-summary">{observation.summary}</p>}
+          {observation.summary && <p className="verdict-summary">{observation.summary}</p>}
+        </> : (
+          <div className="verdict-observation-loading" role="status" aria-live="polite">
+            <span className="verdict-observation-spinner" aria-hidden="true" />
+            <div>
+              <strong>부위별 손상 관찰 분석 중</strong>
+              <p>지붕·기둥·벽체 관찰 결과를 불러오고 있습니다.</p>
+            </div>
+          </div>
+        )}
 
       </section>
 

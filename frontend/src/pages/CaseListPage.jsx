@@ -450,7 +450,8 @@ const DisasterEventSelection = ({
           `${event.year} `
           + `${event.name} `
           + `${event.deadlinePeriod} `
-          + `${event.status}`
+          + `${event.status} `
+          + `${event.caseSearchText || ''}`
         ).toLowerCase();
 
         return !term || searchText.includes(term);
@@ -656,7 +657,7 @@ const DisasterEventSelection = ({
                         <button
                           type="button"
                           className="event-select-button"
-                          onClick={() => onSelect(event)}
+                          onClick={() => onSelect(event, eventSearch.trim())}
                         >
                           신고목록 보기
                         </button>
@@ -884,6 +885,11 @@ const CaseListPage = () => {
 
     if (selectedEvent.id === 'all-search-results') return cases;
 
+    if (selectedEvent.usesCaseIds) {
+      const selectedCaseIds = new Set(selectedEvent.caseIds || []);
+      return cases.filter((item) => selectedCaseIds.has(getItemFrontendKey(item)));
+    }
+
     return filterCasesByDisasterPeriod(cases, activeDisasterFilter);
   }, [
     activeDisasterFilter,
@@ -1059,14 +1065,16 @@ const CaseListPage = () => {
         events={events}
         loading={loading}
         error={error}
-        onSelect={(event) => {
+        onSelect={(event, caseSearchTerm = '') => {
+          setSearch(caseSearchTerm);
           const nextParams = new URLSearchParams(searchParams);
           nextParams.set('event', event.id);
           nextParams.set('historyId', event.id);
           nextParams.set('disasterType', event.label);
           nextParams.set('startDate', event.from);
           nextParams.set('endDate', event.to);
-          nextParams.delete('search');
+          if (caseSearchTerm) nextParams.set('search', caseSearchTerm);
+          else nextParams.delete('search');
           nextParams.delete('status');
           nextParams.delete('facility');
           nextParams.delete('sort');

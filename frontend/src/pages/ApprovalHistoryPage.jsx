@@ -53,10 +53,16 @@ const ApprovalHistoryPage = () => {
   const caseById = useMemo(() => Object.fromEntries(cases.map((item) => [item.id, item])), [cases]);
   const disasterEvents = useMemo(() => buildDisasterEvents(cases), [cases]);
   const activeDisasterIds = useMemo(() => new Set(
-    disasterEvents.filter(isActiveDisaster).map((event) => event.id),
+    disasterEvents.filter(isActiveDisaster).flatMap((event) => [
+      event.id,
+      ...(event.sourceEventIds || []),
+    ]),
   ), [disasterEvents]);
   const disasterNameById = useMemo(() => Object.fromEntries(
-    disasterEvents.map((event) => [event.id, event.name]),
+    disasterEvents.flatMap((event) => [
+      [event.id, event.name],
+      ...(event.sourceEventIds || []).map((eventId) => [eventId, event.name]),
+    ]),
   ), [disasterEvents]);
   const allLogs = useMemo(() => {
     const savedLogs = Object.entries(workflows)
