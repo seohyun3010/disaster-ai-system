@@ -1,3 +1,5 @@
+import { formatDisasterType } from '../../utils/disasterTypeLabels';
+
 const STATUS_OPTIONS = ['전체', '검토 필요', '현장 확인', 'AI 분석 대기', 'AI 분석 완료', '접수 완료'];
 
 const PriorityReportTable = ({
@@ -49,7 +51,7 @@ const PriorityReportTable = ({
       <tbody>
         {filteredCases.slice(0, 5).map((item, index) => <tr key={item.id}>
           <td><span className={`priority-rank rank-${Math.min(index + 1, 4)}`}>{index + 1}</span></td>
-          <td><strong className="disaster-type-name">{item.type}</strong></td>
+          <td><strong className="disaster-type-name">{formatDisasterType(item.type)}</strong></td>
           <td>{item.location}</td>
           <td>
             <span className={`priority-urgency urgency-${item.urgency}`}>

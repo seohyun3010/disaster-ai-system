@@ -260,6 +260,7 @@ import {
   useKakaoLoader,
 } from 'react-kakao-maps-sdk';
 import { normalizeRegionName } from '../../utils/regionNames';
+import { formatDisasterType } from '../../utils/disasterTypeLabels';
 
 const STATUS_LABELS = {
   RECEIVED: '접수됨',
@@ -271,15 +272,6 @@ const STATUS_LABELS = {
 const PRIORITY_LABELS = {
   NORMAL: '일반',
   URGENT: '긴급',
-};
-
-const DISASTER_TYPE_LABELS = {
-  HEAVY_RAIN: '집중호우',
-  LANDSLIDE: '산사태',
-  WILDFIRE: '산불',
-  HEAVY_SNOW: '대설',
-  EARTHQUAKE: '지진',
-  FLOOD: '침수',
 };
 
 // 시/도 중심 좌표 (근사값)
@@ -513,7 +505,7 @@ const CaseMap = forwardRef(({ cases = [] }, ref) => {
               <span>우선순위: {PRIORITY_LABELS[selectedCase.priority] ?? selectedCase.priority}</span>
             </div>
             <div style={{ marginTop: '4px', color: '#555' }}>
-              재해유형: {DISASTER_TYPE_LABELS[selectedCase.disaster_type] ?? selectedCase.disaster_type}
+              재해유형: {formatDisasterType(selectedCase.disaster_type)}
             </div>
           </div>
         </CustomOverlayMap>

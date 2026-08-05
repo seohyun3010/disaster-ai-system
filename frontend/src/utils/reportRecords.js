@@ -1,6 +1,7 @@
 import { formatOfficerFull, getCurrentUser } from '../mocks/currentUser';
 import { MOCK_APPROVAL_HISTORY } from '../mocks/history';
 import { calculateSeverityTotal, DEFAULT_WORKFLOW } from '../mocks/workflow';
+import { formatDisasterType, formatFacilityType } from './disasterTypeLabels';
 
 export const FINAL_REPORT_STATUSES = ['최종 승인', '금액 수정 후 승인'];
 
@@ -35,7 +36,7 @@ export const buildFinalReportRecords = ({
         facility: item.facility,
         location: item.location,
         description: item.description,
-        title: `${item.facility || item.type || '재해'} 피해조사 결과보고서`,
+        title: `${item.facility ? formatFacilityType(item.facility) : formatDisasterType(item.type)} 피해조사 결과보고서`,
         damageGrade: analysis?.reviewedGrade
           || workflow?.reviewedGrade
           || workflow?.confirmedGrade

@@ -1,3 +1,4 @@
+import { formatFacilityType } from '../../utils/disasterTypeLabels';
 import './support-calculation-card.css';
 
 const formatCurrency = (value) =>
@@ -72,7 +73,7 @@ const SupportCalculationCard = ({
 
         <dl className="stage-summary-list support-details">
           <div><dt>피해등급</dt><dd>{damageGrade || subsidy.damage_grade || item.damage}</dd></div>
-          <div><dt>시설 유형</dt><dd>{item.facility}</dd></div>
+          <div><dt>시설 유형</dt><dd>{formatFacilityType(item.facility)}</dd></div>
           <div><dt>산정 기준</dt><dd>{subsidy.calculation_standard ?? '-'}</dd></div>
           <div><dt>단가</dt><dd>{formatCurrency(subsidy.unit_price)} <small>(전파 등급 기준액)</small></dd></div>
         </dl>

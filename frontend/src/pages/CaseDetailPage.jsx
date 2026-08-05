@@ -11,9 +11,16 @@ import { useWorkflowStore } from '../stores/workflowStore';
 import { useAuthStore } from '../stores/authStore';
 import { isZeroSupportGrade } from '../utils/reviewRules';
 import { buildDisasterCaseListPath } from '../utils/disasterEvents';
+import { formatDisasterType, formatFacilityType } from '../utils/disasterTypeLabels';
 import './case-workspace.css';
 
 const EMPTY_ANALYSIS = { status: 'idle', jobId: null, result: null, reviewStatus: '검토 전' };
+
+const formatDamageCategory = (value) => {
+  const category = String(value || '').trim();
+  if (!category) return '-';
+  return /^[A-Z][A-Z_]+$/.test(category) ? formatFacilityType(category) : category;
+};
 
 const maskResidentNumber = (value) =>
   (/^\d{6}-[1-4]\*{6}$/.test(value) ? value : value?.replace(/^(\d{6})-\d{7}$/, '$1-*******'))
@@ -78,10 +85,10 @@ const createReportView = (item) => {
       : item.reportedAt,
     damageDetails: item.damage_details?.length
       ? item.damage_details.map((detail) => ({
-        category: detail.category || item.facility,
+        category: formatDamageCategory(detail.category || item.facility),
         value: [detail.quantity, detail.details].filter(Boolean).join(' · '),
       }))
-      : [{ category: item.facility, value: item.description || '접수된 피해 내용을 확인해 주세요.' }],
+      : [{ category: formatFacilityType(item.facility), value: item.description || '접수된 피해 내용을 확인해 주세요.' }],
     photos: item.photos || [],
   };
 };
@@ -194,8 +201,8 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
             <dl>
               <div><dt>피해 주소</dt><dd>{report.damagePlace}</dd></div>
               <div><dt>피해 발생 일시</dt><dd>{report.damageOccurredAt}</dd></div>
-              <div><dt>시설 유형</dt><dd>{report.facilityType}</dd></div>
-              <div><dt>재난 유형</dt><dd>{report.disasterType}</dd></div>
+              <div><dt>시설 유형</dt><dd>{formatFacilityType(report.facilityType)}</dd></div>
+              <div><dt>재난 유형</dt><dd>{formatDisasterType(report.disasterType)}</dd></div>
             </dl>
           </article>
           <article>

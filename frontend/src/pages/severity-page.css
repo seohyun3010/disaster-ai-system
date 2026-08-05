@@ -38,6 +38,37 @@
   margin: 0 0 22px;
 }
 
+.urgency-score-criteria {
+  display: grid;
+  margin: 0 0 22px;
+}
+
+.urgency-score-criteria > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 16px;
+  padding: 9px 2px;
+  border-bottom: 1px solid #e3ebea;
+}
+
+.urgency-score-criteria dt,
+.urgency-score-criteria dd {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-default);
+}
+
+.urgency-score-criteria dt {
+  color: var(--krds-gray-600);
+}
+
+.urgency-score-criteria dd {
+  color: var(--krds-gray-800);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap;
+}
+
 .urgency-summary-card .urgency-formula-list {
   margin: 0;
 }

@@ -1,5 +1,5 @@
 import { formatOfficerName, getCurrentUser } from '../../mocks/currentUser';
-import { formatDisasterType } from '../../utils/disasterTypeLabels';
+import { formatDisasterType, formatFacilityType } from '../../utils/disasterTypeLabels';
 import { formatDamageGrade } from '../../utils/reviewRules';
 import { removeMockMarker } from '../../utils/uiText';
 import './final-report-preview.css';
@@ -35,7 +35,7 @@ const FinalReportPreview = ({
         {/* 기존 mock 필드(item.reporter/type/facility/location/reportedAt)는 백엔드 snake_case로 교체 */}
         <div><dt>신고자</dt><dd>{display(item.reporter_name)}</dd></div>
         <div><dt>재난 유형</dt><dd>{formatDisasterType(item.disaster_type)}</dd></div>
-        <div><dt>시설 유형</dt><dd>{display(item.facility_type)}</dd></div>
+        <div><dt>시설 유형</dt><dd>{formatFacilityType(item.facility_type)}</dd></div>
         <div><dt>피해 위치</dt><dd>{display(item.address)}</dd></div>
         <div><dt>신고 일시</dt><dd>{display(item.reported_at)}</dd></div>
         <div><dt>최종 승인 일시</dt><dd>{display(report.approved_at)}</dd></div>
