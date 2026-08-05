@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
-import { buildDisasterEvents } from '../utils/disasterEvents';
+import { buildDisasterEvents, filterCasesByDisasterPeriod } from '../utils/disasterEvents';
 import { isZeroSupportGrade } from '../utils/reviewRules';
 import { submitDamageGradeReview } from '../api/reviewApi';
 import { useAuthStore } from '../stores/authStore';
@@ -12,9 +12,11 @@ import { DEFAULT_DISASTER_QUERY_RANGE } from '../mocks/cases';
 import './case-list.css';
 import './report-management.css';
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 const EVENT_PAGE_SIZE_OPTIONS = [5, 10, 20];
 const SOURCE_PRIORITY = { backend: 0, mock: 1 };
+
+const formatFilterDate = (value) => String(value || '').replaceAll('-', '.');
 
 const FINAL_APPROVAL_STATUSES = [
   '최종 승인',
@@ -653,7 +655,7 @@ const DisasterEventSelection = ({
                         <button
                           type="button"
                           className="event-select-button"
-                          onClick={() => onSelect(event.id)}
+                          onClick={() => onSelect(event)}
                         >
                           신고목록 보기
                         </button>
@@ -785,10 +787,19 @@ const CaseListPage = () => {
   );
 
   const [search, setSearch] = useState(() => searchParams.get('search') || '');
-  const [status, setStatus] = useState('전체');
-  const [facility, setFacility] = useState('전체');
-  const [sortOrder, setSortOrder] = useState('newest');
-  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState(() => (
+    STATUS_FILTERS.includes(searchParams.get('status')) ? searchParams.get('status') : '전체'
+  ));
+  const [facility, setFacility] = useState(() => (
+    FACILITY_FILTERS.includes(searchParams.get('facility')) ? searchParams.get('facility') : '전체'
+  ));
+  const [sortOrder, setSortOrder] = useState(() => (
+    ['newest', 'oldest'].includes(searchParams.get('sort')) ? searchParams.get('sort') : 'newest'
+  ));
+  const [page, setPage] = useState(() => {
+    const requestedPage = Number(searchParams.get('page'));
+    return Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  });
 
   const [
     heldReviewRecord,
@@ -812,11 +823,26 @@ const CaseListPage = () => {
     [cases, rangeFrom, rangeTo],
   );
 
-  const selectedEventId = searchParams.get('event');
+  const selectedEventId = searchParams.get('historyId') || searchParams.get('event');
   const globalSearch = searchParams.get('search')?.trim() || '';
+  const requestedDisasterType = searchParams.get('disasterType') || '';
+  const requestedStartDate = searchParams.get('startDate') || '';
+  const requestedEndDate = searchParams.get('endDate') || '';
 
   const selectedEvent = useMemo(() => (
     events.find((event) => event.id === selectedEventId)
+    || (requestedStartDate && requestedEndDate ? {
+      id: selectedEventId || 'disaster-period-filter',
+      name: `${requestedDisasterType || '재난'} 신고`,
+      label: requestedDisasterType || '재난',
+      disasterType: requestedDisasterType,
+      from: requestedStartDate,
+      to: requestedEndDate,
+      occurredPeriod: `${formatFilterDate(requestedStartDate)} ~ ${formatFilterDate(requestedEndDate)}`,
+      deadlinePeriod: '-',
+      status: '기간 조회',
+      caseIds: [],
+    } : null)
     || (globalSearch ? {
       id: 'all-search-results',
       name: '전체 재난 신고 검색 결과',
@@ -825,7 +851,26 @@ const CaseListPage = () => {
       status: '진행중',
       caseIds: cases.map(getItemFrontendKey),
     } : null)
-  ), [cases, events, globalSearch, selectedEventId]);
+  ), [
+    cases,
+    events,
+    globalSearch,
+    requestedDisasterType,
+    requestedEndDate,
+    requestedStartDate,
+    selectedEventId,
+  ]);
+
+  const activeDisasterFilter = useMemo(() => ({
+    disasterType: requestedDisasterType || selectedEvent?.disasterType || '',
+    startDate: requestedStartDate || selectedEvent?.from || '',
+    endDate: requestedEndDate || selectedEvent?.to || '',
+  }), [
+    requestedDisasterType,
+    requestedEndDate,
+    requestedStartDate,
+    selectedEvent,
+  ]);
 
   /*
    * selectedEvent가 아직 없을 때도
@@ -836,19 +881,11 @@ const CaseListPage = () => {
       return [];
     }
 
-    const selectedCaseIds = new Set(selectedEvent.caseIds);
-    const matchesSelectedEvent = (item) => (
-      selectedCaseIds.has(getItemFrontendKey(item))
-    );
-    const backendCasesForEvent = cases.filter((item) => (
-      item.__source === 'backend' && matchesSelectedEvent(item)
-    ));
-    const mockCasesForEvent = cases.filter((item) => (
-      item.__source === 'mock' && matchesSelectedEvent(item)
-    ));
+    if (selectedEvent.id === 'all-search-results') return cases;
 
-    return [...backendCasesForEvent, ...mockCasesForEvent];
+    return filterCasesByDisasterPeriod(cases, activeDisasterFilter);
   }, [
+    activeDisasterFilter,
     cases,
     selectedEvent,
   ]);
@@ -917,6 +954,24 @@ const CaseListPage = () => {
     page * PAGE_SIZE,
   );
 
+  useEffect(() => {
+    const nextParams = new URLSearchParams(searchParams);
+    const setOptionalParam = (key, value, defaultValue) => {
+      if (!value || value === defaultValue) nextParams.delete(key);
+      else nextParams.set(key, String(value));
+    };
+
+    setOptionalParam('search', search.trim(), '');
+    setOptionalParam('status', status, '전체');
+    setOptionalParam('facility', facility, '전체');
+    setOptionalParam('sort', sortOrder, 'newest');
+    setOptionalParam('page', page, 1);
+
+    if (nextParams.toString() !== searchParams.toString()) {
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [facility, page, search, searchParams, setSearchParams, sortOrder, status]);
+
   const resetFilters = () => {
     setSearch('');
     setStatus('전체');
@@ -943,7 +998,12 @@ const CaseListPage = () => {
       return;
     }
 
-    navigate(`/cases/${itemCaseId}`);
+    const listSearch = searchParams.toString();
+    const caseListPath = `/cases${listSearch ? `?${listSearch}` : ''}`;
+
+    navigate(`/cases/${itemCaseId}`, {
+      state: { caseListPath },
+    });
   };
 
   const completeHeldReview = async (review) => {
@@ -998,10 +1058,18 @@ const CaseListPage = () => {
         events={events}
         loading={loading}
         error={error}
-        onSelect={(eventId) => {
+        onSelect={(event) => {
           const nextParams = new URLSearchParams(searchParams);
-          nextParams.set('event', eventId);
+          nextParams.set('event', event.id);
+          nextParams.set('historyId', event.id);
+          nextParams.set('disasterType', event.label);
+          nextParams.set('startDate', event.from);
+          nextParams.set('endDate', event.to);
           nextParams.delete('search');
+          nextParams.delete('status');
+          nextParams.delete('facility');
+          nextParams.delete('sort');
+          nextParams.delete('page');
           setSearchParams(nextParams);
         }}
       />
@@ -1017,7 +1085,9 @@ const CaseListPage = () => {
           </p>
 
           <h1>
-            {selectedEvent.name}
+            {activeDisasterFilter.startDate && activeDisasterFilter.endDate
+              ? `${selectedEvent.label || selectedEvent.name} · ${formatFilterDate(activeDisasterFilter.startDate)} ~ ${formatFilterDate(activeDisasterFilter.endDate)}`
+              : selectedEvent.name}
           </h1>
         </div>
 
@@ -1028,6 +1098,10 @@ const CaseListPage = () => {
             resetFilters();
             const nextParams = new URLSearchParams(searchParams);
             nextParams.delete('event');
+            nextParams.delete('historyId');
+            nextParams.delete('disasterType');
+            nextParams.delete('startDate');
+            nextParams.delete('endDate');
             nextParams.delete('search');
             setSearchParams(nextParams);
           }}
@@ -1161,7 +1235,7 @@ const CaseListPage = () => {
             <h2>신고 목록</h2>
 
             <span>
-              총
+              조회 결과
               {' '}
               <b>{filtered.length}</b>
               건

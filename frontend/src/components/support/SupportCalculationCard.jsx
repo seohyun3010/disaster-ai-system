@@ -1,4 +1,4 @@
-import { EvidencePanel } from '../persona/ReviewGuidance';
+import './support-calculation-card.css';
 
 const formatCurrency = (value) =>
   value === null || value === undefined ? '-' : `${Number(value).toLocaleString('ko-KR')}원`;
@@ -34,7 +34,7 @@ const SupportCalculationCard = ({
   hold = false,
   fixedZeroAmount = false,
 }) => (
-  <article className="case-card stage-card">
+  <article className="case-card stage-card support-calculation-card">
     <div className="section-heading"><div><h2>예상 지원금 산정</h2></div></div>
 
     {loading && <p>불러오는 중...</p>}
@@ -76,18 +76,6 @@ const SupportCalculationCard = ({
           <div><dt>산정 기준</dt><dd>{subsidy.calculation_standard ?? '-'}</dd></div>
           <div><dt>단가</dt><dd>{formatCurrency(subsidy.unit_price)} <small>(전파 등급 기준액)</small></dd></div>
         </dl>
-
-        <EvidencePanel title="지원금 산정 근거 확인">
-          {subsidy.calculation_basis ? (
-            <ul className="basis-list">
-              {subsidy.calculation_basis.split('\n').map((line, idx) => (
-                <li key={idx}>{line}</li>
-              ))}
-            </ul>
-          ) : (
-            <p>근거 정보 없음</p>
-          )}
-        </EvidencePanel>
 
         <div className="support-edit">
           <label>

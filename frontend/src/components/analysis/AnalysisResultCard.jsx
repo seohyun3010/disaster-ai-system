@@ -138,9 +138,9 @@ const AnalysisResultCard = ({ result, analysis }) => {
         </div>
 
         <div className="verdict-cell">
-          <span className="verdict-label">판정 처리 구분</span>
+          <span className="verdict-label">처리 방식</span>
           <strong className={`verdict-value ${inspection ? 'is-warn' : 'is-ok'}`}>
-            {inspection ? '현장조사' : '자동 판정'}
+            {inspection ? '현장조사 필요' : '자동 처리'}
           </strong>
           <small className="verdict-sub">
             {gate.sealed_grade ? '봉인 등급 해당' : '봉인 등급 아님'}

@@ -12,7 +12,7 @@ const SeverityScoreTable = ({
   error,
   message,
 }) => (
-  <article className="case-card stage-card">
+  <article className="case-card stage-card severity-score-card">
     <div className="section-heading"><div><h2>항목별 심각도 점수</h2></div></div>
     <div className="stage-table-wrap">
       <table className="stage-table severity-readonly-table">

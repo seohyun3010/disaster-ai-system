@@ -259,8 +259,6 @@ import {
   CustomOverlayMap,
   useKakaoLoader,
 } from 'react-kakao-maps-sdk';
-import { getCases } from '../../api/caseApi';
-import { TOTAL_MOCK_REPORTS } from '../../mocks/cases';
 import { normalizeRegionName } from '../../utils/regionNames';
 
 const STATUS_LABELS = {
@@ -322,15 +320,12 @@ function getTone(count) {
   return 'light';
 }
 
-const CaseMap = forwardRef((_, ref) => {
+const CaseMap = forwardRef(({ cases = [] }, ref) => {
   useKakaoLoader({
     appkey: import.meta.env.VITE_KAKAO_MAP_KEY,
   });
 
-  const [cases, setCases] = useState([]);
   const [selectedCase, setSelectedCase] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [level, setLevel] = useState(DEFAULT_LEVEL);
   const [center, setCenter] = useState(DEFAULT_CENTER);
 
@@ -348,13 +343,11 @@ const CaseMap = forwardRef((_, ref) => {
   // ===== 신규 추가 끝 =====
 
   useEffect(() => {
-    let ignore = false;
-    getCases({ limit: TOTAL_MOCK_REPORTS, offset: 0 })
-      .then((result) => { if (!ignore) setCases(result.items); })
-      .catch((err) => { if (!ignore) setError(err.message); })
-      .finally(() => { if (!ignore) setLoading(false); });
-    return () => { ignore = true; };
-  }, []);
+    if (selectedCase && !cases.some((item) => (
+      (item.frontendKey || item.id || item.case_id)
+      === (selectedCase.frontendKey || selectedCase.id || selectedCase.case_id)
+    ))) setSelectedCase(null);
+  }, [cases, selectedCase]);
 
   useImperativeHandle(ref, () => ({
     zoomIn: () => setLevel((prev) => Math.max(1, prev - 1)),
@@ -380,18 +373,6 @@ const CaseMap = forwardRef((_, ref) => {
     });
     return data;
   }, [validCases]);
-
-  if (loading) {
-    return <div style={{ padding: '1rem' }}>지도를 불러오는 중...</div>;
-  }
-
-  if (error) {
-    return (
-      <div style={{ padding: '1rem', color: '#c0392b' }}>
-        지도를 불러오지 못했습니다: {error}
-      </div>
-    );
-  }
 
   // ===== 신규 추가 (3차): drilldownRegion이 설정되어 있으면 레벨과 무관하게 핀 뷰 강제 =====
   const showRegionView = level >= REGION_VIEW_LEVEL_THRESHOLD && !drilldownRegion;

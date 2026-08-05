@@ -8,6 +8,7 @@ import SeverityScoreTable from '../components/severity/SeverityScoreTable';
 import UrgencySummary from '../components/severity/UrgencySummary';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
+import './severity-page.css';
 
 const getSeverityErrorMessage = (error) => {
   const status = error.response?.status;

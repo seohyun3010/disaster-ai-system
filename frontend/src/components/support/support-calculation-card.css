@@ -1,0 +1,7 @@
+.support-calculation-card .support-details + .support-edit {
+  margin-top: 16px;
+}
+
+.support-calculation-card .support-details + .support-edit > label:first-child {
+  margin-top: 0;
+}

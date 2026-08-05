@@ -176,7 +176,7 @@ const REGION_SEQUENCE_BY_TYPE = Object.fromEntries(
 );
 
 export const DEFAULT_DISASTER_QUERY_RANGE = Object.freeze({
-  from: '2025-07-30',
+  from: '2025-07-18',
   to: '2026-07-30',
 });
 
@@ -208,7 +208,7 @@ export const MOCK_DISASTER_EVENTS = Object.freeze([
   },
   {
     id: 'mock-disaster-2025-heavy-snow-01', year: 2025, disasterType: 'HEAVY_SNOW', label: '대설',
-    from: '2025-11-18', to: '2025-11-20', deadlineFrom: '2025-12-01', deadlineTo: '2025-12-14',
+    from: '2025-12-18', to: '2025-12-21', deadlineFrom: '2025-12-22', deadlineTo: '2026-01-04',
     status: '완료', targetCount: 60, __source: 'mock',
   },
   {
@@ -218,7 +218,7 @@ export const MOCK_DISASTER_EVENTS = Object.freeze([
   },
   {
     id: 'mock-disaster-2025-heavy-rain-01', year: 2025, disasterType: 'HEAVY_RAIN', label: '집중호우',
-    from: '2025-08-12', to: '2025-08-15', deadlineFrom: '2025-08-26', deadlineTo: '2025-09-08',
+    from: '2025-07-18', to: '2025-07-21', deadlineFrom: '2025-07-30', deadlineTo: '2025-08-12',
     status: '완료', targetCount: 120, __source: 'mock',
   },
 ]);
@@ -308,7 +308,7 @@ const createMockCase = (disaster, index, caseId, typeRegionIndex, yearCaseIndex)
   const birthYear = 1956 + (index % 31);
   const damageDate = addDays(new Date(`${disaster.from}T00:00:00`), index % (daysBetween(disaster.from, disaster.to) + 1));
   damageDate.setHours(5 + (index * 7) % 17, (index * 13) % 60, 0, 0);
-  const receivedDate = addDays(damageDate, 1 + (index % 10));
+  const receivedDate = new Date(damageDate);
   receivedDate.setHours(Math.min(23, damageDate.getHours() + 1 + (index % 4)), (damageDate.getMinutes() + 11) % 60, 0, 0);
   const address = makeAddress(region, index);
   const descriptionOptions = disaster.descriptions[facility];

@@ -10,6 +10,7 @@ import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { useAuthStore } from '../stores/authStore';
 import { isZeroSupportGrade } from '../utils/reviewRules';
+import { buildDisasterCaseListPath } from '../utils/disasterEvents';
 import './case-workspace.css';
 
 const EMPTY_ANALYSIS = { status: 'idle', jobId: null, result: null, reviewStatus: '검토 전' };
@@ -31,14 +32,6 @@ const maskAccountNumber = (value) => {
     remainingDigits -= 1;
     return '*';
   }).join('');
-};
-
-const getCaseListPath = (item) => {
-  const reportedDate = new Date(item.reported_at || item.received_at);
-  const disasterType = item.disaster_type || 'OTHER';
-  if (Number.isNaN(reportedDate.getTime())) return '/cases';
-  const eventId = `${reportedDate.getFullYear()}-${disasterType}`;
-  return `/cases?event=${encodeURIComponent(eventId)}`;
 };
 
 const createReportView = (item) => {
@@ -151,7 +144,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
 
   if (!item || !report) return null;
   const visiblePhotoIndex = report.photos.length > 0 ? activePhotoIndex % report.photos.length : 0;
-  const caseListPath = getCaseListPath(item);
+  const caseListPath = buildDisasterCaseListPath(item);
   const isRunning = ['queued', 'processing'].includes(analysis.status);
 
   const startAnalysis = async () => {

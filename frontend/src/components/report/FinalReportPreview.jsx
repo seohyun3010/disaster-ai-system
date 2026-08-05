@@ -1,5 +1,7 @@
 import { formatOfficerName, getCurrentUser } from '../../mocks/currentUser';
 import { formatDisasterType } from '../../utils/disasterTypeLabels';
+import { formatDamageGrade } from '../../utils/reviewRules';
+import { removeMockMarker } from '../../utils/uiText';
 import './final-report-preview.css';
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString('ko-KR')}원`;
@@ -40,14 +42,14 @@ const FinalReportPreview = ({
       </dl>
 
       <div className="final-report-result">
-        <article><span>최종 피해등급</span><strong>{damageGrade}</strong></article>
+        <article><span>최종 피해등급</span><strong>{formatDamageGrade(damageGrade)}</strong></article>
         <article><span>복구 긴급도</span><strong>{urgencyScore === null ? '미산출' : `${urgencyScore}점`}</strong></article>
         <article><span>최종 지원금</span><strong>{formatCurrency(supportAmount)}</strong></article>
       </div>
 
       <div className="final-report-summary">
         <h4>피해 및 처리 결과</h4>
-        <p>{display(report.summary || item.description)}</p>
+        <p>{display(removeMockMarker(report.summary || item.description))}</p>
         <div><span>최종 처리 결과</span><strong>{approvalStatus}</strong></div>
         <div><span>보고서 작성자</span><strong>{formatOfficerName(getCurrentUser())}</strong></div>
       </div>
