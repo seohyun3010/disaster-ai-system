@@ -56,6 +56,12 @@ class ReportAnalysisResponse(BaseModel):
     explanation: str | None = None
     inspection_required: bool | None = None
 
+    # ▼▼▼ 신규 추가: 보고서 2번 섹션(AI 예비판정 결과)의 "분석 소요시간"·
+    # "판독 시각" 행을 실제 AIResult 값과 연계하기 위한 필드.
+    analysis_time: float | None = None
+    analyzed_at: datetime | None = None
+    # ▲▲▲ 신규 추가 끝
+
 
 class ReportImageResponse(BaseModel):
     image_id: int
@@ -68,6 +74,21 @@ class ReportSeverityResponse(BaseModel):
     urgency_score: float = 0
     urgency_level: str | None = None
     recovery_priority: int | None = None
+
+    # ▼▼▼ 신규 추가: 복구 긴급도 산정 근거표(보고서 PDF 3번 섹션)를 위한
+    # SeverityResult 세부 점수. recovery_urgency_rules.py의 실제 산정 로직과
+    # 1:1로 대응됨 (damage_score=AI등급점수, vulnerability_score=가구원수점수,
+    # infrastructure_score=시설·이재민긴급도점수). human_risk_score/
+    # secondary_damage_score는 현재 severity_service.py에서 항상 0으로 저장되는
+    # 미구현 자리라 PDF에는 아직 표시하지 않음.
+    damage_score: float | None = None
+    human_risk_score: float | None = None
+    vulnerability_score: float | None = None
+    infrastructure_score: float | None = None
+    secondary_damage_score: float | None = None
+    applied_damage_grade: str | None = None
+    rule_version: str | None = None
+    # ▲▲▲ 신규 추가 끝
 
 
 class ReportSubsidyResponse(BaseModel):

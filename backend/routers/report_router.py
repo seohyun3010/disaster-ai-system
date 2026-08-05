@@ -17,8 +17,8 @@ from services.report_service import (
     list_report_details,
 )
 from services.report_pdf_service import render_report_pdf
-from services.report_pdf_form_service import render_form_report_pdf
-
+# from services.report_pdf_form_service import render_form_report_pdf
+from services.report_pdf_form_service import render_official_report_pdf
 
 router = APIRouter(
     prefix="/reports",
@@ -131,7 +131,8 @@ def download_report(
     return Response(
         # 기존 1페이지 요약형 PDF 생성기는 보존하고, 예시 공문형 3페이지
         # 양식은 별도 생성기로 적용합니다.
-        content=render_form_report_pdf(detail),
+        # content=render_form_report_pdf(detail),
+        content=render_official_report_pdf(detail),
         media_type="application/pdf",
         headers={
             "Content-Disposition": (
