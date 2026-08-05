@@ -21,6 +21,18 @@ const formatDate = (date) => Number.isNaN(date.getTime())
   : new Intl.DateTimeFormat('ko-KR').format(date);
 const formatMonthDay = (date) => `${date.getMonth() + 1}.${date.getDate()}`;
 const formatPeriod = (from, to) => `${formatMonthDay(from)} ~ ${formatMonthDay(to)}`;
+const addCalendarDays = (value, days) => new Date(
+  value.getFullYear(),
+  value.getMonth(),
+  value.getDate() + days,
+);
+const calculateDeadlineDates = (disasterEnd) => {
+  const deadlineFrom = addCalendarDays(disasterEnd, 11);
+  return {
+    deadlineFrom,
+    deadlineTo: addCalendarDays(deadlineFrom, 13),
+  };
+};
 const formatInputDate = (date) => [
   date.getFullYear(),
   String(date.getMonth() + 1).padStart(2, '0'),
@@ -86,7 +98,7 @@ export const filterCasesByDisasterPeriod = (
 
 export const buildDisasterCaseListPath = (item) => {
   const reportedAt = getCaseReportTimestamp(item);
-  const event = MOCK_DISASTER_EVENTS.find((candidate) => (
+  const configuredEvent = MOCK_DISASTER_EVENTS.find((candidate) => (
     candidate.id === item?.disaster_event_id
   )) || MOCK_DISASTER_EVENTS.find((candidate) => (
     reportedAt !== null
@@ -94,6 +106,16 @@ export const buildDisasterCaseListPath = (item) => {
     && reportedAt >= parseLocalDate(candidate.from).getTime()
     && reportedAt <= parseLocalDate(candidate.to, true).getTime()
   ));
+  const event = configuredEvent || (
+    item?.disaster_event_id && item?.disaster_start_date && item?.disaster_end_date
+      ? {
+        id: item.disaster_event_id,
+        label: formatDisasterType(item.disaster_type || item.type),
+        from: item.disaster_start_date,
+        to: item.disaster_end_date,
+      }
+      : null
+  );
 
   if (!event) return '/cases';
 
@@ -121,8 +143,9 @@ export const buildDisasterEvents = (cases, range) => {
     .map((event) => {
       const occurredFrom = parseLocalDate(event.from);
       const occurredTo = parseLocalDate(event.to);
-      const deadlineFrom = parseLocalDate(event.deadlineFrom);
-      const deadlineTo = parseLocalDate(event.deadlineTo);
+      const calculatedDeadline = calculateDeadlineDates(occurredTo);
+      const deadlineFrom = calculatedDeadline.deadlineFrom;
+      const deadlineTo = calculatedDeadline.deadlineTo;
       const eventCases = filterCasesByDisasterPeriod(
         casesByEvent.get(event.id) || [],
         {
@@ -142,6 +165,8 @@ export const buildDisasterEvents = (cases, range) => {
         name: `${formatPeriod(occurredFrom, occurredTo)} ${event.label}`,
         occurredPeriod: formatPeriod(occurredFrom, occurredTo),
         filingPeriod: '-',
+        deadlineFrom: formatInputDate(deadlineFrom),
+        deadlineTo: formatInputDate(deadlineTo),
         deadlinePeriod: formatPeriod(deadlineFrom, deadlineTo),
         startAt: occurredFrom.getTime(),
         deadlineAt: deadlineTo.getTime(),
@@ -168,24 +193,18 @@ export const buildDisasterEvents = (cases, range) => {
         .sort((left, right) => left - right);
       if (!dates.length) return [];
 
-      const from = dates[0];
-      const to = dates.at(-1);
+      const metadataCase = backendCases.find((item) => (
+        item.disaster_start_date && item.disaster_end_date
+      ));
+      const from = parseLocalDate(metadataCase?.disaster_start_date) || dates[0];
+      const to = parseLocalDate(metadataCase?.disaster_end_date) || dates.at(-1);
+      const calculatedDeadline = calculateDeadlineDates(to);
+      const deadlineFrom = parseLocalDate(metadataCase?.deadline_start_date)
+        || calculatedDeadline.deadlineFrom;
+      const deadlineTo = parseLocalDate(metadataCase?.deadline_end_date)
+        || calculatedDeadline.deadlineTo;
       const disasterType = backendCases[0].disaster_type || backendCases[0].type;
       const label = formatDisasterType(disasterType);
-      const sourceEvents = MOCK_DISASTER_EVENTS.filter((event) => (
-        event.year === from.getFullYear()
-        && event.disasterType === disasterType
-      ));
-      const combinedCasesById = new Map(
-        backendCases.map((item) => [getCaseIdentity(item), item]),
-      );
-      sourceEvents.forEach((event) => {
-        (casesByEvent.get(event.id) || []).forEach((item) => {
-          combinedCasesById.set(getCaseIdentity(item), item);
-        });
-      });
-      const combinedCases = [...combinedCasesById.values()];
-
       return [{
         id: eventId,
         year: from.getFullYear(),
@@ -196,27 +215,22 @@ export const buildDisasterEvents = (cases, range) => {
         to: formatInputDate(to),
         occurredPeriod: formatPeriod(from, to),
         filingPeriod: '-',
-        deadlinePeriod: '-',
+        deadlineFrom: formatInputDate(deadlineFrom),
+        deadlineTo: formatInputDate(deadlineTo),
+        deadlinePeriod: formatPeriod(deadlineFrom, deadlineTo),
         status: '접수',
         startAt: from.getTime(),
-        deadlineAt: to.getTime(),
+        deadlineAt: deadlineTo.getTime(),
         period: `${formatDate(from)} ~ ${formatDate(to)}`,
-        caseIds: combinedCases.map(getCaseIdentity),
-        reportCount: combinedCases.length,
-        caseSearchText: buildCaseSearchText(combinedCases),
-        sourceEventIds: sourceEvents.map((event) => event.id),
+        caseIds: backendCases.map(getCaseIdentity),
+        reportCount: backendCases.length,
+        caseSearchText: buildCaseSearchText(backendCases),
+        sourceEventIds: [],
         usesCaseIds: true,
         __source: 'backend',
       }];
     });
 
-  const backendEventKeys = new Set(
-    backendEvents.map((event) => `${event.year}:${event.disasterType}`),
-  );
-  const remainingConfiguredEvents = configuredEvents.filter((event) => (
-    !backendEventKeys.has(`${event.year}:${event.disasterType}`)
-  ));
-
-  return [...remainingConfiguredEvents, ...backendEvents]
+  return [...configuredEvents, ...backendEvents]
     .sort((left, right) => right.startAt - left.startAt);
 };

@@ -15,6 +15,7 @@ from models.case import Case
 from models.case_image import CaseImage
 from schemas.case import CaseCreate
 from services.case_service import create_case
+from services.disaster_event_service import sync_disaster_event_metadata
 
 
 REPORTS = [
@@ -314,6 +315,7 @@ def main() -> None:
                 db.commit()
                 created_images += 1
 
+        metadata_updates = sync_disaster_event_metadata(db)
         print(
             f"추가 신고서 {created_cases}건, 피해 사진 {created_images}건 등록 완료"
         )

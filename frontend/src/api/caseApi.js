@@ -50,7 +50,7 @@ const formatDateTime = (value) => {
 export const normalizeCase = (data) => {
   const rawPayload = data.raw_payload || {};
   const displayStatus = STATUS_LABELS[data.status] || data.status || '상태 미정';
-  const disasterEventId = getDisasterEventIdForCase(data);
+  const disasterEventId = rawPayload.disaster_event_id || getDisasterEventIdForCase(data);
   const images = (data.images || []).map((image, index) => ({
     ...image,
     name: image.image_url?.split('/').at(-1) || `피해 사진 ${index + 1}`,
@@ -63,6 +63,10 @@ export const normalizeCase = (data) => {
     id: String(data.case_id),
     frontendKey: `backend-${data.case_id}`,
     disaster_event_id: disasterEventId,
+    disaster_start_date: rawPayload.disaster_start_date || null,
+    disaster_end_date: rawPayload.disaster_end_date || null,
+    deadline_start_date: rawPayload.deadline_start_date || null,
+    deadline_end_date: rawPayload.deadline_end_date || null,
     frontendDisasterKey: disasterEventId,
     __source: 'backend',
     sourcePriority: 0,

@@ -16,6 +16,7 @@ from models.case import Case
 from models.case_image import CaseImage
 from schemas.case import CaseCreate
 from services.case_service import create_case
+from services.disaster_event_service import sync_disaster_event_metadata
 
 
 REPORT_ID = "SAFE24-MOCK-2026-0012"
@@ -144,10 +145,12 @@ def main() -> None:
                 image.taken_at = CASE_DATA["damage_occurred_at"]
 
         db.commit()
+        metadata_updates = sync_disaster_event_metadata(db)
         print(
             f"대동빌라 지진 신고 등록 완료: case_id={case.case_id}, "
             f"case_created={case_created}, images_created={created_images}, "
-            f"total_images={len(IMAGE_NAMES)}"
+            f"total_images={len(IMAGE_NAMES)}, "
+            f"event_metadata_updated={metadata_updates}"
         )
     except Exception:
         db.rollback()
