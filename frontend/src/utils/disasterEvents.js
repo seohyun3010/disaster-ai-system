@@ -1,4 +1,5 @@
 import { MOCK_DISASTER_EVENTS } from '../mocks/cases';
+import { formatDisasterType } from './disasterTypeLabels';
 
 const toCaseDate = (item) => new Date(item.reported_at || item.received_at);
 const parseLocalDate = (value, endOfDay = false) => {
@@ -20,6 +21,22 @@ const formatDate = (date) => Number.isNaN(date.getTime())
   : new Intl.DateTimeFormat('ko-KR').format(date);
 const formatMonthDay = (date) => `${date.getMonth() + 1}.${date.getDate()}`;
 const formatPeriod = (from, to) => `${formatMonthDay(from)} ~ ${formatMonthDay(to)}`;
+const formatInputDate = (date) => [
+  date.getFullYear(),
+  String(date.getMonth() + 1).padStart(2, '0'),
+  String(date.getDate()).padStart(2, '0'),
+].join('-');
+const buildCaseSearchText = (cases) => cases.map((item) => [
+  item.case_number,
+  item.caseNumber,
+  item.external_report_id,
+  item.externalReportId,
+  item.reporter_name,
+  item.reporter,
+  item.address,
+  item.location,
+].filter(Boolean).join(' ')).join(' ');
+const getCaseIdentity = (item) => item.frontendKey || item.id || String(item.case_id);
 const isEventInRange = (event, range) => {
   if (!range?.from && !range?.to) return true;
   const eventStart = parseLocalDate(event.from)?.getTime();
@@ -99,7 +116,7 @@ export const buildDisasterEvents = (cases, range) => {
     return groups;
   }, new Map());
 
-  return MOCK_DISASTER_EVENTS
+  const configuredEvents = MOCK_DISASTER_EVENTS
     .filter((event) => isEventInRange(event, range))
     .map((event) => {
       const occurredFrom = parseLocalDate(event.from);
@@ -133,7 +150,73 @@ export const buildDisasterEvents = (cases, range) => {
           : '-',
         caseIds: eventCases.map((item) => item.frontendKey || item.id || String(item.case_id)),
         reportCount: eventCases.length,
+        caseSearchText: buildCaseSearchText(eventCases),
       };
-    })
+    });
+
+  const configuredEventIds = new Set(MOCK_DISASTER_EVENTS.map((event) => event.id));
+  const backendEvents = [...casesByEvent.entries()]
+    .filter(([eventId, eventCases]) => (
+      !configuredEventIds.has(eventId)
+      && eventCases.some((item) => item.__source === 'backend')
+    ))
+    .flatMap(([eventId, eventCases]) => {
+      const backendCases = eventCases.filter((item) => item.__source === 'backend');
+      const dates = backendCases
+        .map(toCaseDate)
+        .filter((date) => !Number.isNaN(date.getTime()))
+        .sort((left, right) => left - right);
+      if (!dates.length) return [];
+
+      const from = dates[0];
+      const to = dates.at(-1);
+      const disasterType = backendCases[0].disaster_type || backendCases[0].type;
+      const label = formatDisasterType(disasterType);
+      const sourceEvents = MOCK_DISASTER_EVENTS.filter((event) => (
+        event.year === from.getFullYear()
+        && event.disasterType === disasterType
+      ));
+      const combinedCasesById = new Map(
+        backendCases.map((item) => [getCaseIdentity(item), item]),
+      );
+      sourceEvents.forEach((event) => {
+        (casesByEvent.get(event.id) || []).forEach((item) => {
+          combinedCasesById.set(getCaseIdentity(item), item);
+        });
+      });
+      const combinedCases = [...combinedCasesById.values()];
+
+      return [{
+        id: eventId,
+        year: from.getFullYear(),
+        disasterType,
+        label,
+        name: `${formatPeriod(from, to)} ${label}`,
+        from: formatInputDate(from),
+        to: formatInputDate(to),
+        occurredPeriod: formatPeriod(from, to),
+        filingPeriod: '-',
+        deadlinePeriod: '-',
+        status: '접수',
+        startAt: from.getTime(),
+        deadlineAt: to.getTime(),
+        period: `${formatDate(from)} ~ ${formatDate(to)}`,
+        caseIds: combinedCases.map(getCaseIdentity),
+        reportCount: combinedCases.length,
+        caseSearchText: buildCaseSearchText(combinedCases),
+        sourceEventIds: sourceEvents.map((event) => event.id),
+        usesCaseIds: true,
+        __source: 'backend',
+      }];
+    });
+
+  const backendEventKeys = new Set(
+    backendEvents.map((event) => `${event.year}:${event.disasterType}`),
+  );
+  const remainingConfiguredEvents = configuredEvents.filter((event) => (
+    !backendEventKeys.has(`${event.year}:${event.disasterType}`)
+  ));
+
+  return [...remainingConfiguredEvents, ...backendEvents]
     .sort((left, right) => right.startAt - left.startAt);
 };

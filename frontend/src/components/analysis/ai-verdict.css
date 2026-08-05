@@ -238,6 +238,47 @@
 .verdict-detail { color: #464c53; }
 .status-not_visible .verdict-detail { color: #b1b8be; }
 
+.verdict-observation-loading {
+  display: flex;
+  min-height: 150px;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border-radius: 8px;
+  background: #f8f9fa;
+  color: #33363d;
+  text-align: left;
+}
+
+.verdict-observation-spinner {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border: 3px solid #d3ebfd;
+  border-top-color: #096ab3;
+  border-radius: 50%;
+  animation: verdict-observation-spin 0.8s linear infinite;
+}
+
+.verdict-observation-loading strong {
+  display: block;
+  font-size: var(--font-size-subtitle);
+}
+
+.verdict-observation-loading p {
+  margin: 5px 0 0;
+  color: #6d7882;
+  font-size: var(--font-size-caption);
+}
+
+@keyframes verdict-observation-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .verdict-observation-spinner { animation-duration: 1.8s; }
+}
+
 .verdict-summary {
   margin: 14px 0 0;
   padding: 12px 14px;

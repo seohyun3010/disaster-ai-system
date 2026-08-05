@@ -507,21 +507,25 @@ export const getMockCaseByRouteId = (caseId) => {
   return CASES.find((item) => item.id === routeId) || null;
 };
 
-const BACKEND_DISASTER_TYPE_ALIASES = {
-  TYPHOON: 'LANDSLIDE',
-};
-
 export const getDisasterEventIdForCase = (item) => {
   if (item.disaster_event_id) return item.disaster_event_id;
 
   const occurredAt = item.reported_at || item.received_at || '';
   const year = Number(String(occurredAt).slice(0, 4));
-  const disasterType = BACKEND_DISASTER_TYPE_ALIASES[item.disaster_type]
-    || item.disaster_type;
+  const disasterType = item.disaster_type;
+  const reportedAt = Date.parse(occurredAt);
 
-  return MOCK_DISASTER_EVENTS.find((event) => (
-    event.year === year && event.disasterType === disasterType
-  ))?.id || null;
+  const matchingEvent = MOCK_DISASTER_EVENTS.find((event) => {
+    if (event.year !== year || event.disasterType !== disasterType) return false;
+    if (Number.isNaN(reportedAt)) return false;
+    const from = new Date(`${event.from}T00:00:00`).getTime();
+    const to = new Date(`${event.to}T23:59:59.999`).getTime();
+    return reportedAt >= from && reportedAt <= to;
+  });
+
+  if (matchingEvent) return matchingEvent.id;
+  if (!disasterType || !year) return null;
+  return `backend-${year}-${disasterType}`;
 };
 
 const normalizeCaseIdentifier = (value) => {
