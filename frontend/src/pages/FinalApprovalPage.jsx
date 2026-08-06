@@ -15,6 +15,7 @@ import {
   isDs2Grade,
   isZeroSupportGrade,
 } from '../utils/reviewRules';
+import { resolveUrgencyScore } from '../utils/urgencyScore';
 
 const AUTOMATIC_CHANGE_MESSAGES = [
   '변경 내역 없음',
@@ -66,7 +67,7 @@ const FinalApprovalPage = () => {
   const supportReason = getUserChangeReason(workflow.supportReason);
   const isHeldGrade = isDs2Grade(damageGrade);
   const hasZeroSupport = isZeroSupportGrade(damageGrade);
-  const urgencyScore = severity?.recovery_urgency_score ?? null;
+  const urgencyScore = resolveUrgencyScore(severity, workflow, workflow?.severityResult, item);
 
   useEffect(() => {
     if (!caseId) return;

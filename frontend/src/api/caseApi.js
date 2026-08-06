@@ -8,6 +8,7 @@ import {
   validateMergedCases,
 } from '../mocks/cases';
 import { formatDisasterType, formatFacilityType } from '../utils/disasterTypeLabels';
+import { resolveUrgencyScore } from '../utils/urgencyScore';
 
 const STATUS_LABELS = {
   RECEIVED: '접수',
@@ -85,7 +86,7 @@ export const normalizeCase = (data) => {
     status: displayStatus,
     displayStatus,
     urgency: PRIORITY_LABELS[data.priority] || data.priority || '보통',
-    urgencyScore: rawPayload.urgency_score ?? null,
+    urgencyScore: resolveUrgencyScore(data, rawPayload),
     duplicate: Boolean(data.duplicate_suspected),
     damage: rawPayload.damage_grade || '확인 전',
     externalReport: rawPayload,

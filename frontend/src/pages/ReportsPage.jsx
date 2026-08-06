@@ -58,6 +58,7 @@ import { ReviewGuidance } from '../components/persona/ReviewGuidance';
 import { downloadReport, generateReport, getReportByCase } from '../api/reportApi';
 import { useAnalysisStore } from '../stores/analysisStore';
 import { isZeroSupportGrade } from '../utils/reviewRules';
+import { resolveUrgencyScore } from '../utils/urgencyScore';
 
 const formatDateTime = (value) => {
   if (!value) return '-';
@@ -143,7 +144,7 @@ const ReportsPage = () => {
     : viewReport.subsidy.confirmed_amount
       ?? viewReport.subsidy.estimated_amount
       ?? 0;
-  const urgencyScore = hasZeroSupport ? null : viewReport.severity.urgency_score;
+  const urgencyScore = hasZeroSupport ? null : resolveUrgencyScore(viewReport.severity);
 
   const download = async () => {
     setMessage('');
