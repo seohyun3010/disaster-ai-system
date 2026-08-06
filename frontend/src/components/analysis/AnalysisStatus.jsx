@@ -1,3 +1,5 @@
+import './analysis-progress.css';
+
 const STATUS_CONTENT = {
   idle: ['분석 전', 'AI 분석 요청 전입니다.'],
   queued: ['분석 대기', 'AI 분석 요청이 접수되었습니다.'],
@@ -9,6 +11,9 @@ const STATUS_CONTENT = {
 const AnalysisStatus = ({ analysis, onRequest, onReview }) => {
   const [title, description] = STATUS_CONTENT[analysis.status];
   const isRunning = ['queued', 'processing'].includes(analysis.status);
+  const progressPercent = analysis.status === 'completed'
+    ? 100
+    : Math.max(0, Math.min(100, Number(analysis.progressPercent) || 0));
 
   return <section className={`case-card analysis-status-card ${analysis.status}`}>
     <div className="analysis-status-head">
@@ -17,6 +22,10 @@ const AnalysisStatus = ({ analysis, onRequest, onReview }) => {
     </div>
     <h2>{description}</h2>
     {analysis.stage && <p className="analysis-stage">현재 단계: <strong>{analysis.stage}</strong></p>}
+    {isRunning && <div className="analysis-progress" role="progressbar" aria-label="AI 분석 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progressPercent}>
+      <div className="analysis-progress-label"><span>실제 진행률</span><strong>{progressPercent}%</strong></div>
+      <div className="analysis-progress-track"><span style={{ width: `${progressPercent}%` }} /></div>
+    </div>}
     {analysis.jobId && <dl className="analysis-job-info"><div><dt>jobId</dt><dd>{analysis.jobId}</dd></div><div><dt>요청 시각</dt><dd>{analysis.requestedAt}</dd></div></dl>}
     {analysis.error && <p className="analysis-error" role="alert">{analysis.error}</p>}
     <div className="analysis-status-actions">

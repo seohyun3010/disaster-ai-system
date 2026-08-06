@@ -12,6 +12,8 @@ const initialAnalysis = {
   result: null,
   error: null,
   stage: null,
+  progressPercent: 0,
+  progressStage: null,
   reviewStatus: '검토 전',
   reviewReason: '',
   reviewedGrade: null,
@@ -80,7 +82,7 @@ export const useAnalysisStore = create(
         set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...initialAnalysis, reviewHistory: current?.reviewHistory || [], status: 'queued' } } }));
         try {
           const job = await requestAnalysis(caseId);
-          set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], jobId: job.jobId, requestedAt: job.requestedAt } } }));
+          set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], jobId: job.jobId, progressPercent: job.progressPercent, progressStage: job.progressStage, stage: job.progressStage, requestedAt: job.requestedAt } } }));
         } catch (error) {
           set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], status: 'failed', error: error.message || 'AI 분석 중 오류가 발생했습니다.' } } }));
         }
@@ -91,7 +93,7 @@ export const useAnalysisStore = create(
         try {
           const statusResponse = await getAnalysisStatus(current.jobId);
           const result = statusResponse.status === 'completed' ? await getAnalysisResult(current.jobId) : current.result;
-          set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], status: statusResponse.status, stage: statusResponse.stage, result, completedAt: result?.completedAt || null } } }));
+          set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], status: statusResponse.status, progressPercent: statusResponse.progressPercent, progressStage: statusResponse.progressStage, stage: statusResponse.progressStage, result, completedAt: result?.completedAt || null } } }));
         } catch (error) {
           set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], status: 'failed', error: error.message || '분석 상태를 확인하지 못했습니다.' } } }));
         }
