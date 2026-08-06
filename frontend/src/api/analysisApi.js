@@ -200,6 +200,8 @@ export const requestAnalysis = async (caseId) => {
     jobId: data.job_id,
     caseId: data.case_id,
     status: STATUS_MAP[data.status] || 'queued',
+    progressPercent: data.progress_percent ?? 0,
+    progressStage: data.progress_stage || STAGE_MAP[data.status] || null,
     requestedAt: data.started_at,
   };
 };
@@ -213,7 +215,9 @@ export const getAnalysisStatus = async (jobId) => {
     jobId: data.job_id,
     caseId: data.case_id,
     status: STATUS_MAP[data.status] || 'queued',
-    stage: STAGE_MAP[data.status] || null,
+    progressPercent: data.progress_percent ?? 0,
+    progressStage: data.progress_stage || STAGE_MAP[data.status] || null,
+    stage: data.progress_stage || STAGE_MAP[data.status] || null,
     requestedAt: data.started_at,
     completedAt: data.finished_at,
   };
