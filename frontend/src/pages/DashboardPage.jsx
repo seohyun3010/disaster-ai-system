@@ -152,8 +152,8 @@
 
 // export default DashboardPage;
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArcElement, Chart as ChartJS, Tooltip } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
 import CaseMap from '../components/dashboard/CaseMap';
@@ -239,6 +239,7 @@ const getValidRange = (startDate, endDate) => {
 
 const DashboardPage = () => {
   const { key: locationKey } = useLocation();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const fetchCases = useCaseStore((state) => state.fetchCases);
   const cases = useCaseStore((state) => state.cases);
@@ -314,6 +315,27 @@ const DashboardPage = () => {
       spacing: 0,
     }],
   }), [dashboardMetrics.typeStats]);
+  const openDisasterTypeCases = useCallback((disasterType) => {
+    const params = new URLSearchParams({
+      disasterType,
+      startDate: appliedRange.startDate,
+      endDate: appliedRange.endDate,
+    });
+    navigate(`${ROUTES.CASES}?${params.toString()}`);
+  }, [appliedRange.endDate, appliedRange.startDate, navigate]);
+  const disasterYearChartOptions = useMemo(() => ({
+    ...DISASTER_YEAR_CHART_OPTIONS,
+    onClick: (_, elements) => {
+      const selectedIndex = elements[0]?.index;
+      const selectedType = dashboardMetrics.typeStats[selectedIndex]?.label;
+      if (selectedType) openDisasterTypeCases(selectedType);
+    },
+    onHover: (event, elements) => {
+      if (event.native?.target) {
+        event.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+      }
+    },
+  }), [dashboardMetrics.typeStats, openDisasterTypeCases]);
   const deadlineNotices = useMemo(() => {
     const today = new Date(`${DASHBOARD_REFERENCE_DATE}T00:00:00`);
     today.setHours(0, 0, 0, 0);
@@ -556,7 +578,7 @@ const DashboardPage = () => {
                 role="img"
                 aria-label={`${periodLabel} 전체 ${disasterYearTotal.toLocaleString('ko-KR')}건, ${dashboardMetrics.typeStats.map((item) => `${item.label} ${item.count.toLocaleString('ko-KR')}건`).join(', ')}`}
               >
-                <Doughnut data={disasterYearChartData} options={DISASTER_YEAR_CHART_OPTIONS} />
+                <Doughnut data={disasterYearChartData} options={disasterYearChartOptions} />
                 <div className="annual-donut-center" aria-hidden="true">
                   <strong>{disasterYearTotal.toLocaleString('ko-KR')}</strong>
                   <span>{disasterYearTotal ? '전체 누적' : '데이터 없음'}</span>
@@ -567,6 +589,16 @@ const DashboardPage = () => {
                     <li
                       className={disasterYearTotal > 0 && item.count === disasterYearMax ? 'is-leading' : undefined}
                       key={item.key}
+                      role="link"
+                      tabIndex={0}
+                      aria-label={`${item.label} 신고목록으로 이동`}
+                      onClick={() => openDisasterTypeCases(item.label)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          openDisasterTypeCases(item.label);
+                        }
+                      }}
                       style={{
                         '--annual-legend-color': DISASTER_YEAR_COLORS[index],
                         '--annual-legend-hover-color': DISASTER_YEAR_HOVER_COLORS[index],

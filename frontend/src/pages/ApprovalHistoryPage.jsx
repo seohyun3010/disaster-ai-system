@@ -7,6 +7,8 @@ import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { buildDisasterEvents } from '../utils/disasterEvents';
 import { formatDisasterType } from '../utils/disasterTypeLabels';
+import { getSeverity } from '../api/severityApi';
+import { resolveUrgencyScore } from '../utils/urgencyScore';
 import './report-management.css';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
@@ -28,6 +30,19 @@ const isCompletedHistory = (log) => COMPLETED_HISTORY_STATUSES.has(
   normalizeStatus(log.status),
 );
 const getCaseDisasterId = (item) => item?.frontendDisasterKey || item?.disaster_event_id;
+const getLocalUrgencyScore = (workflow, item) => {
+  const storedScore = resolveUrgencyScore(
+    workflow,
+    workflow?.severityResult,
+    item,
+    item?.raw_payload,
+  );
+  if (storedScore != null) return storedScore;
+
+  return Object.keys(workflow?.severityScores || {}).length
+    ? calculateSeverityTotal(workflow.severityScores)
+    : null;
+};
 
 const ApprovalHistoryPage = () => {
   const navigate = useNavigate();
@@ -39,6 +54,7 @@ const ApprovalHistoryPage = () => {
   const [pageSize, setPageSize] = useState(10);
   const [sortOrder, setSortOrder] = useState('latest');
   const [page, setPage] = useState(1);
+  const [apiUrgencyScores, setApiUrgencyScores] = useState({});
 
   useEffect(() => {
     if (!cases.length) fetchCases().catch(() => {});
@@ -55,7 +71,7 @@ const ApprovalHistoryPage = () => {
   const allLogs = useMemo(() => {
     const savedLogs = Object.entries(workflows)
       .filter(([, workflow]) => workflow.approvalStatus && workflow.approvalStatus !== DEFAULT_WORKFLOW.approvalStatus)
-      .map(([caseId, workflow]) => ({ caseId, case: caseById[caseId], disasterName: disasterNameById[getCaseDisasterId(caseById[caseId])] || formatDisasterType(caseById[caseId]?.type), status: workflow.approvalStatus, amount: workflow.approvalAmount, severityScore: calculateSeverityTotal(workflow.severityScores || DEFAULT_WORKFLOW.severityScores), reason: workflow.approvalReason || '최종 처리 사유 없음', processedAt: workflow.approvedAt, officer: workflow.approvedBy }));
+      .map(([caseId, workflow]) => ({ caseId, case: caseById[caseId], disasterName: disasterNameById[getCaseDisasterId(caseById[caseId])] || formatDisasterType(caseById[caseId]?.type), status: workflow.approvalStatus, amount: workflow.approvalAmount, severityScore: getLocalUrgencyScore(workflow, caseById[caseId]), reason: workflow.approvalReason || '최종 처리 사유 없음', processedAt: workflow.approvedAt, officer: workflow.approvedBy }));
     const savedIds = new Set(savedLogs.map((log) => log.caseId));
     const mockLogs = MOCK_APPROVAL_HISTORY.filter((log) => !savedIds.has(log.caseId)).map((log) => ({ ...log, case: caseById[log.caseId], disasterName: disasterNameById[getCaseDisasterId(caseById[log.caseId])] || formatDisasterType(caseById[log.caseId]?.type), severityScore: calculateSeverityTotal(DEFAULT_WORKFLOW.severityScores) }));
     return [...savedLogs, ...mockLogs]
@@ -64,6 +80,26 @@ const ApprovalHistoryPage = () => {
       .filter(isCompletedHistory)
       .sort((left, right) => (right.processedAt || '').localeCompare(left.processedAt || ''));
   }, [caseById, deletedIds, disasterNameById, workflows]);
+  useEffect(() => {
+    const backendCaseIds = allLogs
+      .filter((log) => log.case?.__source === 'backend')
+      .map((log) => log.caseId);
+    if (!backendCaseIds.length) return undefined;
+
+    let ignore = false;
+    Promise.all(backendCaseIds.map(async (caseId) => {
+      try {
+        const severity = await getSeverity(caseId);
+        return [caseId, resolveUrgencyScore(severity)];
+      } catch {
+        return [caseId, null];
+      }
+    })).then((entries) => {
+      if (!ignore) setApiUrgencyScores(Object.fromEntries(entries));
+    });
+
+    return () => { ignore = true; };
+  }, [allLogs]);
   const filteredLogs = useMemo(() => {
     const term = search.trim().toLowerCase();
     return allLogs
@@ -101,7 +137,7 @@ const ApprovalHistoryPage = () => {
           </div>
         </div>
 
-        <div className="case-table-wrap approval-history-table-wrap"><table className="case-table approval-log-table"><thead><tr><th>처리 일시</th><th>사건번호</th><th>재해명</th><th>신고자 / 위치</th><th>처리 결과</th><th>승인자</th><th>최종 금액</th><th>긴급도 점수</th><th>처리 사유</th><th>관리</th></tr></thead><tbody>{visibleLogs.map((log) => { const officer = log.officer || getCurrentUser(); const historyPath = `/cases/${log.caseId}/final-approval?view=history`; return <tr key={log.caseId} onClick={() => navigate(historyPath)} className="clickable-row"><td>{log.processedAt || '기록 없음'}</td><td><strong>{log.caseId}</strong></td><td><strong>{log.disasterName}</strong></td><td><strong>{log.case?.reporter || '-'}</strong><small>{log.case?.location || '-'}</small></td><td><span className={`approval-status-badge ${log.status.replaceAll(' ', '-')}`}>{log.status}</span></td><td><strong>{formatOfficerName(officer)}</strong><small>{formatOfficerAffiliation(officer)}</small></td><td>{Number(log.amount || 0).toLocaleString('ko-KR')}원</td><td><strong>{log.severityScore}점</strong></td><td className="approval-reason">{log.reason}</td><td><div className="history-row-actions"><button className="row-action" onClick={(event) => { event.stopPropagation(); navigate(historyPath); }}>상세</button></div></td></tr>; })}</tbody></table>{!visibleLogs.length && <p className="empty-case">{allLogs.length ? '검색 조건에 일치하는 처리 이력이 없습니다.' : '처리 완료 이력이 없습니다.'}</p>}</div>
+        <div className="case-table-wrap approval-history-table-wrap"><table className="case-table approval-log-table"><thead><tr><th>처리 일시</th><th>사건번호</th><th>재해명</th><th>신고자 / 위치</th><th>처리 결과</th><th>승인자</th><th>최종 금액</th><th>긴급도 점수</th><th>처리 사유</th><th>관리</th></tr></thead><tbody>{visibleLogs.map((log) => { const officer = log.officer || getCurrentUser(); const historyPath = `/cases/${log.caseId}/final-approval?view=history`; const urgencyScore = apiUrgencyScores[log.caseId] ?? log.severityScore ?? 0; return <tr key={log.caseId} onClick={() => navigate(historyPath)} className="clickable-row"><td>{log.processedAt || '기록 없음'}</td><td><strong>{log.caseId}</strong></td><td><strong>{log.disasterName}</strong></td><td><strong>{log.case?.reporter || '-'}</strong><small>{log.case?.location || '-'}</small></td><td><span className={`approval-status-badge ${log.status.replaceAll(' ', '-')}`}>{log.status}</span></td><td><strong>{formatOfficerName(officer)}</strong><small>{formatOfficerAffiliation(officer)}</small></td><td>{Number(log.amount || 0).toLocaleString('ko-KR')}원</td><td><strong>{urgencyScore}점</strong></td><td className="approval-reason">{log.reason}</td><td><div className="history-row-actions"><button className="row-action" onClick={(event) => { event.stopPropagation(); navigate(historyPath); }}>상세</button></div></td></tr>; })}</tbody></table>{!visibleLogs.length && <p className="empty-case">{allLogs.length ? '검색 조건에 일치하는 처리 이력이 없습니다.' : '처리 완료 이력이 없습니다.'}</p>}</div>
 
         {totalPages > 1 && <nav className="krds-report-pagination approval-history-pagination" aria-label="승인 이력 목록 페이지">
           <button type="button" className="page-navi" disabled={page === 1} onClick={() => setPage((current) => current - 1)}>‹ 이전</button>

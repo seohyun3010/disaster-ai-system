@@ -845,6 +845,18 @@ const CaseListPage = () => {
       status: '기간 조회',
       caseIds: [],
     } : null)
+    || (requestedDisasterType ? {
+      id: 'disaster-type-filter',
+      name: `${requestedDisasterType} 신고목록`,
+      label: requestedDisasterType,
+      disasterType: requestedDisasterType,
+      from: '',
+      to: '',
+      occurredPeriod: '전체 기간',
+      deadlinePeriod: '-',
+      status: '유형 조회',
+      caseIds: [],
+    } : null)
     || (globalSearch ? {
       id: 'all-search-results',
       name: '전체 재난 신고 검색 결과',
