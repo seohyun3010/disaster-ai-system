@@ -18,8 +18,16 @@ const getReviewGrade = (grade) => {
   const gradeCode = String(grade || '').match(/DS[0-4]/i)?.[0]?.toUpperCase();
   return DAMAGE_GRADE_OPTIONS.find((option) => option.startsWith(gradeCode)) || grade || '';
 };
+
+const GRADE_OPINION = {
+  DS0: { label: '피해 없음', standard: '피해 없음', support: '지원 대상이 아닌 것으로' },
+  DS1: { label: '경미한 손상', standard: '경미한 피해', support: '경미한 피해 기준으로' },
+  DS2: { label: '반파 경계', standard: '반파 경계', support: '현장 확인 후 적용 기준을 결정하는 것으로' },
+  DS3: { label: '반파', standard: '반파', support: '반파 기준 단가를 적용하는 것으로' },
+  DS4: { label: '전파', standard: '전파', support: '전파 기준 단가를 적용하는 것으로' },
+};
  
-const AnalysisDecisionPanel = ({ confidence, recommendedGrade, reviewedGrade, reviewStatus, onSubmit, onReReviewSubmit, onReviewApproved, onReviewHeld }) => {
+const AnalysisDecisionPanel = ({ confidence, recommendedGrade, reviewedGrade, reviewStatus, analysisResult, photoCount, disasterTypeLabel, facilityTypeLabel, onSubmit, onReReviewSubmit, onReviewApproved, onReviewHeld }) => {
   const officer = getCurrentUser();
   const [selectedGrade, setSelectedGrade] = useState(() => getReviewGrade(reviewedGrade || recommendedGrade));
   const automaticHoldReason = getMandatoryHoldReason({
@@ -32,7 +40,19 @@ const AnalysisDecisionPanel = ({ confidence, recommendedGrade, reviewedGrade, re
     && !isReReview
     && !hasCompletedReReview;
   const isHoldOnly = Boolean(automaticHoldReason);
-  const automaticHoldMessage = 'AI 판독 신뢰도가 낮아 재검토가 필요합니다.';
+  const gradeCode = String(recommendedGrade || selectedGrade).match(/DS[0-4]/i)?.[0]?.toUpperCase() || 'DS2';
+  const gradeOpinion = GRADE_OPINION[gradeCode];
+  const numericConfidence = Number(confidence);
+  const confidenceText = Number.isFinite(numericConfidence)
+    ? (numericConfidence > 1 ? numericConfidence / 100 : numericConfidence).toFixed(2)
+    : '-';
+  const analyzedPhotoCount = analysisResult?.viewCount
+    ?? analysisResult?.sourceUrls?.length
+    ?? photoCount
+    ?? 0;
+  const observationSummary = analysisResult?.observation?.summary
+    || analysisResult?.rationale
+    || '자동 판독 결과와 부위별 관찰 정보를 종합하여 피해등급을 산출하였습니다.';
   const [mode, setMode] = useState(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState('');
@@ -86,8 +106,15 @@ const AnalysisDecisionPanel = ({ confidence, recommendedGrade, reviewedGrade, re
     <div className="section-heading"><div><h2>피해등급 검토</h2></div><span className={`review-status-badge ${reviewStatus.replaceAll(' ', '-')}`}>{reviewStatus}</span></div>
     {message && <p className="decision-success" role="status">{message}</p>}
     <div className="officer-context"><span>현재 검토자</span><strong>{formatOfficerName(officer)}</strong><small>{formatOfficerAffiliation(officer)}</small></div>
+    <article className="ai-comprehensive-opinion">
+      <header><h3>AI 종합 검토 의견</h3><span>예비판정 후보</span></header>
+      <p>본 건은 <strong>{disasterTypeLabel || '자연재난'} {facilityTypeLabel || '피해'}</strong> 사진 {analyzedPhotoCount}매를 대상으로 자동 판독한 결과입니다.</p>
+      <p>영상 판독 모델은 피해등급 <strong>{gradeCode}({gradeOpinion.label})</strong>을 제시하였으며, 판정 신뢰도는 <strong>{confidenceText}</strong>입니다.</p>
+      <p className="opinion-observation">{observationSummary}</p>
+      <p>관련 근거로 「자연재난조사 및 복구계획수립 편람」의 {facilityTypeLabel || '시설'} 피해 판정기준 중 <strong>{gradeOpinion.standard}</strong> 항목을 참고하였습니다.</p>
+      <p>이상을 종합할 때, 본 건은 <strong>{gradeCode}({gradeOpinion.label})</strong> 피해로 판단되며, 지원금은 {gradeOpinion.support} 검토하였습니다.</p>
+    </article>
     {isAutomaticHoldView ? <>
-      <p className="decision-guide">{automaticHoldMessage}</p>
       <div className="decision-actions"><button type="button" className="hold-action" onClick={() => setMode('hold')}>보류 처리</button></div>
     </> : <>
       {isReReview && <p className="decision-guide">현장조사 결과를 반영해 피해등급을 다시 판정해 주세요.</p>}
