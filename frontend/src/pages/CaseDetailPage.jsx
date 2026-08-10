@@ -289,6 +289,10 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
         <AnalysisDecisionPanel
           confidence={serverResult.confidence}
           recommendedGrade={serverResult.recommendedGrade}
+          analysisResult={serverResult}
+          photoCount={report.photos.length}
+          disasterTypeLabel={formatDisasterType(report.disasterType)}
+          facilityTypeLabel={formatFacilityType(report.facilityType)}
           reviewedGrade={analysis.reviewedGrade}
           reviewStatus={analysis.reviewStatus}
           onSubmit={(review) => submitReview(caseId, review)}
