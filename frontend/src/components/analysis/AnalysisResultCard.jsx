@@ -38,7 +38,7 @@ const EvidenceGallery = ({ camUrls, sourceUrls, result }) => {
         </figure>
 
         <figure className="verdict-evidence-panel">
-          <h4>AI 분석 결과(Grad-CAM++)</h4>
+          <h4>분석 결과(Grad-CAM++)</h4>
           <div className="verdict-image-frame">
             {camUrls[safeIndex] ? (
               <img src={camUrls[safeIndex]} alt={`${viewLabel} AI 분석 결과 Grad-CAM++`} />
@@ -105,12 +105,9 @@ const AnalysisResultCard = ({ result, analysis }) => {
       {/* 헤더 */}
       <div className="section-heading">
         <div>
-          <h2>AI 예비판정 결과</h2>
+          <h2>피해등급 판정 결과</h2>
           <p>담당자 확정 전 참고 자료입니다.</p>
         </div>
-        <span className={`analysis-state-badge ${inspection ? 'processing' : 'completed'}`}>
-          {inspection ? '현장조사 필요' : '자동 판정 가능'}
-        </span>
       </div>
 
       {/* 핵심 지표 3칸 */}
@@ -132,9 +129,6 @@ const AnalysisResultCard = ({ result, analysis }) => {
           <strong className={`verdict-value ${gatePassed ? '' : 'is-warn'}`}>
             {confidence.toFixed(1)}%
           </strong>
-          <small className={`verdict-sub ${gatePassed ? 'is-ok' : 'is-warn'}`}>
-            {gatePassed ? '게이트 통과' : '게이트 미달'} · 기준 {threshold.toFixed(0)}%
-          </small>
         </div>
 
         <div className="verdict-cell">
@@ -142,21 +136,10 @@ const AnalysisResultCard = ({ result, analysis }) => {
           <strong className={`verdict-value ${inspection ? 'is-warn' : 'is-ok'}`}>
             {inspection ? '현장조사 필요' : '자동 처리'}
           </strong>
-          <small className="verdict-sub">
-            {gate.sealed_grade ? '봉인 등급 해당' : '봉인 등급 아님'}
-          </small>
         </div>
       </div>
 
       {/* 현장조사 사유 */}
-      {inspection && Array.isArray(gate.reasons) && gate.reasons.length > 0 && (
-        <ul className="verdict-reasons">
-          {gate.reasons.map((reason) => (
-            <li key={reason}>{reason}</li>
-          ))}
-        </ul>
-      )}
-
       {/* 판독 근거 이미지 */}
       {camUrls.length > 0 && (
         <section className="verdict-section">
@@ -247,9 +230,6 @@ const AnalysisResultCard = ({ result, analysis }) => {
         )}
       </dl>
 
-      <p className="verdict-disclaimer">
-        본 결과는 AI 예비판정이며, 최종 피해등급은 담당자 검토 후 확정됩니다.
-      </p>
     </article>
   );
 };

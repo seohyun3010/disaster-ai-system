@@ -257,8 +257,8 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
     </> : <>
       <header className="workspace-panel-head">
         <div>
-          <p>2단계 · AI 분석</p>
-          <h2>AI 피해 분석 및 등급 검토</h2>
+          <p>2단계 · 피해 등급</p>
+          <h2>피해 등급 분석 및 검토</h2>
         </div>
         <button type="button" className="secondary-action" onClick={() => navigate(`/cases/${caseId}`)}>신고서 보기</button>
       </header>
