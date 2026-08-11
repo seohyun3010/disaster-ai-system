@@ -22,7 +22,7 @@ const STEPS = [
     path: '',
   },
   {
-    label: 'AI 분석',
+    label: '피해 등급',
     path: 'analysis',
   },
   {
