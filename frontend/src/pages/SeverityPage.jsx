@@ -5,6 +5,7 @@ import CaseStageHeader from '../components/case/CaseStageHeader';
 import StageNavigation from '../components/case/StageNavigation';
 import { ReviewGuidance } from '../components/persona/ReviewGuidance';
 import SeverityScoreTable from '../components/severity/SeverityScoreTable';
+import SeverityCriteriaTable from '../components/severity/SeverityCriteriaTable';
 import UrgencySummary from '../components/severity/UrgencySummary';
 import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
@@ -25,12 +26,18 @@ const SeverityPage = () => {
   const savedResult = useWorkflowStore((state) => state.workflows[caseId]?.severityResult);
   const saveSeverityResult = useWorkflowStore((state) => state.saveSeverityResult);
   const [result, setResult] = useState(savedResult || null);
-  const [loading, setLoading] = useState(true);
+  const [initialManualResult] = useState(() => (
+    savedResult?.calculation_type === 'MANUAL_REVIEW' ? savedResult : null
+  ));
+  const [loading, setLoading] = useState(!initialManualResult);
   const [calculating, setCalculating] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    if (initialManualResult) {
+      return undefined;
+    }
     let ignore = false;
     getSeverity(caseId)
       .catch((requestError) => {
@@ -50,7 +57,7 @@ const SeverityPage = () => {
       })
       .finally(() => { if (!ignore) setLoading(false); });
     return () => { ignore = true; };
-  }, [caseId, saveSeverityResult]);
+  }, [caseId, initialManualResult, saveSeverityResult]);
 
   const runCalculate = async () => {
     setCalculating(true);
@@ -71,6 +78,22 @@ const SeverityPage = () => {
     }
   };
 
+  const applyManualScores = (componentScores, componentReasons) => {
+    const recoveryUrgencyScore = Object.values(componentScores)
+      .reduce((sum, score) => sum + Number(score || 0), 0);
+    const manualResult = {
+      ...(result || {}),
+      component_scores: componentScores,
+      component_reasons: componentReasons,
+      recovery_urgency_score: recoveryUrgencyScore,
+      calculation_type: 'MANUAL_REVIEW',
+    };
+    setResult(manualResult);
+    saveSeverityResult(caseId, manualResult);
+    setError('');
+    setMessage(`공무원 검토 점수 ${recoveryUrgencyScore}점이 반영되었습니다.`);
+  };
+
   if (!item) {
     return <div className="case-page"><section className="case-card missing-case"><h1>신고 정보를 찾을 수 없습니다</h1></section></div>;
   }
@@ -85,14 +108,18 @@ const SeverityPage = () => {
       />
       <section className="stage-two-column severity-grid">
         <SeverityScoreTable
+          key={JSON.stringify([result?.component_scores, result?.component_reasons])}
           componentScores={result?.component_scores}
+          componentReasons={result?.component_reasons}
           loading={loading}
           calculating={calculating}
           onCalculate={runCalculate}
+          onApplyManual={applyManualScores}
           error={error}
           message={message}
         />
         <UrgencySummary total={result?.recovery_urgency_score} />
+        <SeverityCriteriaTable />
       </section>
       <StageNavigation
         previousPath={`/cases/${caseId}/analysis`}

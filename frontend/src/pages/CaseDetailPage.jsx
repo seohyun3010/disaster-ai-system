@@ -18,6 +18,10 @@ import './case-workspace.css';
 
 const EMPTY_ANALYSIS = { status: 'idle', jobId: null, result: null, reviewStatus: '검토 전' };
 
+const RELATED_CASE_NUMBERS = {
+  'DS-2026-000017': 'DS-2026-000018',
+};
+
 const formatDamageCategory = (value) => {
   const category = String(value || '').trim();
   if (!category) return '-';
@@ -98,8 +102,8 @@ const createReportView = (item) => {
 const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const { caseId } = useParams();
   const navigate = useNavigate();
-  const item = useCaseStore((state) =>
-    state.cases.find((entry) => entry.id === caseId));
+  const cases = useCaseStore((state) => state.cases);
+  const item = cases.find((entry) => entry.id === caseId);
   const analysis = useAnalysisStore((state) => state.analyses[caseId] || EMPTY_ANALYSIS);
   const requestAnalysis = useAnalysisStore((state) => state.requestAnalysis);
   const refreshAnalysis = useAnalysisStore((state) => state.refreshAnalysis);
@@ -114,7 +118,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const screen = initialScreen;
   const report = useMemo(() => item ? createReportView(item) : null, [item]);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
-  const relatedReportMock = item?.case_number === 'DS-2026-000012'
+  const legacyRelatedReportMock = item?.case_number === 'DS-2026-000012'
     || (item?.reporter_name === '이도현' && item?.type === 'EARTHQUAKE')
     ? {
       reportId: 'DS-2026-000011',
@@ -128,6 +132,20 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   // 판독 결과는 서버(ai_results)를 단일 출처로 삼는다.
   // 브라우저 저장소 상태에 의존하면 DB에 결과가 있어도 화면이 비는
   // 문제가 발생하므로, 진입 시 항상 서버에서 조회한다.
+  const relatedCaseNumber = RELATED_CASE_NUMBERS[item?.case_number];
+  const relatedCase = relatedCaseNumber
+    ? cases.find((entry) => entry.case_number === relatedCaseNumber)
+    : null;
+  const relatedReportMock = relatedCase
+    ? {
+      reportId: relatedCase.case_number,
+      receivedAt: relatedCase.reportedAt,
+      location: relatedCase.address || relatedCase.location,
+      damageType: `${formatFacilityType(relatedCase.facility)} ${formatDisasterType(relatedCase.type)} 피해`,
+      status: '심사 진행 중',
+    }
+    : null;
+
   const [serverResultState, setServerResultState] = useState({ caseId: null, data: null });
   const serverResult = serverResultState.caseId === caseId ? serverResultState.data : null;
   const resultLoading = serverResultState.caseId !== caseId;
@@ -274,6 +292,17 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
       </section>}
 
       <p className="private-report-security">민감 정보는 마스킹하여 표시됩니다.</p>
+      {item.case_number === 'DS-2026-000018' && <section className="related-report-mock earthquake-related" aria-label="동일 장소 연관 신고">
+        <div className="related-report-head"><h3>동일 장소 연관 신고</h3><span>중복 아님</span></div>
+        <div className="related-report-table-wrap"><table>
+          <thead><tr><th>접수일자</th><th>피해 위치</th><th>피해 유형</th><th>상태</th><th>AI 분석</th></tr></thead>
+          <tbody>
+            <tr><td>{report.receivedAt}</td><td>{report.damagePlace}</td><td>공동주택 지진 피해</td><td>현재 신고</td><td>결과 보기</td></tr>
+            <tr><td>2026. 08. 04. 10:25</td><td>경상북도 포항시 북구 흥해읍 대동로 27 대동빌라</td><td>공동주택 지진 피해</td><td>심사 진행 중</td><td>조회</td></tr>
+            <tr><td>2026. 08. 03. 18:40</td><td>경상북도 포항시 북구 흥해읍 대동로 27 대동빌라</td><td>공동주택 지진 피해</td><td>접수 완료</td><td>조회</td></tr>
+          </tbody>
+        </table></div>
+      </section>}
     </> : <>
       <header className="workspace-panel-head">
         <div>

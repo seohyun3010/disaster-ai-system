@@ -121,6 +121,23 @@ class ReportServiceTest(unittest.TestCase):
         self.assertEqual(detail.approval_result, "최종 승인")
         self.assertTrue(detail.timeline)
 
+    def test_detail_and_pdf_include_all_case_images(self):
+        self.db.add_all([
+            CaseImage(
+                image_id=image_id,
+                case_id=5,
+                image_url=f"/uploads/test-{image_id}.png",
+            )
+            for image_id in range(2, 7)
+        ])
+        self.db.commit()
+
+        detail = build_report_detail(self.db, self.report)
+
+        self.assertEqual(len(detail.images), 6)
+        self.assertEqual([image.image_id for image in detail.images], list(range(1, 7)))
+        self.assertTrue(render_official_report_pdf(detail).startswith(b"%PDF-"))
+
     def test_list_supports_server_search_and_pagination(self):
         result = list_report_details(
             self.db,

@@ -374,7 +374,7 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
                 thumbnail_url=image.thumbnail_url,
                 taken_at=image.taken_at,
             )
-            for image in sorted(case.case_images, key=lambda item: item.image_id)[:4]
+            for image in sorted(case.case_images, key=lambda item: item.image_id)
         ],
         approval_result=approval_result,
         summary=report.summary or case.description,

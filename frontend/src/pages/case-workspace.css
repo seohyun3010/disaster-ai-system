@@ -248,6 +248,11 @@
 .related-report-mock th { background: var(--krds-gray-50); color: var(--krds-gray-600); }
 .related-report-mock td:last-child { color: var(--krds-primary-700); font-weight: var(--font-weight-bold); }
 .related-report-mock .current-report { background: #fff6f6; }
+.related-report-mock.earthquake-related .current-report { background: #fff; }
+.related-report-mock.earthquake-related .related-report-head span {
+  background: #e8f8ef;
+  color: #087a46;
+}
 
 @media (max-width: 1180px) {
   .private-report-content {
