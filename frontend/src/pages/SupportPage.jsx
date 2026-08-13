@@ -18,6 +18,7 @@ const SupportPage = () => {
   const analysis = useAnalysisStore((state) => state.analyses[caseId]);
   const workflow = useWorkflowStore((state) => state.workflows[caseId]);
   const saveSupport = useWorkflowStore((state) => state.saveSupport);
+  const hydrateSupport = useWorkflowStore((state) => state.hydrateSupport);
 
   const localDamageGrade = analysis?.reviewedGrade
     || workflow?.reviewedGrade
@@ -43,13 +44,15 @@ const SupportPage = () => {
     try {
       const data = await calculateSubsidy(caseId);
       setSubsidy(data);
+      hydrateSupport(caseId, data);
       setConfirmAmount(data.estimated_amount ?? '');
+      setReason('');
     } catch (err) {
       setError(err.response?.data?.detail || err.message);
     } finally {
       setCalculating(false);
     }
-  }, [caseId]);
+  }, [caseId, hydrateSupport]);
 
   useEffect(() => {
     if (!caseId) return;
@@ -58,12 +61,18 @@ const SupportPage = () => {
     const load = async () => {
       setLoading(true);
       try {
-        const data = historyView
-          ? await getSubsidy(caseId)
-          : await calculateSubsidy(caseId);
+        let data;
+        try {
+          data = await getSubsidy(caseId);
+        } catch (requestError) {
+          if (requestError.response?.status !== 404 || historyView) throw requestError;
+          data = await calculateSubsidy(caseId);
+        }
         if (ignore) return;
         setSubsidy(data);
+        hydrateSupport(caseId, data);
         setConfirmAmount(data.confirmed_amount ?? data.estimated_amount ?? '');
+        setReason(workflow?.supportReason || '');
       } catch (err) {
         if (ignore) return;
         if (err.response?.status === 404) {
@@ -78,7 +87,7 @@ const SupportPage = () => {
 
     load();
     return () => { ignore = true; };
-  }, [caseId, historyView, runCalculate]);
+  }, [caseId, historyView, hydrateSupport, runCalculate, workflow?.supportReason]);
 
   // 예상 지원금과 최종 검토 금액이 다른 경우에만 "수정"으로 간주
   const isAmountChanged = () => {
@@ -103,7 +112,7 @@ const SupportPage = () => {
       };
       const data = await confirmSubsidy(caseId, payload);
       setSubsidy(data);
-      saveSupport(caseId, Number(data.confirmed_amount), reason.trim());
+      saveSupport(caseId, data, reason.trim());
       setMessage('지원금이 확정되었습니다. 최종 확인 단계로 이동할 수 있습니다.');
     } catch (err) {
       setError(err.response?.data?.detail || err.message);

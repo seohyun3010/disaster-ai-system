@@ -26,6 +26,7 @@ export const API_PATHS = {
   },
   REVIEWS: {
     CREATE: (caseId) => `/cases/${caseId}/reviews`,
+    LIST: (caseId) => `/cases/${caseId}/reviews`,
   },
   // SUBSIDY: {
   //   CALCULATE: '/api/subsidy/calculate',
