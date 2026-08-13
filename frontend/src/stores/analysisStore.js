@@ -76,6 +76,84 @@ export const useAnalysisStore = create(
     (set, get) => ({
       analyses: {},
       getAnalysis: (caseId) => get().analyses[caseId] || initialAnalysis,
+      hydrateAnalysisResult: (caseId, result) => set((state) => {
+        if (!result) return state;
+        const current = state.analyses[caseId] || initialAnalysis;
+        return {
+          analyses: {
+            ...state.analyses,
+            [caseId]: {
+              ...current,
+              status: 'completed',
+              result,
+              completedAt: result.completedAt || current.completedAt,
+              error: null,
+            },
+          },
+        };
+      }),
+      hydrateReviewFromServer: (caseId, reviews) => set((state) => {
+        const reviewList = Array.isArray(reviews) ? reviews : [];
+        const latest = reviewList[0] || null;
+        const current = state.analyses[caseId] || initialAnalysis;
+        if (!latest) {
+          return {
+            analyses: {
+              ...state.analyses,
+              [caseId]: {
+                ...current,
+                reviewStatus: '검토 전',
+                reviewReason: '',
+                reviewedGrade: null,
+                reviewedAt: null,
+                reviewedBy: null,
+                holdReason: '',
+                heldAt: null,
+                holdFieldVerified: false,
+                fieldVisitReason: '',
+                fieldVisitedAt: null,
+                holdResolvedAt: null,
+              },
+            },
+          };
+        }
+        const approved = latest.hitl_result === true;
+        const previousHold = reviewList
+          .slice(1)
+          .find((review) => review.hitl_result === false);
+        const resolvedHold = approved && Boolean(
+          previousHold
+          || current.holdReason
+          || current.heldAt,
+        );
+        const reviewReason = latest.comment || '';
+        return {
+          analyses: {
+            ...state.analyses,
+            [caseId]: {
+              ...current,
+              reviewStatus: resolvedHold ? '수정 승인' : approved ? '승인' : '보류',
+              reviewReason,
+              reviewedGrade: latest.confirmed_damage_grade || current.reviewedGrade,
+              reviewedAt: latest.reviewed_at || current.reviewedAt,
+              holdReason: approved
+                ? previousHold?.comment || current.holdReason
+                : reviewReason,
+              heldAt: approved
+                ? previousHold?.reviewed_at || current.heldAt
+                : latest.reviewed_at || current.heldAt,
+              holdFieldVerified: resolvedHold,
+              fieldVisitReason: resolvedHold ? reviewReason : '',
+              fieldVisitedAt: resolvedHold
+                ? latest.reviewed_at || current.fieldVisitedAt
+                : null,
+              holdResolvedAt: resolvedHold
+                ? latest.reviewed_at || current.holdResolvedAt
+                : null,
+            },
+          },
+        };
+      }),
       requestAnalysis: async (caseId) => {
         const current = get().analyses[caseId];
         if (current && ['queued', 'processing'].includes(current.status)) return;

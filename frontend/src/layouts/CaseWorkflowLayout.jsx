@@ -7,6 +7,9 @@ import {
 } from 'react-router-dom';
 
 import { getSubsidy } from '../api/subsidyApi';
+import { getSeverity } from '../api/severityApi';
+import { getDamageGradeReviews } from '../api/reviewApi';
+import { getCaseAnalysisResult } from '../api/analysisApi';
 import { useWorkflowNavigation } from '../hooks/useWorkflowNavigation';
 import { ROUTES } from '../routes/routeConfig';
 import { useAnalysisStore } from '../stores/analysisStore';
@@ -96,8 +99,28 @@ const CaseWorkflowLayout = () => {
     (state) => state.analyses[caseId],
   );
 
+  const hydrateAnalysisResult = useAnalysisStore(
+    (state) => state.hydrateAnalysisResult,
+  );
+
+  const hydrateReviewFromServer = useAnalysisStore(
+    (state) => state.hydrateReviewFromServer,
+  );
+
   const workflow = useWorkflowStore(
     (state) => state.workflows[caseId],
+  );
+
+  const saveSeverityResult = useWorkflowStore(
+    (state) => state.saveSeverityResult,
+  );
+
+  const clearSeverityResult = useWorkflowStore(
+    (state) => state.clearSeverityResult,
+  );
+
+  const hydrateSupport = useWorkflowStore(
+    (state) => state.hydrateSupport,
   );
 
   /*
@@ -207,53 +230,63 @@ const CaseWorkflowLayout = () => {
 
     let ignore = false;
 
-    const fetchSubsidyStatus = async () => {
-      try {
-        const data = await getSubsidy(caseId);
+    const hydrateWorkflow = async () => {
+      const [subsidyResult, severityResult, reviewsResult, analysisResult] = await Promise.allSettled([
+        getSubsidy(caseId),
+        getSeverity(caseId),
+        getDamageGradeReviews(caseId),
+        getCaseAnalysisResult(caseId),
+      ]);
 
-        if (ignore) {
-          return;
-        }
+      if (ignore) return;
 
-        setSubsidyStatus({
-          caseId,
-          confirmed: data?.status === 'CONFIRMED',
-        });
-      } catch (subsidyError) {
-        if (ignore) {
-          return;
-        }
-
-        /*
-         * 404는 해당 신고의 지원금 심사 정보가 아직
-         * 생성되지 않은 정상적인 초기 상태로 처리합니다.
-         */
-        if (subsidyError.response?.status === 404) {
-          setSubsidyStatus({
-            caseId,
-            confirmed: false,
-          });
-          return;
-        }
-
-        console.error(
-          '지원금 심사 상태 조회 실패:',
-          subsidyError,
-        );
-
-        setSubsidyStatus({
-          caseId,
-          confirmed: false,
+      if (analysisResult.status === 'fulfilled' && analysisResult.value) {
+        hydrateAnalysisResult(caseId, analysisResult.value);
+      }
+      if (reviewsResult.status === 'fulfilled') {
+        hydrateReviewFromServer(caseId, reviewsResult.value);
+      }
+      if (severityResult.status === 'fulfilled') {
+        saveSeverityResult(caseId, severityResult.value);
+      } else if (severityResult.reason?.response?.status === 404) {
+        clearSeverityResult(caseId);
+      }
+      if (subsidyResult.status === 'fulfilled') {
+        hydrateSupport(caseId, subsidyResult.value);
+      } else if (subsidyResult.reason?.response?.status === 404) {
+        hydrateSupport(caseId, {
+          status: 'PENDING',
+          estimated_amount: null,
+          confirmed_amount: null,
         });
       }
+
+      const subsidy = subsidyResult.status === 'fulfilled'
+        ? subsidyResult.value
+        : null;
+      setSubsidyStatus({
+        caseId,
+        confirmed: ['CONFIRMED', 'APPROVED'].includes(subsidy?.status),
+      });
+
+      [subsidyResult, severityResult, reviewsResult, analysisResult]
+        .filter((result) => result.status === 'rejected' && result.reason?.response?.status !== 404)
+        .forEach((result) => console.error('업무 진행 상태 복원 실패:', result.reason));
     };
 
-    fetchSubsidyStatus();
+    hydrateWorkflow();
 
     return () => {
       ignore = true;
     };
-  }, [caseId]);
+  }, [
+    caseId,
+    clearSeverityResult,
+    hydrateAnalysisResult,
+    hydrateReviewFromServer,
+    hydrateSupport,
+    saveSeverityResult,
+  ]);
 
   /*
    * 잠긴 단계의 URL로 직접 접근한 경우

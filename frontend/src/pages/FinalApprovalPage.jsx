@@ -9,27 +9,31 @@ import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { confirmSubsidy, getSubsidy } from '../api/subsidyApi';
 import { getSeverity } from '../api/severityApi';
+import { getDamageGradeReviews } from '../api/reviewApi';
 import {
   formatDamageGradeLabel,
-  getDamageGradeCode,
   isDs2Grade,
   isZeroSupportGrade,
 } from '../utils/reviewRules';
 import { resolveUrgencyScore } from '../utils/urgencyScore';
 
-const AUTOMATIC_CHANGE_MESSAGES = [
-  '변경 내역 없음',
-  '수정 없음',
-  '자동 재산정',
-  '서버 자동 재산정',
-  '확정 피해등급 기준 자동 재산정',
-];
-
 const getUserChangeReason = (value) => {
   const text = String(value ?? '').trim();
   if (!text || /^(undefined|null)$/i.test(text) || /[□�]/.test(text)) return '-';
-  if (AUTOMATIC_CHANGE_MESSAGES.some((message) => text.includes(message))) return '-';
   return text;
+};
+
+const repairMojibake = (value) => {
+  const text = String(value ?? '').trim();
+  if (!text || !/[\u0080-\u00ff]/.test(text)) return text;
+  if ([...text].some((character) => character.charCodeAt(0) > 255)) return text;
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(
+      Uint8Array.from([...text], (character) => character.charCodeAt(0)),
+    );
+  } catch {
+    return text;
+  }
 };
 
 const FinalApprovalPage = () => {
@@ -49,21 +53,26 @@ const FinalApprovalPage = () => {
     || analysis?.result?.recommendedGrade;
   const [subsidy, setSubsidy] = useState(null);
   const [severity, setSeverity] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loadError, setLoadError] = useState('');
   const damageGrade = subsidy?.damage_grade
     || severity?.applied_damage_grade
     || localDamageGrade
     || item?.damage;
   const damageGradeLabel = formatDamageGradeLabel(damageGrade);
-  const previousDamageGradeCode = getDamageGradeCode(analysis?.result?.recommendedGrade);
-  const finalDamageGradeCode = getDamageGradeCode(analysis?.reviewedGrade || damageGrade);
-  const damageGradeChange = previousDamageGradeCode
-    && finalDamageGradeCode
-    && previousDamageGradeCode !== finalDamageGradeCode
-    ? `${previousDamageGradeCode} → ${finalDamageGradeCode}`
-    : '';
-  const damageGradeChangeSummary = damageGradeChange || '-';
-  const severityReason = getUserChangeReason(workflow.severityReason);
+  const latestApprovedReview = reviews.find((review) => review.hitl_result === true);
+  const serverGradeReason = getUserChangeReason(
+    repairMojibake(latestApprovedReview?.comment),
+  );
+  const heldReviewReason = getUserChangeReason(analysis?.fieldVisitReason);
+  const localGradeReason = analysis?.reviewStatus === '보류'
+    ? '-'
+    : getUserChangeReason(analysis?.reviewReason);
+  const damageGradeReason = heldReviewReason !== '-'
+    ? heldReviewReason
+    : serverGradeReason !== '-'
+      ? serverGradeReason
+      : localGradeReason;
   const supportReason = getUserChangeReason(workflow.supportReason);
   const isHeldGrade = isDs2Grade(damageGrade);
   const hasZeroSupport = isZeroSupportGrade(damageGrade);
@@ -72,15 +81,19 @@ const FinalApprovalPage = () => {
   useEffect(() => {
     if (!caseId) return;
     let ignore = false;
-    Promise.all([getSubsidy(caseId), getSeverity(caseId)])
-      .then(([subsidyData, severityData]) => {
+    Promise.allSettled([
+      getSubsidy(caseId),
+      getSeverity(caseId),
+      getDamageGradeReviews(caseId),
+    ])
+      .then(([subsidyResult, severityResult, reviewsResult]) => {
         if (ignore) return;
-        setSubsidy(subsidyData);
-        setSeverity(severityData);
-        setLoadError('');
-      })
-      .catch((error) => {
-        if (!ignore) setLoadError(error.message || '최종 검토 정보를 불러오지 못했습니다.');
+        if (subsidyResult.status === 'fulfilled') setSubsidy(subsidyResult.value);
+        if (severityResult.status === 'fulfilled') setSeverity(severityResult.value);
+        if (reviewsResult.status === 'fulfilled') setReviews(reviewsResult.value);
+        const failed = [subsidyResult, severityResult, reviewsResult]
+          .find((result) => result.status === 'rejected');
+        setLoadError(failed?.reason?.message || '');
       });
     return () => { ignore = true; };
   }, [caseId]);
@@ -122,8 +135,7 @@ const FinalApprovalPage = () => {
         </dl>
         <div className="reason-summary">
           <h3>이전 단계 수정 사유</h3>
-          <p><b>피해등급:</b> {damageGradeChangeSummary}</p>
-          <p><b>긴급도:</b> {severityReason}</p>
+          <p><b>피해등급:</b> {damageGradeReason}</p>
           <p><b>지원금:</b> {supportReason}</p>
         </div>
       </section>

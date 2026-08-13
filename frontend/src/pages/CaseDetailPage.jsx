@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ANALYSIS_POLLING_INTERVAL, getCaseAnalysisResult } from '../api/analysisApi';
 import { submitDamageGradeReview } from '../api/reviewApi';
+import { getSeverity } from '../api/severityApi';
+import { getSubsidy } from '../api/subsidyApi';
 import AnalysisDecisionPanel from '../components/analysis/AnalysisDecisionPanel';
 import AnalysisResultCard from '../components/analysis/AnalysisResultCard';
 import RagEvidenceCard from '../components/analysis/RagEvidenceCard';
@@ -105,6 +107,9 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const confirmHeldReview = useAnalysisStore((state) => state.confirmHeldReview);
   const startReview = useAnalysisStore((state) => state.startReview);
   const unlockStage = useWorkflowStore((state) => state.unlockStage);
+  const saveSeverityResult = useWorkflowStore((state) => state.saveSeverityResult);
+  const hydrateSupport = useWorkflowStore((state) => state.hydrateSupport);
+  const resetDownstream = useWorkflowStore((state) => state.resetDownstream);
   const currentUser = useAuthStore((state) => state.user);
   const screen = initialScreen;
   const report = useMemo(() => item ? createReportView(item) : null, [item]);
@@ -169,6 +174,21 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
     navigate(`/cases/${caseId}/analysis`);
     setServerResultState({ caseId, data: null });
     await requestAnalysis(caseId);
+  };
+
+  const syncDownstreamResults = async (reviewStatus) => {
+    resetDownstream(caseId);
+    if (reviewStatus === '보류') return;
+    const [severityResult, subsidyResult] = await Promise.allSettled([
+      getSeverity(caseId),
+      getSubsidy(caseId),
+    ]);
+    if (severityResult.status === 'fulfilled') {
+      saveSeverityResult(caseId, severityResult.value);
+    }
+    if (subsidyResult.status === 'fulfilled') {
+      hydrateSupport(caseId, subsidyResult.value);
+    }
   };
 
   return <section className="case-workspace-panel">
@@ -295,7 +315,13 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
           facilityTypeLabel={formatFacilityType(report.facilityType)}
           reviewedGrade={analysis.reviewedGrade}
           reviewStatus={analysis.reviewStatus}
-          onSubmit={(review) => submitReview(caseId, review)}
+          onSubmit={async (review) => {
+            const reviewerId = currentUser?.id ?? currentUser?.user_id;
+            if (!reviewerId) throw new Error('로그인한 담당자 정보를 확인할 수 없습니다.');
+            await submitDamageGradeReview(caseId, review, reviewerId);
+            submitReview(caseId, review);
+            await syncDownstreamResults(review.status);
+          }}
           onReReviewSubmit={async (review) => {
             const reviewerId = currentUser?.id ?? currentUser?.user_id;
             if (!reviewerId) {
@@ -303,6 +329,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
             }
             await submitDamageGradeReview(caseId, review, reviewerId);
             confirmHeldReview(caseId, review);
+            await syncDownstreamResults('승인');
           }}
           onReviewApproved={(grade) => {
             const skipsSeverity = isZeroSupportGrade(grade);

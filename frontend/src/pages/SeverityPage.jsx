@@ -32,7 +32,11 @@ const SeverityPage = () => {
 
   useEffect(() => {
     let ignore = false;
-    calculateSeverity(caseId)
+    getSeverity(caseId)
+      .catch((requestError) => {
+        if (requestError.response?.status === 404) return calculateSeverity(caseId);
+        throw requestError;
+      })
       .then((data) => {
         if (ignore) return;
         setResult(data);
