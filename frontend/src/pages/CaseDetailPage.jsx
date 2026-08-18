@@ -18,8 +18,13 @@ import './case-workspace.css';
 
 const EMPTY_ANALYSIS = { status: 'idle', jobId: null, result: null, reviewStatus: '검토 전' };
 
-const RELATED_CASE_NUMBERS = {
-  'DS-2026-000017': 'DS-2026-000018',
+const FRONTEND_RELATED_REPORTS = {
+  'DS-2026-000017': {
+    receivedAt: '2026. 07. 18. 21:12',
+    location: '서울특별시 관악구 신림로 184',
+    damageType: '주택 집중호우·침수 피해',
+    status: '심사 진행 중',
+  },
 };
 
 const formatDamageCategory = (value) => {
@@ -118,33 +123,10 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const screen = initialScreen;
   const report = useMemo(() => item ? createReportView(item) : null, [item]);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
-  const legacyRelatedReportMock = item?.case_number === 'DS-2026-000012'
-    || (item?.reporter_name === '이도현' && item?.type === 'EARTHQUAKE')
-    ? {
-      reportId: 'DS-2026-000011',
-      receivedAt: '2026. 08. 03. 18:40',
-      location: '경상북도 포항시 북구 흥해읍 대동로 27 대동빌라',
-      damageType: '공동주택 지진 피해',
-      status: '심사 진행 중',
-    }
-    : null;
-
   // 판독 결과는 서버(ai_results)를 단일 출처로 삼는다.
   // 브라우저 저장소 상태에 의존하면 DB에 결과가 있어도 화면이 비는
   // 문제가 발생하므로, 진입 시 항상 서버에서 조회한다.
-  const relatedCaseNumber = RELATED_CASE_NUMBERS[item?.case_number];
-  const relatedCase = relatedCaseNumber
-    ? cases.find((entry) => entry.case_number === relatedCaseNumber)
-    : null;
-  const relatedReportMock = relatedCase
-    ? {
-      reportId: relatedCase.case_number,
-      receivedAt: relatedCase.reportedAt,
-      location: relatedCase.address || relatedCase.location,
-      damageType: `${formatFacilityType(relatedCase.facility)} ${formatDisasterType(relatedCase.type)} 피해`,
-      status: '심사 진행 중',
-    }
-    : null;
+  const relatedReportMock = FRONTEND_RELATED_REPORTS[item?.case_number] || null;
 
   const [serverResultState, setServerResultState] = useState({ caseId: null, data: null });
   const serverResult = serverResultState.caseId === caseId ? serverResultState.data : null;
@@ -285,7 +267,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
         <div className="related-report-table-wrap"><table>
           <thead><tr><th>접수일자</th><th>피해 위치</th><th>피해 유형</th><th>상태</th><th>AI 분석</th></tr></thead>
           <tbody>
-            <tr className="current-report"><td>{report.receivedAt}</td><td>{report.damagePlace}</td><td>공동주택 지진 피해</td><td>현재 신고</td><td>결과 보기</td></tr>
+            <tr className="current-report"><td>{report.receivedAt}</td><td>{report.damagePlace}</td><td>주택 집중호우·침수 피해</td><td>현재 신고</td><td>결과 보기</td></tr>
             <tr><td>{relatedReportMock.receivedAt}</td><td>{relatedReportMock.location}</td><td>{relatedReportMock.damageType}</td><td>{relatedReportMock.status}</td><td>조회</td></tr>
           </tbody>
         </table></div>
