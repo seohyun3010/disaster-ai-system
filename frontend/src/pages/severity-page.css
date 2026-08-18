@@ -15,6 +15,72 @@
   margin-bottom: 20px;
 }
 
+.severity-score-card .section-heading {
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.severity-score-card .section-heading h2,
+.severity-score-card .section-heading p {
+  margin: 0;
+}
+
+.severity-score-card .section-heading p {
+  margin-top: 5px;
+  color: var(--krds-gray-600);
+  font-size: var(--font-size-caption);
+}
+
+.severity-live-total {
+  flex: 0 0 auto;
+  padding: 7px 12px;
+  border-radius: 8px;
+  background: var(--krds-primary-50);
+  color: var(--krds-gray-600);
+  font-size: var(--font-size-caption);
+}
+
+.severity-live-total strong {
+  margin-left: 5px;
+  color: var(--krds-primary-700);
+}
+
+.severity-editable-table th:nth-child(2),
+.severity-editable-table td:nth-child(2) {
+  width: 220px;
+}
+
+.severity-editable-table th:nth-child(3),
+.severity-editable-table td:nth-child(3) {
+  width: 42%;
+}
+
+.severity-score-card .severity-editable-table select,
+.severity-score-card .severity-editable-table input {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--krds-gray-200);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--krds-gray-800);
+  font: inherit;
+}
+
+.severity-score-card .severity-editable-table input {
+  min-width: 280px;
+}
+
+.severity-editable-table select:focus,
+.severity-editable-table input:focus {
+  border-color: var(--krds-primary-600);
+  outline: 3px solid var(--krds-primary-100);
+}
+
+.severity-score-actions {
+  gap: 8px;
+}
+
 .severity-score-card {
   display: flex;
   flex-direction: column;

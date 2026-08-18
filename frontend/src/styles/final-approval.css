@@ -29,6 +29,51 @@
   margin-top: 7px;
 }
 
+.final-summary-card .urgency-reason-summary {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  margin: 7px 0;
+  color: #5d7175;
+  font-size: var(--font-size-subtitle);
+}
+
+.urgency-reason-table-wrap {
+  overflow-x: auto;
+}
+
+.urgency-reason-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: var(--font-size-caption);
+}
+
+.urgency-reason-table th,
+.urgency-reason-table td {
+  padding: 9px 12px;
+  border: 1px solid var(--krds-gray-100, #e6e8ea);
+  text-align: left;
+  line-height: var(--line-height-default);
+}
+
+.urgency-reason-table th {
+  background: var(--krds-gray-50, #f4f5f6);
+  color: var(--krds-gray-600, #58616a);
+  font-weight: var(--font-weight-bold);
+}
+
+.urgency-reason-table th:first-child,
+.urgency-reason-table td:first-child {
+  width: 220px;
+  white-space: nowrap;
+}
+
+.urgency-reason-table td {
+  color: var(--krds-gray-700, #464c53);
+}
+
 @media (max-width: 1200px) {
   .final-summary-card .final-summary-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -66,5 +111,9 @@
 
   .final-summary-card .final-summary-grid > div {
     border-right: 0;
+  }
+
+  .final-summary-card .urgency-reason-summary {
+    grid-template-columns: 1fr;
   }
 }

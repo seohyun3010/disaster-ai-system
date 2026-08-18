@@ -1,0 +1,47 @@
+.sct-card { grid-column: 1 / -1; padding: 24px; }
+.sct-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 18px; }
+.sct-header h2 { margin: 0 0 6px; font-size: var(--font-size-card); color: var(--krds-gray-900); }
+.sct-header p { margin: 0; color: var(--krds-gray-600); font-size: var(--font-size-caption); }
+.sct-total-badge, .sct-total-row span { flex: 0 0 auto; padding: 5px 12px; border-radius: 8px; background: var(--krds-primary-50); color: var(--krds-primary-700); font-weight: var(--font-weight-bold); white-space: nowrap; }
+.sct-table-wrap { overflow-x: auto; }
+.sct-table { width: 100%; min-width: 680px; border-collapse: collapse; font-size: var(--font-size-caption); }
+.sct-table th { padding: 11px 12px; border-block: 1px solid var(--krds-gray-200); background: var(--krds-gray-50); color: var(--krds-gray-600); text-align: left; font-weight: var(--font-weight-medium); }
+.sct-table td { padding: 14px 12px; border-bottom: 1px solid var(--krds-gray-100); color: var(--krds-gray-800); }
+.sct-table th:nth-child(2), .sct-table td:nth-child(2) { width: 90px; text-align: center; }
+.sct-table th:last-child, .sct-table td:last-child { width: 124px; text-align: right; }
+.sct-toggle-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border: 1px solid var(--krds-gray-200); border-radius: 8px; background: #fff; color: var(--krds-gray-700); cursor: pointer; font: inherit; white-space: nowrap; }
+.sct-toggle-btn:hover { border-color: var(--krds-primary-600); color: var(--krds-primary-700); background: var(--krds-primary-50); }
+.sct-toggle-btn:focus-visible { outline: 2px solid var(--krds-primary-600); outline-offset: 2px; }
+.sct-chevron {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin: -3px 2px 0 1px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  font-size: 0;
+  transform: rotate(45deg);
+  transition: transform .18s ease;
+}
+.sct-chevron-up { margin-top: 3px; transform: rotate(225deg); }
+.sct-detail-row td { padding: 0 12px 14px; }
+.sct-detail-panel { padding: 18px; border: 1px solid var(--krds-primary-100); border-radius: 10px; background: var(--krds-primary-50); }
+.sct-detail-panel h3 { margin: 0 0 14px; color: var(--krds-primary-700); font-size: var(--font-size-subtitle); }
+.sct-box-grid { display: grid; grid-template-columns: repeat(var(--sct-columns, 3), minmax(0, 1fr)); margin-bottom: 14px; border: 1px solid var(--krds-gray-100); border-radius: 8px; overflow: hidden; }
+.sct-box-grid-5 { --sct-columns: 5; }
+.sct-box { display: grid; gap: 5px; padding: 12px 8px; background: #fff; text-align: center; }
+.sct-box + .sct-box { border-left: 1px solid var(--krds-gray-100); }
+.sct-box span { color: var(--krds-gray-600); }
+.sct-box strong { font-size: var(--font-size-subtitle); }
+.sct-inner-table { width: 100%; margin-bottom: 14px; border-collapse: collapse; background: #fff; text-align: center; }
+.sct-inner-table th, .sct-inner-table td { padding: 10px; border: 1px solid var(--krds-gray-100); text-align: center; }
+.sct-basis-row { display: flex; justify-content: space-between; gap: 20px; }
+.sct-basis-row p, .sct-evaluation { margin: 0 0 8px; }
+.sct-basis-row span { color: var(--krds-gray-600); white-space: nowrap; }
+.sct-formula { width: fit-content; margin: 12px auto 0; padding: 7px 42px; border: 1px solid var(--krds-primary-600); border-radius: 6px; background: #fff; color: var(--krds-primary-700); font-weight: var(--font-weight-bold); }
+.sct-total-row { background: var(--krds-primary-50); font-weight: var(--font-weight-bold); }
+.sct-footer { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--krds-gray-100); }
+.sct-footer h3 { margin: 0 0 9px; font-size: var(--font-size-subtitle); }
+.sct-footer p { margin: 4px 0; color: var(--krds-gray-600); font-size: var(--font-size-caption); line-height: 1.55; }
+.sct-notes { margin-top: 12px; padding: 12px 14px; border-radius: 8px; background: var(--krds-gray-50); }
+@media (max-width: 620px) { .sct-card { padding: 20px; } .sct-header { align-items: center; } .sct-box-grid { grid-template-columns: 1fr; } .sct-box + .sct-box { border-left: 0; border-top: 1px solid var(--krds-gray-100); } }

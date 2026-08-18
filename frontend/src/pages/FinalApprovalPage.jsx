@@ -23,6 +23,12 @@ const getUserChangeReason = (value) => {
   return text;
 };
 
+const URGENCY_REASON_ROWS = [
+  { key: 'ai_grade_score', label: 'AI 피해등급 점수' },
+  { key: 'household_score', label: '가구원 수 점수' },
+  { key: 'facility_livelihood_score', label: '시설·이재민 긴급도 점수' },
+];
+
 const repairMojibake = (value) => {
   const text = String(value ?? '').trim();
   if (!text || !/[\u0080-\u00ff]/.test(text)) return text;
@@ -74,9 +80,18 @@ const FinalApprovalPage = () => {
       ? serverGradeReason
       : localGradeReason;
   const supportReason = getUserChangeReason(workflow.supportReason);
+  const urgencyReasonSource = workflow?.severityResult?.component_reasons || {};
+  const urgencyReasons = URGENCY_REASON_ROWS.map((row) => ({
+    ...row,
+    reason: getUserChangeReason(urgencyReasonSource[row.key]),
+  }));
+  const hasUrgencyReason = urgencyReasons.some((row) => row.reason !== '-');
   const isHeldGrade = isDs2Grade(damageGrade);
   const hasZeroSupport = isZeroSupportGrade(damageGrade);
-  const urgencyScore = resolveUrgencyScore(severity, workflow, workflow?.severityResult, item);
+  const manualSeverity = workflow?.severityResult?.calculation_type === 'MANUAL_REVIEW'
+    ? workflow.severityResult
+    : null;
+  const urgencyScore = resolveUrgencyScore(manualSeverity, severity, workflow, workflow?.severityResult, item);
 
   useEffect(() => {
     if (!caseId) return;
@@ -136,6 +151,21 @@ const FinalApprovalPage = () => {
         <div className="reason-summary">
           <h3>이전 단계 수정 사유</h3>
           <p><b>피해등급:</b> {damageGradeReason}</p>
+          {hasUrgencyReason ? (
+            <div className="urgency-reason-summary">
+              <b>긴급도:</b>
+              <div className="urgency-reason-table-wrap">
+                <table className="urgency-reason-table">
+                  <thead><tr><th>평가 항목</th><th>수정 사유</th></tr></thead>
+                  <tbody>
+                    {urgencyReasons.map((row) => (
+                      <tr key={row.key}><td>{row.label}</td><td>{row.reason}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : <p><b>긴급도:</b> -</p>}
           <p><b>지원금:</b> {supportReason}</p>
         </div>
       </section>
