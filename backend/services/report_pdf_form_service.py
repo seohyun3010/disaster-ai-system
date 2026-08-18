@@ -32,6 +32,7 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+from PIL import Image as PilImage, ImageOps
 
 from schemas.report import ReportDetailResponse
 
@@ -300,6 +301,25 @@ def _resolve_image(url: str | None) -> Path | None:
     return candidate if candidate.is_file() else None
 
 
+def _optimized_pdf_image(path: Path, *, max_edge: int = 1600) -> BytesIO:
+    """PDF 삽입용 이미지만 축소·압축하며 원본 업로드 파일은 변경하지 않는다."""
+    with PilImage.open(path) as source:
+        image = ImageOps.exif_transpose(source)
+        image.thumbnail((max_edge, max_edge), PilImage.Resampling.LANCZOS)
+        if image.mode != "RGB":
+            background = PilImage.new("RGB", image.size, "white")
+            if "A" in image.getbands():
+                background.paste(image, mask=image.getchannel("A"))
+            else:
+                background.paste(image.convert("RGB"))
+            image = background
+
+        output = BytesIO()
+        image.save(output, format="JPEG", quality=82, optimize=True)
+        output.seek(0)
+        return output
+
+
 # --------------------------------------------------------------------------
 # 표 스타일: 표 전체 위/아래만 굵은 검정선, 안쪽 줄 사이는 얇은 회색선
 # (Style E에서 확정한 "공무원 양식" 표 컨벤션과 동일)
@@ -328,6 +348,7 @@ def render_official_report_pdf(detail: ReportDetailResponse) -> bytes:
 
     _register_fonts()
     buffer = BytesIO()
+    optimized_image_buffers: list[BytesIO] = []
 
     body = ParagraphStyle(
         "off-body", fontName=FONT_REGULAR, fontSize=9.2, leading=13.5, textColor=BLACK,
@@ -491,7 +512,9 @@ def render_official_report_pdf(detail: ReportDetailResponse) -> bytes:
                 for item_img in chunk:
                     path = _resolve_image(item_img.image_url or item_img.thumbnail_url)
                     if path:
-                        image = Image(str(path))
+                        optimized = _optimized_pdf_image(path)
+                        optimized_image_buffers.append(optimized)
+                        image = Image(optimized)
                         scale = min(max_w / image.imageWidth, max_h / image.imageHeight)
                         image.drawWidth = image.imageWidth * scale
                         image.drawHeight = image.imageHeight * scale
