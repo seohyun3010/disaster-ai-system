@@ -12,6 +12,8 @@ const initialAnalysis = {
   result: null,
   error: null,
   stage: null,
+  progressPercent: 0,
+  progressStage: null,
   reviewStatus: '검토 전',
   reviewReason: '',
   reviewedGrade: null,
@@ -74,13 +76,91 @@ export const useAnalysisStore = create(
     (set, get) => ({
       analyses: {},
       getAnalysis: (caseId) => get().analyses[caseId] || initialAnalysis,
+      hydrateAnalysisResult: (caseId, result) => set((state) => {
+        if (!result) return state;
+        const current = state.analyses[caseId] || initialAnalysis;
+        return {
+          analyses: {
+            ...state.analyses,
+            [caseId]: {
+              ...current,
+              status: 'completed',
+              result,
+              completedAt: result.completedAt || current.completedAt,
+              error: null,
+            },
+          },
+        };
+      }),
+      hydrateReviewFromServer: (caseId, reviews) => set((state) => {
+        const reviewList = Array.isArray(reviews) ? reviews : [];
+        const latest = reviewList[0] || null;
+        const current = state.analyses[caseId] || initialAnalysis;
+        if (!latest) {
+          return {
+            analyses: {
+              ...state.analyses,
+              [caseId]: {
+                ...current,
+                reviewStatus: '검토 전',
+                reviewReason: '',
+                reviewedGrade: null,
+                reviewedAt: null,
+                reviewedBy: null,
+                holdReason: '',
+                heldAt: null,
+                holdFieldVerified: false,
+                fieldVisitReason: '',
+                fieldVisitedAt: null,
+                holdResolvedAt: null,
+              },
+            },
+          };
+        }
+        const approved = latest.hitl_result === true;
+        const previousHold = reviewList
+          .slice(1)
+          .find((review) => review.hitl_result === false);
+        const resolvedHold = approved && Boolean(
+          previousHold
+          || current.holdReason
+          || current.heldAt,
+        );
+        const reviewReason = latest.comment || '';
+        return {
+          analyses: {
+            ...state.analyses,
+            [caseId]: {
+              ...current,
+              reviewStatus: resolvedHold ? '수정 승인' : approved ? '승인' : '보류',
+              reviewReason,
+              reviewedGrade: latest.confirmed_damage_grade || current.reviewedGrade,
+              reviewedAt: latest.reviewed_at || current.reviewedAt,
+              holdReason: approved
+                ? previousHold?.comment || current.holdReason
+                : reviewReason,
+              heldAt: approved
+                ? previousHold?.reviewed_at || current.heldAt
+                : latest.reviewed_at || current.heldAt,
+              holdFieldVerified: resolvedHold,
+              fieldVisitReason: resolvedHold ? reviewReason : '',
+              fieldVisitedAt: resolvedHold
+                ? latest.reviewed_at || current.fieldVisitedAt
+                : null,
+              holdResolvedAt: resolvedHold
+                ? latest.reviewed_at || current.holdResolvedAt
+                : null,
+            },
+          },
+        };
+      }),
       requestAnalysis: async (caseId) => {
         const current = get().analyses[caseId];
         if (current && ['queued', 'processing'].includes(current.status)) return;
         set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...initialAnalysis, reviewHistory: current?.reviewHistory || [], status: 'queued' } } }));
         try {
           const job = await requestAnalysis(caseId);
-          set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], jobId: job.jobId, requestedAt: job.requestedAt } } }));
+          set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], jobId: job.jobId, progressPercent: job.progressPercent, progressStage: job.progressStage, stage: job.progressStage, requestedAt: job.requestedAt } } }));
         } catch (error) {
           set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], status: 'failed', error: error.message || 'AI 분석 중 오류가 발생했습니다.' } } }));
         }
@@ -91,7 +171,7 @@ export const useAnalysisStore = create(
         try {
           const statusResponse = await getAnalysisStatus(current.jobId);
           const result = statusResponse.status === 'completed' ? await getAnalysisResult(current.jobId) : current.result;
-          set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], status: statusResponse.status, stage: statusResponse.stage, result, completedAt: result?.completedAt || null } } }));
+          set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], status: statusResponse.status, progressPercent: statusResponse.progressPercent, progressStage: statusResponse.progressStage, stage: statusResponse.progressStage, result, completedAt: result?.completedAt || null } } }));
         } catch (error) {
           set((state) => ({ analyses: { ...state.analyses, [caseId]: { ...state.analyses[caseId], status: 'failed', error: error.message || '분석 상태를 확인하지 못했습니다.' } } }));
         }

@@ -3,7 +3,7 @@ import { useWorkflowNavigation } from '../../hooks/useWorkflowNavigation';
 
 const STEPS = [
   { label: '신고서 확인', segment: null },
-  { label: 'AI 분석', segment: 'analysis' },
+  { label: '피해 등급', segment: 'analysis' },
   { label: '복구 긴급도', segment: 'severity' },
   { label: '지원금 심사', segment: 'support' },
   { label: '최종 승인', segment: 'final-approval' },

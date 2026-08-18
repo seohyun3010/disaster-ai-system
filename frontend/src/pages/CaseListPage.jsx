@@ -6,10 +6,12 @@ import { useCaseStore } from '../stores/caseStore';
 import { useWorkflowStore } from '../stores/workflowStore';
 import { buildDisasterEvents, filterCasesByDisasterPeriod } from '../utils/disasterEvents';
 import { isZeroSupportGrade } from '../utils/reviewRules';
-import { submitDamageGradeReview } from '../api/reviewApi';
+import { getDamageGradeReviews, submitDamageGradeReview } from '../api/reviewApi';
 import { useAuthStore } from '../stores/authStore';
 import { DEFAULT_DISASTER_QUERY_RANGE } from '../mocks/cases';
 import { formatFacilityType } from '../utils/disasterTypeLabels';
+import { getSeverity } from '../api/severityApi';
+import { getSubsidy } from '../api/subsidyApi';
 import './case-list.css';
 import './report-management.css';
 
@@ -782,10 +784,26 @@ const CaseListPage = () => {
     (state) => state.confirmHeldReview,
   );
 
+  const hydrateReviewFromServer = useAnalysisStore(
+    (state) => state.hydrateReviewFromServer,
+  );
+
   const currentUser = useAuthStore((state) => state.user);
 
   const unlockStage = useWorkflowStore(
     (state) => state.unlockStage,
+  );
+
+  const resetDownstream = useWorkflowStore(
+    (state) => state.resetDownstream,
+  );
+
+  const saveSeverityResult = useWorkflowStore(
+    (state) => state.saveSeverityResult,
+  );
+
+  const hydrateSupport = useWorkflowStore(
+    (state) => state.hydrateSupport,
   );
 
   const [search, setSearch] = useState(() => searchParams.get('search') || '');
@@ -816,6 +834,38 @@ const CaseListPage = () => {
       offset: 0,
     }).catch(() => {});
   }, [fetchCases]);
+
+  useEffect(() => {
+    const backendCaseIds = [...new Set(
+      cases
+        .map((item) => getItemCaseId(item))
+        .filter((itemCaseId) => /^\d+$/.test(String(itemCaseId))),
+    )];
+
+    if (backendCaseIds.length === 0) return undefined;
+
+    let ignore = false;
+
+    Promise.allSettled(
+      backendCaseIds.map(async (itemCaseId) => ({
+        caseId: itemCaseId,
+        reviews: await getDamageGradeReviews(itemCaseId),
+      })),
+    ).then((results) => {
+      if (ignore) return;
+      results.forEach((result) => {
+        if (result.status !== 'fulfilled') return;
+        hydrateReviewFromServer(
+          result.value.caseId,
+          result.value.reviews,
+        );
+      });
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, [cases, hydrateReviewFromServer]);
 
   const rangeFrom = searchParams.get('from') || DEFAULT_DISASTER_QUERY_RANGE.from;
   const rangeTo = searchParams.get('to') || DEFAULT_DISASTER_QUERY_RANGE.to;
@@ -1053,6 +1103,21 @@ const CaseListPage = () => {
         heldCaseId,
         review,
       );
+
+      resetDownstream(heldCaseId);
+
+      const [severityResult, subsidyResult] = await Promise.allSettled([
+        getSeverity(heldCaseId),
+        getSubsidy(heldCaseId),
+      ]);
+
+      if (severityResult.status === 'fulfilled') {
+        saveSeverityResult(heldCaseId, severityResult.value);
+      }
+
+      if (subsidyResult.status === 'fulfilled') {
+        hydrateSupport(heldCaseId, subsidyResult.value);
+      }
 
       unlockStage(
         heldCaseId,

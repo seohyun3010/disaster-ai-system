@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ANALYSIS_POLLING_INTERVAL, getCaseAnalysisResult } from '../api/analysisApi';
 import { submitDamageGradeReview } from '../api/reviewApi';
+import { getSeverity } from '../api/severityApi';
+import { getSubsidy } from '../api/subsidyApi';
 import AnalysisDecisionPanel from '../components/analysis/AnalysisDecisionPanel';
 import AnalysisResultCard from '../components/analysis/AnalysisResultCard';
 import RagEvidenceCard from '../components/analysis/RagEvidenceCard';
@@ -105,10 +107,23 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
   const confirmHeldReview = useAnalysisStore((state) => state.confirmHeldReview);
   const startReview = useAnalysisStore((state) => state.startReview);
   const unlockStage = useWorkflowStore((state) => state.unlockStage);
+  const saveSeverityResult = useWorkflowStore((state) => state.saveSeverityResult);
+  const hydrateSupport = useWorkflowStore((state) => state.hydrateSupport);
+  const resetDownstream = useWorkflowStore((state) => state.resetDownstream);
   const currentUser = useAuthStore((state) => state.user);
   const screen = initialScreen;
   const report = useMemo(() => item ? createReportView(item) : null, [item]);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
+  const relatedReportMock = item?.case_number === 'DS-2026-000012'
+    || (item?.reporter_name === '이도현' && item?.type === 'EARTHQUAKE')
+    ? {
+      reportId: 'DS-2026-000011',
+      receivedAt: '2026. 08. 03. 18:40',
+      location: '경상북도 포항시 북구 흥해읍 대동로 27 대동빌라',
+      damageType: '공동주택 지진 피해',
+      status: '심사 진행 중',
+    }
+    : null;
 
   // 판독 결과는 서버(ai_results)를 단일 출처로 삼는다.
   // 브라우저 저장소 상태에 의존하면 DB에 결과가 있어도 화면이 비는
@@ -159,6 +174,21 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
     navigate(`/cases/${caseId}/analysis`);
     setServerResultState({ caseId, data: null });
     await requestAnalysis(caseId);
+  };
+
+  const syncDownstreamResults = async (reviewStatus) => {
+    resetDownstream(caseId);
+    if (reviewStatus === '보류') return;
+    const [severityResult, subsidyResult] = await Promise.allSettled([
+      getSeverity(caseId),
+      getSubsidy(caseId),
+    ]);
+    if (severityResult.status === 'fulfilled') {
+      saveSeverityResult(caseId, severityResult.value);
+    }
+    if (subsidyResult.status === 'fulfilled') {
+      hydrateSupport(caseId, subsidyResult.value);
+    }
   };
 
   return <section className="case-workspace-panel">
@@ -232,12 +262,23 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
         </article>
       </div>
 
+      {relatedReportMock && <section className="related-report-mock" aria-label="동일 장소 연관 신고">
+        <div className="related-report-head"><h3>동일 장소 연관 신고</h3><span>중복 의심</span></div>
+        <div className="related-report-table-wrap"><table>
+          <thead><tr><th>접수일자</th><th>피해 위치</th><th>피해 유형</th><th>상태</th><th>AI 분석</th></tr></thead>
+          <tbody>
+            <tr className="current-report"><td>{report.receivedAt}</td><td>{report.damagePlace}</td><td>공동주택 지진 피해</td><td>현재 신고</td><td>결과 보기</td></tr>
+            <tr><td>{relatedReportMock.receivedAt}</td><td>{relatedReportMock.location}</td><td>{relatedReportMock.damageType}</td><td>{relatedReportMock.status}</td><td>조회</td></tr>
+          </tbody>
+        </table></div>
+      </section>}
+
       <p className="private-report-security">민감 정보는 마스킹하여 표시됩니다.</p>
     </> : <>
       <header className="workspace-panel-head">
         <div>
-          <p>2단계 · AI 분석</p>
-          <h2>AI 피해 분석 및 등급 검토</h2>
+          <p>2단계 · 피해 등급</p>
+          <h2>피해 등급 분석 및 검토</h2>
         </div>
         <button type="button" className="secondary-action" onClick={() => navigate(`/cases/${caseId}`)}>신고서 보기</button>
       </header>
@@ -268,9 +309,19 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
         <AnalysisDecisionPanel
           confidence={serverResult.confidence}
           recommendedGrade={serverResult.recommendedGrade}
+          analysisResult={serverResult}
+          photoCount={report.photos.length}
+          disasterTypeLabel={formatDisasterType(report.disasterType)}
+          facilityTypeLabel={formatFacilityType(report.facilityType)}
           reviewedGrade={analysis.reviewedGrade}
           reviewStatus={analysis.reviewStatus}
-          onSubmit={(review) => submitReview(caseId, review)}
+          onSubmit={async (review) => {
+            const reviewerId = currentUser?.id ?? currentUser?.user_id;
+            if (!reviewerId) throw new Error('로그인한 담당자 정보를 확인할 수 없습니다.');
+            await submitDamageGradeReview(caseId, review, reviewerId);
+            submitReview(caseId, review);
+            await syncDownstreamResults(review.status);
+          }}
           onReReviewSubmit={async (review) => {
             const reviewerId = currentUser?.id ?? currentUser?.user_id;
             if (!reviewerId) {
@@ -278,6 +329,7 @@ const CaseDetailPage = ({ initialScreen = 'report' }) => {
             }
             await submitDamageGradeReview(caseId, review, reviewerId);
             confirmHeldReview(caseId, review);
+            await syncDownstreamResults('승인');
           }}
           onReviewApproved={(grade) => {
             const skipsSeverity = isZeroSupportGrade(grade);
