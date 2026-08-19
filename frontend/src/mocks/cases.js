@@ -29,21 +29,6 @@ const REPORTER_NAMES = [
   ...BASE_REPORTER_NAMES,
   ...ADDITIONAL_REPORTER_NAMES,
 ];
-const ORDINARY_REPORTER_BY_CASE_NUMBER = Object.freeze({
-  'DS-2026-000572': '김도현',
-  'DS-2026-000424': '이수진',
-  'DS-2026-000516': '박민석',
-  'DS-2026-000640': '최은정',
-  'DS-2026-000492': '정우진',
-  'DS-2026-000584': '강미영',
-  'DS-2026-000436': '조현수',
-  'DS-2026-000380': '윤서영',
-  'DS-2026-000560': '장민호',
-  'DS-2026-000652': '임지현',
-});
-const getReporterName = (item, fallbackName) => {
-  return ORDINARY_REPORTER_BY_CASE_NUMBER[item.case_number] || fallbackName;
-};
 const BANKS = ['국민은행', '신한은행', '우리은행', '하나은행', '농협은행', '기업은행', '광주은행', '부산은행'];
 const STREETS = ['중앙로', '새마을로', '산업로', '평화로', '충효로', '무궁화로', '희망길', '솔밭길', '강변로', '시장길'];
 const PHOTO_ROOT = '/mock/flood-2026';
@@ -146,6 +131,7 @@ export const REGION_TARGETS_BY_TYPE = Object.freeze({
     전북특별자치도: 50,
     전라남도: 45,
     광주광역시: 8,
+    경상남도: 20,
   },
   TYPHOON: {
     경상북도: 6,
@@ -234,7 +220,7 @@ export const MOCK_DISASTER_EVENTS = Object.freeze([
   {
     id: '2026-HEAVY_RAIN', year: 2026, disasterType: 'HEAVY_RAIN', label: '집중호우',
     from: '2026-07-15', to: '2026-07-18', deadlineFrom: '2026-07-29', deadlineTo: '2026-08-11',
-    status: '진행중', targetCount: 292, __source: 'backend',
+    status: '완료', targetCount: 292, __source: 'backend',
   },
   {
     id: '2026-EARTHQUAKE', year: 2026, disasterType: 'EARTHQUAKE', label: '지진',
@@ -287,6 +273,11 @@ export const MOCK_DISASTER_EVENTS = Object.freeze([
     from: '2026-07-28', to: '2026-07-28', deadlineFrom: '2026-08-08', deadlineTo: '2026-08-21',
     status: '진행중', targetCount: 20, __source: 'mock',
   },
+  {
+    id: 'backend-2026-08-HEAVY_RAIN', year: 2026, disasterType: 'HEAVY_RAIN', label: '집중호우',
+    from: '2026-08-15', to: '2026-08-18', deadlineFrom: '2026-08-28', deadlineTo: '2026-09-10',
+    status: '진행중', targetCount: 20, __source: 'mock',
+  },
 ]);
 
 const pad = (value, length = 2) => String(value).padStart(length, '0');
@@ -307,6 +298,7 @@ const STATUS_DISTRIBUTIONS = {
   'backend-2026-08-EARTHQUAKE': { completed: 15, incomplete: 75 },
   'backend-2026-07-TYPHOON': { completed: 15, incomplete: 75 },
   'backend-2026-07-LANDSLIDE': { completed: 15, incomplete: 75 },
+  'backend-2026-08-HEAVY_RAIN': { completed: 15, incomplete: 75 },
   '2026-HEAVY_RAIN': { completed: 44, incomplete: 46 },
   '2026-LANDSLIDE': { completed: 75, incomplete: 15 },
   '2026-WILDFIRE': { completed: 80, incomplete: 12 },
@@ -511,10 +503,7 @@ const eventSequence = {};
 export const CASES = Object.freeze(GENERATED_CASES.map((item, sortedIndex) => {
   const disasterIndex = eventSequence[item.disaster_event_id] || 0;
   eventSequence[item.disaster_event_id] = disasterIndex + 1;
-  const reporter = getReporterName(
-    item,
-    REPORTER_NAMES[sortedIndex % REPORTER_NAMES.length],
-  );
+  const reporter = REPORTER_NAMES[sortedIndex % REPORTER_NAMES.length];
   const genderDigit = sortedIndex % 2 === 0 ? 1 : 2;
   const residentNumber = item.resident_registration_number.replace(/-\d/, `-${genderDigit}`);
   const displayStatus = getStatus(item.disaster_event_id, disasterIndex);
