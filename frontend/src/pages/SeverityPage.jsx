@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { calculateSeverity, getSeverity } from '../api/severityApi';
+import { calculateSeverity, getSeverity, saveManualSeverity } from '../api/severityApi';
 import CaseStageHeader from '../components/case/CaseStageHeader';
 import StageNavigation from '../components/case/StageNavigation';
 import { ReviewGuidance } from '../components/persona/ReviewGuidance';
@@ -78,20 +78,25 @@ const SeverityPage = () => {
     }
   };
 
-  const applyManualScores = (componentScores, componentReasons) => {
+  const applyManualScores = async (componentScores, componentReasons) => {
     const recoveryUrgencyScore = Object.values(componentScores)
       .reduce((sum, score) => sum + Number(score || 0), 0);
-    const manualResult = {
-      ...(result || {}),
-      component_scores: componentScores,
-      component_reasons: componentReasons,
-      recovery_urgency_score: recoveryUrgencyScore,
-      calculation_type: 'MANUAL_REVIEW',
-    };
-    setResult(manualResult);
-    saveSeverityResult(caseId, manualResult);
-    setError('');
-    setMessage(`공무원 검토 점수 ${recoveryUrgencyScore}점이 반영되었습니다.`);
+    try {
+      setCalculating(true);
+      const manualResult = await saveManualSeverity(caseId, {
+        ...componentScores,
+        component_reasons: componentReasons,
+        recovery_urgency_score: recoveryUrgencyScore,
+      });
+      setResult(manualResult);
+      saveSeverityResult(caseId, manualResult);
+      setError('');
+      setMessage(`공무원 검토 점수 ${recoveryUrgencyScore}점이 저장되었습니다.`);
+    } catch (requestError) {
+      setError(getSeverityErrorMessage(requestError));
+    } finally {
+      setCalculating(false);
+    }
   };
 
   if (!item) {

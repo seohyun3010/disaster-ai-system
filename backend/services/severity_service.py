@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -17,6 +18,14 @@ from services.recovery_urgency_rules import (
     household_score,
 )
 from services.damage_grade_service import resolve_damage_grade
+from schemas.severity import SeverityManualUpdateRequest
+
+
+_COMPONENT_LABELS = {
+    "ai_grade_score": "AI 피해등급 점수",
+    "household_score": "가구원 수 점수",
+    "facility_livelihood_score": "시설·이재민 긴급도 점수",
+}
 
 
 def derive_urgency_components(db: Session, case: Case) -> UrgencyComponents:
@@ -111,3 +120,57 @@ def get_latest_result(db: Session, case_id: int) -> SeverityResult:
     if result is None:
         raise HTTPException(status_code=404, detail="계산된 복구 긴급도 결과가 없습니다.")
     return result
+
+
+def save_manual_scores(
+    db: Session, case_id: int, payload: SeverityManualUpdateRequest
+) -> SeverityResult:
+    """Save a new auditable severity result based on the latest calculation."""
+    current = get_latest_result(db, case_id)
+    damage = payload.ai_grade_score if payload.ai_grade_score is not None else current.damage_score
+    household = payload.household_score if payload.household_score is not None else current.vulnerability_score
+    facility = (
+        payload.facility_livelihood_score
+        if payload.facility_livelihood_score is not None
+        else current.infrastructure_score
+    )
+    total = payload.recovery_urgency_score
+    if total is None:
+        total = round(min(damage + household + facility, 100.0), 2)
+    level = "CRITICAL" if total >= 80 else "HIGH" if total >= 60 else "MEDIUM" if total >= 40 else "LOW"
+    priority = {"CRITICAL": 1, "HIGH": 2, "MEDIUM": 3, "LOW": 4}[level]
+    adjusted_at = datetime.utcnow()
+    result = SeverityResult(
+        case_id=case_id,
+        damage_score=damage,
+        human_risk_score=current.human_risk_score,
+        vulnerability_score=household,
+        infrastructure_score=facility,
+        secondary_damage_score=current.secondary_damage_score,
+        severity_score=total,
+        severity_level=level,
+        recovery_urgency_score=total,
+        recovery_priority=priority,
+        urgency_level=level,
+        applied_damage_grade=current.applied_damage_grade,
+        damage_grade_source=current.damage_grade_source,
+        rule_version=current.rule_version,
+        is_manual=True,
+        manual_adjustment_reason=payload.reason or " / ".join(
+            f"{_COMPONENT_LABELS.get(key, key)}: {value}"
+            for key, value in payload.component_reasons.items()
+        ),
+        component_adjustment_reasons=payload.component_reasons or None,
+        manually_adjusted_at=adjusted_at,
+        calculated_at=adjusted_at,
+    )
+    db.add(result)
+    summary = db.scalar(select(Severity).where(Severity.case_id == case_id).limit(1))
+    if summary is None:
+        summary = Severity(severity_id=case_id, case_id=case_id)
+        db.add(summary)
+    summary.score = total
+    summary.priority = level
+    summary.calculated_at = adjusted_at
+    db.commit()
+    return get_latest_result(db, case_id)

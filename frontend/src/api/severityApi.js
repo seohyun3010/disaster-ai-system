@@ -14,3 +14,11 @@ export const getSeverity = async (caseId) => {
   );
   return response.data;
 };
+
+export const saveManualSeverity = async (caseId, payload) => {
+  const response = await axiosInstance.put(
+    API_PATHS.SEVERITY.MANUAL(caseId),
+    payload,
+  );
+  return response.data;
+};
