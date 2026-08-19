@@ -715,6 +715,8 @@ def render_official_report_pdf(detail: ReportDetailResponse) -> bytes:
                 f"'{_level(detail.severity.urgency_level)}' 단계에 해당하는 것으로 분류됨.",
             )
         )
+        if detail.severity.adjustment_reason:
+            section3_children.append(item("라.", f"담당자 수정 사유: {detail.severity.adjustment_reason}"))
     else:
         # TODO(schema): 세부 점수가 채워지면 위 breakdown 표가 자동으로 사용됩니다.
         section3_children.append(
@@ -752,6 +754,7 @@ def render_official_report_pdf(detail: ReportDetailResponse) -> bytes:
                     ("시설 유형", _facility_label(detail.case.facility_type)),
                     ("예상 지원금", f"{(detail.subsidy.estimated_amount or 0):,.0f}원"),
                     ("최종 지원금", f"{(detail.subsidy.confirmed_amount or 0):,.0f}원"),
+                    ("지원금 수정 사유", detail.subsidy.adjustment_reason or "-"),
                 ]
             ),
         ])
@@ -779,7 +782,9 @@ def render_official_report_pdf(detail: ReportDetailResponse) -> bytes:
                     ("최종 지원금", f"{confirmed:,.0f}원"),
                     ("처리자", FIXED_OFFICER_NAME),
                     ("처리일시", _date(detail.approved_at)),
-                    ("수정 이력", "없음"),
+                    ("피해 판정 수정 사유", detail.verification.reviewer_comment or "-"),
+                    ("긴급도 수정 사유", detail.severity.adjustment_reason or "-"),
+                    ("지원금 수정 사유", detail.subsidy.adjustment_reason or "-"),
                 ]
             ),
         ])

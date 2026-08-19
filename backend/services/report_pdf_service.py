@@ -251,6 +251,13 @@ def render_report_pdf(detail: ReportDetailResponse) -> bytes:
         [
             [Paragraph("피해 및 처리 결과", section_title)],
             [Paragraph(_text(detail.summary or detail.case.description), body)],
+            [Paragraph(_text(
+                " / ".join(filter(None, [
+                    f"피해 판정 수정 사유: {detail.verification.reviewer_comment}" if detail.verification.reviewer_comment else None,
+                    f"긴급도 수정 사유: {detail.severity.adjustment_reason}" if detail.severity.adjustment_reason else None,
+                    f"지원금 수정 사유: {detail.subsidy.adjustment_reason}" if detail.subsidy.adjustment_reason else None,
+                ])) or "수정 이력 없음"
+            ), body)],
             [approval_table],
         ],
         colWidths=[170 * mm],

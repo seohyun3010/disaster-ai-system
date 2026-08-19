@@ -76,6 +76,30 @@ _GRADE_LABELS = {
     "DS4": "전파",
 }
 
+_SEVERITY_COMPONENT_LABELS = {
+    "ai_grade_score": "AI 피해등급 점수",
+    "household_score": "가구원 수 점수",
+    "facility_livelihood_score": "시설·이재민 긴급도 점수",
+}
+
+
+def _severity_adjustment_reason(severity: SeverityResult | None) -> str | None:
+    if severity is None:
+        return None
+    component_reasons = severity.component_adjustment_reasons or {}
+    if component_reasons:
+        return " / ".join(
+            f"{_SEVERITY_COMPONENT_LABELS.get(key, key)}: {reason}"
+            for key, reason in component_reasons.items()
+            if reason
+        ) or None
+    reason = severity.manual_adjustment_reason
+    if not reason:
+        return None
+    for key, label in _SEVERITY_COMPONENT_LABELS.items():
+        reason = reason.replace(f"{key}:", f"{label}:")
+    return reason
+
 
 def _grade_text(raw_grade: str | None) -> str:
     if not raw_grade:
@@ -180,6 +204,7 @@ def _timeline(
     review: Review | None,
 ) -> list[ReportTimelineResponse]:
     creator = _creator_response(case).name
+    severity_adjustment_reason = _severity_adjustment_reason(severity)
     events = [
         ReportTimelineResponse(
             occurred_at=case.reported_at or case.received_at or case.created_at,
@@ -205,8 +230,9 @@ def _timeline(
                 description=(
                     f"복구 긴급도 {severity.recovery_urgency_score:g}점"
                     f", 우선순위 {severity.recovery_priority}순위로 산정했습니다."
+                    + (f" 수정 사유: {severity_adjustment_reason}" if severity_adjustment_reason else "")
                 ),
-                actor="긴급도 산정 시스템",
+                actor="담당자 수동 반영" if severity.is_manual else "긴급도 산정 시스템",
             )
         )
     if subsidy:
@@ -215,7 +241,8 @@ def _timeline(
             ReportTimelineResponse(
                 occurred_at=review.reviewed_at if review else report.created_at,
                 title="지원금 산정",
-                description=f"지원금 {amount:,.0f}원을 산정했습니다.",
+                description=(f"지원금 {amount:,.0f}원을 산정했습니다."
+                    + (f" 수정 사유: {subsidy.adjustment_reason}" if subsidy.adjustment_reason else "")),
                 actor=creator,
             )
         )
@@ -342,6 +369,9 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
             secondary_damage_score=severity.secondary_damage_score if severity else None,
             applied_damage_grade=severity.applied_damage_grade if severity else None,
             rule_version=severity.rule_version if severity else None,
+            is_manual=severity.is_manual if severity else False,
+            adjustment_reason=_severity_adjustment_reason(severity),
+            adjusted_at=severity.manually_adjusted_at if severity else None,
             # ▲▲▲ 신규 추가 끝
         ),
         subsidy=ReportSubsidyResponse(
@@ -349,6 +379,9 @@ def build_report_detail(db: Session, report: Report) -> ReportDetailResponse:
             confirmed_amount=subsidy.confirmed_amount if subsidy else None,
             status=subsidy.status if subsidy else None,
             damage_grade=subsidy.damage_grade if subsidy else None,
+            calculation_basis=subsidy.calculation_basis if subsidy else None,
+            adjustment_reason=subsidy.adjustment_reason if subsidy else None,
+            adjusted_at=subsidy.adjusted_at if subsidy else None,
         ),
         verification=ReportVerificationResponse(
             duplicate_report_result=(
@@ -509,7 +542,9 @@ def render_report_text(detail: ReportDetailResponse) -> str:
             f"피해 위치: {detail.case.address or '-'}",
             f"최종 피해등급: {detail.analysis.damage_grade or '-'}",
             f"긴급도 점수: {detail.severity.urgency_score:g}점",
+            f"긴급도 수정 사유: {detail.severity.adjustment_reason or '-'}",
             f"최종 지원금: {amount:,.0f}원",
+            f"지원금 수정 사유: {detail.subsidy.adjustment_reason or '-'}",
             f"최종 처리 결과: {detail.approval_result}",
             f"보고서 작성자: {detail.creator.name}",
             "",

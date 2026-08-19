@@ -184,6 +184,7 @@
 #     )
 #     return db.scalar(statement)
 
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -311,6 +312,8 @@ def serialize_subsidy(subsidy: Subsidy) -> dict:
         "calculation_standard": CALCULATION_STANDARD_LABEL if subsidy.damage_grade else None,
         "unit_price": unit_price,
         "damage_ratio_percent": ratio_percent,
+        "adjustment_reason": subsidy.adjustment_reason,
+        "adjusted_at": subsidy.adjusted_at,
     }
 
 
@@ -389,6 +392,12 @@ def upsert_subsidy(
     subsidy.estimated_amount = payload.estimated_amount
     subsidy.confirmed_amount = payload.confirmed_amount
     subsidy.status = payload.status
+    if payload.adjustment_reason is not None:
+        reason = payload.adjustment_reason.strip()
+        if not reason:
+            raise ValueError("지원금 수정 사유를 입력해야 합니다.")
+        subsidy.adjustment_reason = reason
+        subsidy.adjusted_at = datetime.now()
     db.commit()
     db.refresh(subsidy)
     return subsidy

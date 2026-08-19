@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from database.database import get_db
 from models.severity_result import SeverityResult
-from schemas.severity import SeverityResponse
-from services.severity_service import calculate_and_save, get_latest_result
+from schemas.severity import SeverityManualUpdateRequest, SeverityResponse
+from services.severity_service import calculate_and_save, get_latest_result, save_manual_scores
 
 
 router = APIRouter(prefix="/cases/{case_id}", tags=["severity"])
@@ -29,6 +29,10 @@ def _result_response(result: SeverityResult) -> SeverityResponse:
             "household_score": result.vulnerability_score,
             "facility_livelihood_score": result.infrastructure_score,
         },
+        is_manual=result.is_manual,
+        manual_adjustment_reason=result.manual_adjustment_reason,
+        manually_adjusted_at=result.manually_adjusted_at,
+        component_reasons=result.component_adjustment_reasons or {},
     )
 
 
@@ -52,3 +56,16 @@ def calculate_severity(
 )
 def read_severity(case_id: int, db: Session = Depends(get_db)) -> SeverityResponse:
     return _result_response(get_latest_result(db, case_id))
+
+
+@router.put(
+    "/severity/manual",
+    response_model=SeverityResponse,
+    summary="복구 긴급도 수동 수정 저장",
+)
+def update_severity_manually(
+    case_id: int,
+    payload: SeverityManualUpdateRequest,
+    db: Session = Depends(get_db),
+) -> SeverityResponse:
+    return _result_response(save_manual_scores(db, case_id, payload))

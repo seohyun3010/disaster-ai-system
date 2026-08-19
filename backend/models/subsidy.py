@@ -1,9 +1,10 @@
 """subsidies 테이블 지급금(보급비용) 관련 모델."""
 
+from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import BigInteger, ForeignKey, Numeric, String, Text
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database.database import Base
@@ -25,4 +26,6 @@ class Subsidy(Base):
     status: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     damage_grade: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     calculation_basis: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    adjustment_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    adjusted_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     case: Mapped["Case"] = relationship(back_populates="subsidies")
