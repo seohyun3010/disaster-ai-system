@@ -23,6 +23,7 @@ export const API_PATHS = {
   SEVERITY: {
     CALCULATE: (caseId) => `/cases/${caseId}/severity/calculate`,
     DETAIL: (caseId) => `/cases/${caseId}/severity`,
+    MANUAL: (caseId) => `/cases/${caseId}/severity/manual`,
   },
   REVIEWS: {
     CREATE: (caseId) => `/cases/${caseId}/reviews`,

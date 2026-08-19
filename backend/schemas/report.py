@@ -88,6 +88,9 @@ class ReportSeverityResponse(BaseModel):
     secondary_damage_score: float | None = None
     applied_damage_grade: str | None = None
     rule_version: str | None = None
+    is_manual: bool = False
+    adjustment_reason: str | None = None
+    adjusted_at: datetime | None = None
     # ▲▲▲ 신규 추가 끝
 
 
@@ -96,6 +99,9 @@ class ReportSubsidyResponse(BaseModel):
     confirmed_amount: Decimal | None = None
     status: str | None = None
     damage_grade: str | None = None
+    calculation_basis: str | None = None
+    adjustment_reason: str | None = None
+    adjusted_at: datetime | None = None
 
 
 class ReportVerificationResponse(BaseModel):
